@@ -54,11 +54,9 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
       </div>
 
       <div class="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <div class="max-lg:hidden">
-          <Sidebar>
-            <slot name="sidebar" />
-          </Sidebar>
-        </div>
+        <Sidebar class="max-lg:hidden">
+          <slot name="sidebar" />
+        </Sidebar>
 
         <div class="app-main relative isolate min-w-0 overflow-x-clip lg:border-l">
           <main class="px-2 lg:px-0">

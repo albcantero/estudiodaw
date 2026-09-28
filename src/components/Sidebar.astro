@@ -7,11 +7,12 @@ import { getCollection } from 'astro:content';
 const subjects = (await getCollection('subjects')).sort((a, b) => a.data.order - b.data.order);
 const temas = await getCollection('temas');
 const count = (id: string) => temas.filter((t) => t.data.subject === id).length;
+const { class: className } = Astro.props;
 const current = Astro.url.pathname.split('/')[1] ?? '';
 const isHome = Astro.url.pathname === '/';
 ---
 
-<aside class="sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0">
+<aside class:list={['sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0', className]}>
   <div class="flex min-h-0 flex-col px-5 pt-[clamp(2rem,6vh,3.25rem)] pb-5 lg:h-full">
     <div class="shrink-0">
       <a href="/" class="rise block w-fit rounded-full focus-visible:outline-2 focus-visible:outline-offset-2" style="--d:0ms" aria-label="estudiodaw.dev, inicio">
@@ -26,10 +27,11 @@ const isHome = Astro.url.pathname === '/';
     </div>
 
     <div class="rise mt-7 flex min-h-0 flex-1 flex-col overflow-y-auto border-t border-dashed pt-5 [scrollbar-width:none]" style="--d:320ms">
+      <div class="plate-list relative isolate">
+      <div class="hover-plate pointer-events-none absolute top-0 left-0 -z-10 will-change-transform" aria-hidden="true"></div>
       <p class="mb-2 font-mono text-[0.625rem] tracking-wider text-muted-foreground uppercase">Navegación</p>
       <nav aria-label="Principal">
-        <ul class="plate-list relative isolate flex flex-col">
-          <li class="hover-plate pointer-events-none absolute top-0 left-0 -z-10" aria-hidden="true"></li>
+        <ul class="flex flex-col">
           <li>
             <a href="/" class:list={['nav-link', isHome && 'is-active']} aria-current={isHome ? 'page' : undefined}>
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4 shrink-0"><path d="M2.5 7 8 2.5 13.5 7v6a.5.5 0 0 1-.5.5H10v-4H6v4H3a.5.5 0 0 1-.5-.5Z" /></svg>
@@ -47,8 +49,7 @@ const isHome = Astro.url.pathname === '/';
 
       <p class="mt-5 mb-2 font-mono text-[0.625rem] tracking-wider text-muted-foreground uppercase">Asignaturas</p>
       <nav aria-label="Asignaturas">
-        <ul class="plate-list relative isolate flex flex-col">
-          <li class="hover-plate pointer-events-none absolute top-0 left-0 -z-10" aria-hidden="true"></li>
+        <ul class="flex flex-col">
           {
             subjects.map((s) => {
               const active = current === s.id;
@@ -68,6 +69,7 @@ const isHome = Astro.url.pathname === '/';
           }
         </ul>
       </nav>
+      </div>
 
       <slot />
     </div>
@@ -130,38 +132,152 @@ const isHome = Astro.url.pathname === '/';
 </style>
 
 <script>
-  // Plato de hover: una sola pieza que se desliza hasta el enlace bajo el puntero.
+  // Réplica del HoverPlate de designeer.xyz, sacada de su bundle:
+  // - El plato reposa en el enlace activo y viaja al que tiene el puntero.
+  // - Posición y tamaño con muelle { stiffness 140, damping 18, mass 1 }.
+  // - Se inclina hacia el puntero (pull 0.35): hasta 9.7 px en x y 6.4 px en y,
+  //   normalizado al centro del enlace, con muelle { stiffness 195, damping 23.5 }.
+  // - Opacidad con muelle { stiffness 700, damping 46 }.
+  // - Rectángulo en vertical: x 4, y = top del enlace + 3, ancho del contenedor - 8, alto - 6.
+  type Spring = { value: number; velocity: number; target: number; stiffness: number; damping: number };
+
+  const spring = (stiffness: number, damping: number): Spring => ({ value: 0, velocity: 0, target: 0, stiffness, damping });
+  const PULL_STRENGTH = 0.35;
+  const clamp = (v: number) => (v < -1 ? -1 : v > 1 ? 1 : v);
+
+  function step(s: Spring, dt: number) {
+    const force = -s.stiffness * (s.value - s.target) - s.damping * s.velocity;
+    s.velocity += force * dt;
+    s.value += s.velocity * dt;
+  }
+  const settled = (s: Spring) => Math.abs(s.value - s.target) < 0.05 && Math.abs(s.velocity) < 0.05;
+  const jump = (s: Spring, v: number) => {
+    s.value = s.target = v;
+    s.velocity = 0;
+  };
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  document.querySelectorAll<HTMLUListElement>('.plate-list').forEach((list) => {
-    const plate = list.querySelector<HTMLElement>('.hover-plate');
+  document.querySelectorAll<HTMLElement>('.plate-list').forEach((container) => {
+    const plate = container.querySelector<HTMLElement>('.hover-plate');
     if (!plate) return;
-    let visible = false;
+    const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('.nav-link'));
+    const active = container.querySelector<HTMLAnchorElement>('.nav-link.is-active');
 
-    const moveTo = (link: HTMLElement) => {
-      const animate = visible && !reduceMotion;
-      plate.style.transition = animate
-        ? 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1), height 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 150ms ease'
-        : 'opacity 150ms ease';
-      plate.style.width = `${link.offsetWidth}px`;
-      plate.style.height = `${link.offsetHeight}px`;
-      plate.style.transform = `translateY(${link.parentElement!.offsetTop}px)`;
-      plate.style.opacity = '1';
-      visible = true;
+    const x = spring(140, 18);
+    const y = spring(140, 18);
+    const w = spring(140, 18);
+    const h = spring(140, 18);
+    const px = spring(195, 23.5);
+    const py = spring(195, 23.5);
+    const opacity = spring(700, 46);
+    const all = [x, y, w, h, px, py, opacity];
+    let hovered: HTMLAnchorElement | null = null;
+    let pointer: { x: number; y: number } | null = null;
+    let raf = 0;
+    let last = 0;
+    let placed = false;
+
+    const rectOf = (link: HTMLElement) => {
+      const c = container.getBoundingClientRect();
+      const l = link.getBoundingClientRect();
+      return { x: 4, y: l.top - c.top + 3, width: container.clientWidth - 8, height: l.height - 6 };
     };
 
-    list.querySelectorAll<HTMLAnchorElement>('.nav-link').forEach((link) => {
-      link.addEventListener('pointerenter', () => moveTo(link));
-      link.addEventListener('focus', () => moveTo(link));
+    function render() {
+      plate!.style.width = w.value + 'px';
+      plate!.style.height = h.value + 'px';
+      plate!.style.transform = 'translate(' + (x.value + px.value) + 'px, ' + (y.value + py.value) + 'px)';
+      plate!.style.opacity = String(Math.max(0, Math.min(1, opacity.value)));
+    }
+
+    function tick(now: number) {
+      const dt = Math.min(0.032, (now - last) / 1000);
+      last = now;
+      // Subpasos: integrador estable con cualquier frecuencia de refresco
+      for (let i = 0; i < 4; i++) all.forEach((s) => step(s, dt / 4));
+      render();
+      if (all.every(settled)) {
+        all.forEach((s) => jump(s, s.target));
+        render();
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    }
+
+    function retarget() {
+      const target = hovered ?? active;
+      if (!target) {
+        opacity.target = 0;
+        px.target = 0;
+        py.target = 0;
+      } else {
+        const r = rectOf(target);
+        // Primera colocación, o saliendo de invisible: salta sin animar (como el jump de designeer)
+        if (!placed || opacity.value < 0.05) {
+          jump(x, r.x);
+          jump(y, r.y);
+          jump(w, r.width);
+          jump(h, r.height);
+          placed = true;
+        } else {
+          x.target = r.x;
+          y.target = r.y;
+          w.target = r.width;
+          h.target = r.height;
+        }
+        opacity.target = 1;
+        if (hovered && pointer && !reduceMotion) {
+          px.target = clamp((pointer.x - (r.x + r.width / 2)) / (r.width / 2)) * 9.7 * PULL_STRENGTH;
+          py.target = clamp((pointer.y - (r.y + r.height / 2)) / (r.height / 2)) * 6.4 * PULL_STRENGTH;
+        } else {
+          px.target = 0;
+          py.target = 0;
+        }
+      }
+      if (reduceMotion) {
+        all.forEach((s) => jump(s, s.target));
+        render();
+      } else if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
+    }
+
+    links.forEach((link) => {
+      link.addEventListener('pointerenter', () => {
+        hovered = link;
+        retarget();
+      });
+      link.addEventListener('focus', () => {
+        hovered = link;
+        pointer = null;
+        retarget();
+      });
     });
 
-    const hide = () => {
-      plate.style.opacity = '0';
-      visible = false;
-    };
-    list.addEventListener('pointerleave', hide);
-    list.addEventListener('focusout', (event) => {
-      if (!list.contains(event.relatedTarget as Node)) hide();
+    container.addEventListener('pointermove', (event) => {
+      const c = container.getBoundingClientRect();
+      pointer = { x: event.clientX - c.left, y: event.clientY - c.top };
+      if (hovered) retarget();
     });
+
+    const release = () => {
+      hovered = null;
+      pointer = null;
+      retarget();
+    };
+    container.addEventListener('pointerleave', release);
+    container.addEventListener('focusout', (event) => {
+      if (!container.contains(event.relatedTarget as Node)) release();
+    });
+
+    new ResizeObserver(() => {
+      placed = false;
+      retarget();
+    }).observe(container);
+
+    retarget();
   });
 </script>
