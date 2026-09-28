@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!--
+        - Nombre de una persona: xs:string
+        - Precio de un producto (puede tener decimales): xs:decimal
+        - Año de publicación (solo positivos): xs:positiveInteger 
+        - ¿Está disponible? (sí/no): xs:boolean
+        - Fecha de nacimiento (formato 2024-05-06): xs:date	
+        - Temperatura que puede ser negativa: xs:integer
+        - URL de una imagen	: xs:anyURI
+        - Identificador único de un elemento: xs:ID
+        
+    -->
+
+    <!--
+        CORRECCIÓN:
+        - Temperatura: xs:decimal es más correcto — puede tener decimales (-3.5°C).
+          xs:integer también se aceptaría en el examen si se justifica.
+    -->
+
+</xs:schema>

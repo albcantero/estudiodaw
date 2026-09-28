@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<!-- Documento corregido completo -->
+
+<tienda>
+
+    <producto id="001">
+        <nombre>Teclado mecánico</nombre>
+        <precio>79.99</precio>
+        <descripcion>Compatible con Windows &amp; con Mac</descripcion>
+    </producto>
+    
+    <producto>
+        <nombre>Ratón inalámbrico</nombre>
+        <precio>34.50</precio>
+    </producto>
+
+    <!--
+    Errores encontrados:
+        1. "xml" en mayúscula en el prólogo.
+        2. El contenido del atributo "id" sin comillas.
+        3. El caracter "&" incompleto. Falta "amp;".
+        4. La segunda etiqueta "producto" escrita con mayúscula. 
+    -->
+
+</tienda>
+
+<!--
+    CORRECCIÓN
+
+    El XML corregido es perfecto — todos los errores están bien arreglados en el código.
+    El problema está en la identificación del error 4.
+
+    1. Correcto.
+    2. Correcto.
+    3. Correcto, pero la descripción es ligeramente imprecisa: & no está "incompleto",
+       es un carácter directamente prohibido en XML que hay que sustituir por &amp;
+
+    4. Equivocado. La mayúscula en <Producto> era el bonus — no es un error de bien formado,
+       sino de inconsistencia de diseño (case-sensitive).
+       El error real nº 4 era: <precio>34.50</nombre>
+       La etiqueta de cierre decía </nombre> cuando debería ser </precio>.
+       Lo arreglaste en el código (línea 13) pero no lo identificaste en el comentario.
+-->
+

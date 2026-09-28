@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!--
+        Error 1. Falta añadir el namespace de "xs". Es decir: xmlns:xs="http://www.w3.org/2001/XMLSchema".
+        Error 2. Falta cerrar la etiqueta de <xs:minInclusive>. Es decir: <xs:minInclusive value="0"/>.
+        Error 3. Falta añadir el prefijo del schema al tipo "string" en <nombre>, Es decir: type="xs:string".
+        Error 4. La opción de 'use' no es correcta. Las opciones son "required", "optional" y "prohibited". Es decir, por el contexto sería: use="required".
+        Error 5. ??
+    -->
+
+</xs:schema>
+
+<!--
+    CORRECCIONES
+
+    Errores 1–4: todos correctos. Bien identificados y bien explicados.
+
+    Error 5: el enunciado del ejercicio dice "5 errores" pero el XSD solo tiene
+    4 errores reales. Es un fallo en el propio enunciado — debería decir "4 errores".
+
+    El único candidato a 5º sería que <persona> define su xs:complexType inline
+    (muñeca rusa). Si el enunciado hubiera prohibido eso, contaría. Pero como no
+    lo prohíbe, no es un error en este contexto.
+
+    Resumen de los 4 errores para repasar rápido:
+    1. <xs:schema> sin xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    2. <xs:minInclusive value="0"> sin autocierre — debe ser <xs:minInclusive value="0" />
+    3. type="string" sin prefijo — debe ser type="xs:string"
+    4. use="si" inválido — los valores válidos son: required, optional, prohibited
+-->

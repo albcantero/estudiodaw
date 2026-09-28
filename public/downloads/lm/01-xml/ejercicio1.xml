@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"  standalone="yes" ?>
+
+<ejercicio1>
+
+    <!--
+        1. Falso. HTML es un subconjunto de XML con etiquetas definidias. XMl es un lenguaje de marcado extensible donde la estructura y los nombre de las etiquetas son de libre declaración.
+        2. Verdadero.
+        3. EL prólogo es opcional, pero es recomendable. Es obligatorio en casos en que dependa el documento de otro, por ejemplo, un XSD o un DTD.
+        4. Falso. XML es "case sensitive", es decir, <autor></autor> y <Autor></Autor> NO son lo mismo.
+        5. Falso. Un documento de XML se estructura de este modo: "prólogo (opcional) + encabezado DOCTYPE (opcional) + elemento raíz". Todo debe estar contenido dentro de dicho elemento.
+        6. Verdadero.
+        7. Falso. La validación de documento no sólo depende de que esté bien estrucurado, formateado y con la syntax correcta. La validación depende sistemas externos o internos como XSD o DTD.
+        8. Falso. Los comentarios en XML se escriben así: "<!-- texto ->"
+    -->
+        
+</ejercicio1>
+
+<!--
+    CORRECCIÓN
+
+    1. Falso es correcto, pero la corrección tiene un error: HTML NO es subconjunto de XML.
+       XHTML sí lo es, pero HTML no — son especificaciones distintas que comparten origen (SGML).
+       La corrección correcta: HTML tiene etiquetas fijas y sirve para mostrar datos en el
+       navegador. XML tiene etiquetas libres y sirve para almacenar y transportar datos.
+
+    2. Perfecto.
+
+    3. "Es obligatorio cuando el documento depende de un DTD" es incorrecto.
+       El prólogo (<?xml...?>) es opcional siempre, incluso con DTD.
+       Lo que cambia con un DTD es que necesitas la línea <!DOCTYPE>, pero eso
+       no es el prólogo — son cosas distintas.
+
+    4. Perfecto.
+
+    5. Perfecto.
+
+    6. Perfecto.
+
+    7. Correcto en esencia, pero la explicación es mejorable. Más claro así:
+       bien formado = sintaxis correcta.
+       válido = bien formado + cumple las reglas de un esquema (DTD o XSD).
+       Son dos niveles distintos — el segundo incluye al primero.
+
+    8. Perfecto.
+-->

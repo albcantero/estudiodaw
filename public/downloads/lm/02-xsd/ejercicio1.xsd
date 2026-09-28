@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    
+    <!-- 
+        1. Verdadero.
+        2. Falso. DTD soporte como tipo de datos únicamente texto.
+        3. Falso. Los elementos simples son aquellos que sólo tienen texto como contenido.
+        4. Correcto.
+        5. Correcto.
+        6. Diría que no son obligatorios, pero para que es schema tenga sentido y forma, son necesarios. Pero obligación implica que si no se ponen atributos, en principio, no debería de funcionar. Y no creo que sea el caso.
+        7. Correcto.
+        8. Falso. Esa declaración se refiere a un elemento simple sin hijos. Algo de este tipo: "<etiqueta>texto</etiqueta>"
+        9. Correcto.
+        10. Falso. Se puede aplicar a cualquier tipo.
+    -->
+
+</xs:schema>
+
+<!--
+    CORRECCIONES:
+
+    5. Falso — xs:positiveInteger es estrictamente mayor que 0, así que el 0 NO está permitido.
+       Para incluir el 0 se usa xs:nonNegativeInteger.
+
+    6. Falso — los atributos tienen use="optional" por defecto. Sin poner nada, el atributo
+       es opcional y el esquema es válido. Hay que poner use="required" explícitamente
+       para hacerlo obligatorio.
+-->

@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+
+const subjects = (await getCollection('subjects')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const current = Astro.url.pathname.split('/')[1];
+---
+
+<header class="navbar sticky top-0 z-50 border-b border-line">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-4">
+    <a href="/" class="flex items-baseline gap-0.5 shrink-0 font-heading text-[17px] font-medium">
+      <span class="text-fg">estudiodaw</span><span class="text-accent">.dev</span>
+    </a>
+
+    <nav class="flex items-center gap-1 ml-auto" aria-label="Asignaturas">
+      {
+        subjects.map((s) => (
+          <a
+            href={`/${s.id}`}
+            class:list={[
+              'text-[12px] px-2.5 py-1.5 rounded-full transition-colors hover:bg-surface',
+              current === s.id ? 'text-fg' : 'text-fg-dim hover:text-fg',
+            ]}
+            aria-current={current === s.id ? 'page' : undefined}
+          >
+            {s.data.short}
+          </a>
+        ))
+      }
+      <span class="w-px h-4 bg-line-strong mx-1" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="theme-toggle inline-flex items-center justify-center size-8 rounded-full text-fg-dim hover:text-fg hover:bg-surface transition-colors"
+        aria-label="Cambiar tema"
+      >
+        <svg class="theme-icon theme-icon-moon size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
+        </svg>
+        <svg class="theme-icon theme-icon-sun size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="3" />
+          <path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" />
+        </svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .navbar {
+    background: var(--navbar-bg);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  .theme-toggle {
+    position: relative;
+  }
+
+  .theme-icon {
+    position: absolute;
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  :root[data-theme='dark'] .theme-icon-sun,
+  :root[data-theme='light'] .theme-icon-moon {
+    opacity: 0;
+    transform: scale(0.8) rotate(-12deg);
+  }
+
+  :root[data-theme='dark'] .theme-icon-moon,
+  :root[data-theme='light'] .theme-icon-sun {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+      const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+      root.dataset.theme = next;
+      root.style.colorScheme = next;
+      try {
+        localStorage.setItem('site-theme', next);
+      } catch {}
+    });
+  });
+</script>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<!-- Ejercicio 6 -->
+
+<biblioteca>
+
+    <libro>
+        <titulo>El Archivo de las Tormentas</titulo>
+        <anno_publicacion>2010</anno_publicacion>
+        <editorial>Nova</editorial>
+        <autores>
+            <autor_primero>Brandon Sanderson</autor_primero>
+        </autores>
+    </libro>
+
+    <libro>
+        <titulo>La Rueda del Tiempo 20</titulo>
+        <anno_publicacion>2015</anno_publicacion>
+        <editorial>Minotauro</editorial>
+        <autores>
+            <autor_primero>Brandon Sanderson</autor_primero>
+            <autor_segundo>Robert Jordan</autor_segundo>
+        </autores>
+        <precio>24.95 &amp;#8364;</precio>
+    </libro>
+
+</biblioteca>
+
+<!--
+    CORRECCIÓN
+
+    1. El primer libro tiene solo 1 autor. El enunciado pedía al menos 2 en cada libro.
+
+    2. &amp;#8364; está mal. &amp; es la entidad del símbolo &, así que el parser
+       lo interpreta como el texto literal &#8364;, no como €.
+       Lo correcto es &#8364; directamente.
+
+    3. Diseño mejorable: usar <autor_primero> y <autor_segundo> es limitante.
+       Si hay un tercer autor, no hay sitio para él. El patrón correcto es repetir
+       la misma etiqueta <autor> tantas veces como haga falta:
+           <autores>
+               <autor>Brandon Sanderson</autor>
+               <autor>Robert Jordan</autor>
+           </autores>
+-->

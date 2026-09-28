@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<ejercicio2>
+
+    <!--
+        a) El prólogo es "<?xml version="1.0" encoding="UTF-8" standalone="no" ?>"
+        b) El ejemplar es es <tienda></tienda>.
+        c) "elec" es el preifijo que indica que la información procede de otro archivo XML. Se declara con "xmlsn" y el URI es la ruta en donde se encuentra dicho archivo.
+        d) Ambas son etiquetas. "id" y "disponible" son los nombres de las etiquetas, y el texto entrecomillado es el contenido de ellas.
+        e) No lo sé. Reconozco que se trata de algo en hexadecimal. Un caracter no permitido en XML escrito directamente. Pero no sé cuál es. En los apuntes no lo he encontrado.
+        -->
+
+</ejercicio2>
+
+<!--
+    CORRECCIÓN
+
+    a) Incompleta. El prólogo es correcto, pero faltaba explicar standalone="no":
+       significa que el documento depende de un fichero externo (como un DTD).
+
+    b) Perfecto.
+
+    c) Dos errores:
+       - El prefijo "elec" NO indica que los datos vengan de otro archivo.
+         Sirve para evitar ambigüedad cuando dos XMLs tienen etiquetas con el mismo nombre.
+       - El URI NO es una ruta a ningún fichero. Es solo una cadena única
+         que actúa como identificador — no tiene que existir como URL real.
+
+    d) Error de concepto. id="P001" y disponible="true" son ATRIBUTOS, no etiquetas.
+       Un atributo es una propiedad dentro de la etiqueta de apertura.
+       La etiqueta es <elec:producto>. Los atributos son id y disponible,
+       con valores P001 y true respectivamente.
+
+    e) &#46; es decimal (el hex sería &#x2E;). Representa el punto ".".
+       La trampa: el punto NO es un carácter prohibido en XML — se puede escribir
+       directamente. Estaba escrito así por ser explícito, pero no era necesario.
+-->

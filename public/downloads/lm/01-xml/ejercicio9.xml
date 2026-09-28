@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no" ?>
+<!DOCTYPE menu_restaurante>
+
+<menu xmlns:ent="http://mi-restaurante/entrantes"
+      xmlns:post="http://mi-restaurante/postres">
+
+    <ent:carta>
+        <ent:plato vegetariano="si">
+            <ent:nombre>Ensalada mediterránea</ent:nombre>
+            <ent:precio>9.99&#8364;</ent:precio> <!-- 9.99 € -->
+        </ent:plato>
+
+        <ent:plato vegetariano="no">
+            <ent:nombre>Tabla de quesos</ent:nombre>
+            <ent:precio>13.95&#8364;</ent:precio>
+        </ent:plato>
+
+        <ent:plato vegetariano="no">
+            <ent:nombre>Anchoas en aceite de oliva</ent:nombre>
+            <ent:precio>19.99&#8364;</ent:precio>
+            <agotado />
+        </ent:plato>
+    </ent:carta>
+    
+    <post:carta>
+        <post:plato vegetariano="si">
+            <post:nombre>Flan clásico</post:nombre>
+            <post:precio>4.99&#8364;</post:precio>
+            <agotado />
+        </post:plato>
+
+        <post:plato vegetariano="si">
+            <post:nombre>Sorbete de limón</post:nombre>
+            <post:precio>3.95&#8364;</post:precio>
+        </post:plato>
+
+        <post:plato vegetariano="si">
+            <post:nombre>Tarta de queso</post:nombre>
+            <post:precio>5.99&#8364;</post:precio>
+        </post:plato>
+    </post:carta>
+    
+</menu>
+
+<!--
+    CORRECCIÓN
+
+    Estructura muy buena, todos los requisitos cubiertos. Correcciones:
+
+    1. <agotado/> sin prefijo: único elemento sin namespace, queda inconsistente.
+       Podría ser <ent:agotado/> o <post:agotado/> según el bloque,
+       o dejarlo sin prefijo si se trata como elemento global, pero habría que justificarlo.
+-->

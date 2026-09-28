@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<empleados>
+    
+    <empleado id="E001" departamento="Desarrollo" salario="2400">Sofía Torres</empleado>
+    <empleado id="E002" departamento="Diseño" salario="2100">Jorge Navarro</empleado>
+
+    <!-- 
+        ¿Cuál es mejor? Quizá lo mejor sea un híbrido. Ni únicamente etiquetas anidadas, ni únicamente atributos. Creo que la mejor versión sería esta:
+            <empleado id="E001">
+                <nombre>Sofía Torres</nombre>
+                <departamento>Desarrollo</departamento>
+                <salario>2400</salario>
+            </empleado>
+    -->
+
+</empleados>
+
+<!--
+    CORRECCIÓN
+
+    La versión con atributos es válida, pero meter nombre como contenido de texto
+    del elemento (>Sofía Torres</empleado>) es inconsistente con la idea de "todo atributos".
+    Lo más coherente habría sido:
+    
+        <empleado id="E001" nombre="Sofía Torres" departamento="Desarrollo" salario="2400" />
+
+    El razonamiento del híbrido es correcto y bien justificado. id como atributo tiene
+    sentido porque es un identificador puro. El resto como elementos da flexibilidad:
+    si mañana salario necesita moneda o departamento tiene un código, puedes añadir
+    subelementos. Con atributos no puedes.
+-->

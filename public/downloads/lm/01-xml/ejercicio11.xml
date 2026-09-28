@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<ejercicio11>
+
+    <!-- 
+        A)
+            1. Verdadero.
+            2. Verdadero.
+            3. Falso. Es la marca de cierre.
+            4. Verdadero.
+            5. Falso. Únicamente se puede emplear en el contenido de una etiqueta.
+
+        B)
+            a) No se puede utilizar "]]>" dentro del contenido de una cadena CDATA, poqrue es la etiqueta de cierre.
+            b) La etiqueta "<descripcion>" es correcta. Pero en "<nota>" hay varios fallos: falta o bien emplear una cadean CDATA para mostrar los caracteres "&" y "<", o bien emplear su código de carácter: &amp; y &t;
+            c) No se puede encadenar una cadena CDATA con más texto literal. La cadena "y algo más" debería ir DENTRO de CDATA.
+    
+        
+        C)
+            <condicion><![CDATA[Si precio < 50 && cantidad > 0, aplicar descuento del 10%]]></condicion>
+    -->
+
+</ejercicio11>
+
+<!--
+    CORRECCIÓN
+
+    A) Todo correcto.
+
+    B)
+        a) Correcto.
+        b) Correcto en la dirección, pero &t; no existe — la entidad de < es &lt;.
+           Además falta señalar que CDATA="si" como atributo no es sintaxis XML válida,
+           eso no existe como declaración.
+        c) Incorrecto. Mezclar CDATA con texto normal en el mismo elemento SÍ es válido.
+           <formula><![CDATA[ a < b ]]>y algo más</formula> es bien formado.
+           El texto después del cierre de CDATA es simplemente contenido de texto normal.
+
+    C) Correcto.
+-->

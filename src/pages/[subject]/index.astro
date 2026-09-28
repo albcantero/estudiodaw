@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Card from '../../components/Card.astro';
+
+export async function getStaticPaths() {
+  const subjects = await getCollection('subjects');
+  return subjects.map((subject) => ({
+    params: { subject: subject.id },
+    props: { subject },
+  }));
+}
+
+const { subject } = Astro.props;
+const temas = (await getCollection('temas'))
+  .filter((t) => t.data.subject === subject.id)
+  .sort((a, b) => a.data.number - b.data.number);
+const docs = await getCollection('docs');
+
+const kindLabel = { teoria: 'teoría', ejercicios: 'ejercicios', soluciones: 'soluciones' };
+const docsOf = (slug: string) =>
+  docs
+    .filter((d) => d.id.startsWith(`${subject.id}/${slug}/`))
+    .map((d) => kindLabel[d.data.kind])
+    .join(' · ');
+---
+
+<Base title={subject.data.name} description={subject.data.description}>
+  <header class="pt-14 md:pt-20 pb-10 md:pb-14 max-w-3xl">
+    <p class="eyebrow mb-4">
+      <a href="/" class="hover:text-fg transition-colors">Asignaturas</a> / {subject.data.short}
+    </p>
+    <h1 class="font-heading font-medium text-fg text-[2.4rem] sm:text-5xl leading-[1.05] tracking-[-0.02em] text-balance">
+      {subject.data.name}
+    </h1>
+    <p class="mt-5 text-lg leading-snug text-fg-dim text-balance">{subject.data.description}</p>
+  </header>
+
+  <h2 class="eyebrow border-t border-line pt-3 mb-2">Temas</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10">
+    {
+      temas.map((t) => (
+        <Card
+          href={`/${subject.id}/${t.data.slug}/teoria`}
+          number={String(t.data.number).padStart(2, '0')}
+          label={t.data.unit ?? `Tema ${t.data.number}`}
+          title={t.data.title}
+          description={t.data.description}
+          foot={docsOf(t.data.slug)}
+          color={subject.data.color}
+        />
+      ))
+    }
+  </div>
+</Base>

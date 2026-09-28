@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<ejercicio4>
+
+    <!-- 
+        A. Sí está bien formado. Un único elemento ejemplar o raíz, las etiquetas cierran correctamente, y hay consistencia de diseño (case-sensitive).
+        
+        B. Hay errores. Dos etiquetas de cierre intercambiadas. La solución correcta sería esta
+            <?xml version="1.0" encoding="UTF-8"?>
+            <pedido>
+                <cliente>María García</cliente>
+            </pedido>
+            <linea>
+                    <articulo>Libro XML</articulo>
+            </linea>
+        
+        C. Es correcto. Falta el prólogo, pero no es obligatorio.
+    -->
+
+</ejercicio4>
+
+<!--
+    CORRECCIÓN
+
+    A. Perfecto.
+
+    B. El diagnóstico es correcto (no bien formado, anidamiento roto), pero la solución
+       propuesta también está mal: poner <linea> fuera de <pedido> crea dos elementos raíz,
+       lo cual tampoco es bien formado.
+       La solución correcta es respetar el anidamiento:
+
+           <?xml version="1.0" encoding="UTF-8"?>
+           <pedido>
+               <cliente>María García</cliente>
+               <linea>
+                   <articulo>Libro XML</articulo>
+               </linea>
+           </pedido>
+
+    C. Perfecto.
+-->

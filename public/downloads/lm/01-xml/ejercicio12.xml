@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!DOCTYPE gestion_torneo>
+
+<gestion_torneo xmlns:eq="http://mi-torneo/datos/equipos-y-jugadores"
+                xmlns:comp="http://mi-torneo/datos/competicion-y-partidos">
+
+    <!-- Colección de equipos con todos su datos -->
+    <eq:equipos>
+
+        <eq:quipo id="E001">
+            <eq:nombre>Toros Bravos</eq:nombre>
+            <eq:ciudad>Ciudad Rodrigo</eq:ciudad>
+            <eq:jugadores>
+                <eq:jguador nombre="Juanjo" num="01" pos="portero_titular" cap="1" />
+                <eq:jguador nombre="Pablo" num="02" pos="portero_aux" />
+                <eq:jguador nombre="Juan" num="03" pos="defensa" />
+                <eq:jguador nombre="Marcos" num="04" pos="defensa" />
+                <eq:jguador nombre="Alberto" num="05" pos="defensa_aux" />
+                <eq:jguador nombre="Chuchi" num="06" pos="centro" />
+                <eq:jguador nombre="Sergio" num="07" pos="centro" />
+                <eq:jguador nombre="Antonio" num="08" pos="centro" />
+                <eq:jguador nombre="Andrés" num="09" pos="delantero" />
+                <eq:jguador nombre="Juanito Jr." num="10" pos="delantero_aux" />
+                <eq:jguador nombre="Pascal" num="11" pos="delantero_aux" />
+            </eq:jugadores>
+        </eq:quipo>
+
+        <eq:quipo id="E002">
+            <eq:nombre>Salamanca Unión Deportiva</eq:nombre>
+            <eq:ciudad>Salamanca</eq:ciudad>
+            <eq:jugadores>
+                <eq:jguador nombre="Pedro" num="01" pos="portero_titular" />
+                <eq:jguador nombre="Moisés" num="02" pos="portero_aux" />
+                <eq:jguador nombre="Sergi" num="03" pos="defensa" />
+                <eq:jguador nombre="Antonio" num="04" pos="defensa" />
+                <eq:jguador nombre="Diego" num="05" pos="defensa_aux" />
+                <eq:jguador nombre="Aarón" num="06" pos="centro_aux" />
+                <eq:jguador nombre="Matías" num="07" pos="centro" />
+                <eq:jguador nombre="Fran" num="08" pos="centro" />
+                <eq:jguador nombre="Álvaro" num="09" pos="delantero" cap="1"/>
+                <eq:jguador nombre="Paquito" num="10" pos="delantero" />
+                <eq:jguador nombre="Juan" num="11" pos="delantero_aux" />
+            </eq:jugadores>
+        </eq:quipo>
+        
+        <eq:quipo id="E003">
+            <eq:nombre>Leones de Béjar</eq:nombre>
+            <eq:ciudad>Béjar</eq:ciudad>
+            <eq:jugadores>
+                <eq:jguador nombre="Ricardo" num="01" pos="portero_titular" />
+                <eq:jguador nombre="Hugo" num="02" pos="portero_aux" />
+                <eq:jguador nombre="Javier" num="03" pos="defensa" cap="1" />
+                <eq:jguador nombre="Oscar" num="04" pos="defensa" />
+                <eq:jguador nombre="Luis" num="05" pos="defensa_aux" />
+                <eq:jguador nombre="Manuel" num="06" pos="centro" />
+                <eq:jguador nombre="Felipe" num="07" pos="centro" />
+                <eq:jguador nombre="Iván" num="08" pos="centro_aux" />
+                <eq:jguador nombre="Adrián" num="09" pos="delantero" />
+                <eq:jguador nombre="Raúl" num="10" pos="delantero" />
+                <eq:jguador nombre="Borja" num="11" pos="delantero_aux" />
+            </eq:jugadores>
+        </eq:quipo>
+
+        <eq:quipo id="E004">
+            <eq:nombre>Guijuelo Athletic</eq:nombre>
+            <eq:ciudad>Guijuelo</eq:ciudad>
+            <eq:jugadores>
+                <eq:jguador nombre="Roberto" num="01" pos="portero_titular" />
+                <eq:jguador nombre="Fernando" num="02" pos="portero_aux" />
+                <eq:jguador nombre="Carlos" num="03" pos="defensa" />
+                <eq:jguador nombre="Miguel" num="04" pos="defensa" />
+                <eq:jguador nombre="Esteban" num="05" pos="defensa_aux" />
+                <eq:jguador nombre="Jorge" num="06" pos="centro" />
+                <eq:jguador nombre="Mario" num="07" pos="centro" cap="1" />
+                <eq:jguador nombre="Samuel" num="08" pos="centro" />
+                <eq:jguador nombre="Iker" num="09" pos="delantero" />
+                <eq:jguador nombre="Dani" num="10" pos="delantero_aux" />
+                <eq:jguador nombre="Lucas" num="11" pos="delantero_aux" />
+            </eq:jugadores>
+        </eq:quipo>
+
+    </eq:equipos>
+
+    <!-- Histórico de partidos con equipos referenciados por id desde ref_id --> 
+    <comp:temporada>
+
+        <comp:partidos>
+
+            <!--
+                1. Gestion de los datos del resultado: "x-y"
+                    - x = equipo-local
+                    - y = "equipo-visitante"
+                2. <comp:notas_del_partido> en formato Markdown (*.md).
+            -->
+            
+            <!-- Fase preliminar -->
+            <comp:fase_preliminar>
+
+                <comp:partido resultado="3-2"> 
+                    <eq:local ref_id="E001" />
+                    <eq:visitante ref_id="E003" />
+                    <comp:notas_del_partido>
+                        <![CDATA[En este partido juegan los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                </comp:partido>
+
+                <comp:partido resultado="0-11">
+                    <eq:local ref_id="E002" />
+                    <eq:visitante ref_id="E004" />
+                    <comp:notas_del_partido>
+                        <![CDATA[En este partido juegan los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                </comp:partido>
+
+                <!-- Eliminatoria de los perdedores -->
+                <comp:partido resultado="1-2">
+                    <eq:local ref_id="E002" />
+                    <eq:visitante ref_id="E003" />
+                    <comp:notas_del_partido>
+                        <![CDATA[En este partido juegan los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                </comp:partido>
+                
+                <!-- Acceso directo a la final -->
+                <comp:partido resultado="5-3">
+                    <eq:local ref_id="E001" />
+                    <eq:visitante ref_id="E004" />
+                    <comp:notas_del_partido>
+                        <![CDATA[En este partido juegan los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[para ganarse el acceso directo a la final del torneo. Este partido se juega en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                </comp:partido>
+                
+            </comp:fase_preliminar>
+
+            <!-- Segunda fase -->
+            <comp:segunda_fase>
+
+                <comp:partido resultado="1-0">
+                    <eq:local ref_id="E004" />
+                    <eq:visitante ref_id="E003" />
+                    <comp:notas_del_partido>
+                        <![CDATA[Para decidir quién pasa a la final, se disputarán los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                </comp:partido>
+
+            </comp:segunda_fase>
+
+            <!-- Final -->
+            <comp:final>
+
+                <comp:partido resultado="null">
+                    <eq:local ref_id="E001" />
+                    <eq:visitante ref_id="E004" />
+                    <comp:notas_del_partido>
+                        <![CDATA[En la final del torneo juegan los ]]>
+                        <eq:local />
+                        <![CDATA[**contra** los ]]>
+                        <eq:visitante />
+                        <![CDATA[en el campo de fútbol de ]]>
+                        <eq:local ref_ciudad="ref_id_local" />
+                    </comp:notas_del_partido>
+                    <comp:pendiente />
+                </comp:partido>
+
+            </comp:final>
+
+        </comp:partidos>
+
+        <!-- Premio de la presente edición -->
+        <premio edicion="26">Copa Regional de Fútbol Benjamin</premio>
+
+    </comp:temporada>  
+
+</gestion_torneo>
+
+<!--
+    CORRECCIÓN
+
+    Estructura excelente — fases bien pensadas, pendiente en la final, cap="1" como
+    campo opcional, CDATA en todas las notas, cross-referencing correcto.
+
+    Errores técnicos:
+    1. Typos repetidos en todo el documento:
+       - eq:quipo en vez de eq:equipo
+       - eq:jguador en vez de eq:jugador
+
+    2. <premio> sin prefijo de namespace — queda inconsistente con el resto del documento.
+
+    3. resultado="null" en la final es raro como valor. Mejor resultado="pendiente"
+       o simplemente omitirlo, ya que <comp:pendiente/> ya comunica esa información.
+
+    Sobre notas_del_partido:
+    La idea de mezclar CDATA con elementos vacíos como placeholders es ingeniosa,
+    pero en XML puro no funciona como interpolación. Los elementos <eq:local/> y
+    <eq:visitante/> vacíos no se expanden en ningún valor — el parser los ve como
+    nodos vacíos sin contenido. Para que funcionara necesitarías XSLT resolviendo
+    esas referencias. En XML solo es contenido mixto válido pero semánticamente inerte.
+
+    La forma correcta en XML puro es un único bloque CDATA con el texto directo,
+    duplicando los datos que ya están referenciados arriba:
+
+        <comp:notas_del_partido><![CDATA[
+            En este partido juegan los **Toros Bravos** (Ciudad Rodrigo)
+            **contra** los **Leones de Béjar** (Béjar).
+            El partido acabó 3-2 en favor del equipo local.
+        ]]></comp:notas_del_partido>
+
+    Si se quisiera evitar la duplicación, habría que generar ese texto desde XSLT,
+    que sí puede leer el nombre del equipo referenciado y construir la frase.
+
+    Sobre ref_ciudad="ref_id_local":
+    El nombre ref_id_local actúa como documentación de intención — un desarrollador
+    que llegue después y tenga que escribir el XSLT lee ese valor y sabe:
+    "aquí tengo que ir a buscar el ref_id del equipo local".
+
+    Pero XSLT no ejecuta ese valor como instrucción. El XPath lo tiene que construir
+    el programador a mano:
+
+        <xsl:value-of select="//eq:equipo[@id = current()/eq:local/@ref_id]/eq:ciudad" />
+
+    El atributo ref_ciudad="ref_id_local" no dispara eso automáticamente — XSLT lo
+    ignora a menos que explícitamente lo lea con @ref_ciudad y tome decisiones en base
+    a su valor. Lo que sí hace es documentar la intención de navegación para quien
+    escribe ese XPath. El puente entre el nombre y la lógica real lo construye el
+    programador XSLT a mano.
+
+    Alternativa de diseño — <eq:ciudad_local /> vs <eq:local ref_ciudad="ref_id_local" />:
+
+    El problema de fondo es que <eq:local> aparece dos veces con significados distintos:
+    una vez como placeholder del nombre del equipo y otra como placeholder de la ciudad.
+    Mismo tag, dos cosas — el atributo es un parche para diferenciarlos.
+
+    La alternativa limpia es un elemento con nombre propio:
+        <eq:ciudad_local />
+    Sin atributo. El nombre ya dice lo que es, XSLT lo distingue directamente.
+
+    Cuándo usar cada uno:
+    - <eq:local ref_ciudad="ref_id_local" /> → más expresivo como intención, se lee
+      como una instrucción. Mejor para documentar la lógica antes de implementar XSLT.
+    - <eq:ciudad_local /> → más correcto como diseño. Un elemento, un significado.
+      Mejor para un sistema real que va a ser procesado.
+-->

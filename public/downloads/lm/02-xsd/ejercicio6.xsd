@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="producto">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="nombre" type="xs:string" />
+            <xs:element name="cantidad" type="xs:integer" default="1" />
+        </xs:sequence>
+        <xs:attribute name="moneda" type="xs:string" default="EUR" />
+        <xs:attribute name="version" type="xs:string" fixed="2.0" />
+    </xs:complexType>
+</xs:element>
+
+    <!--
+        1. 
+    -->
+
+
+</xs:schema>

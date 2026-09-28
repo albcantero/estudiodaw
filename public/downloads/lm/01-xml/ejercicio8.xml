@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<ejercicio8 xmlns:prod="http://lenguaje-de-marcas/ejercicio8/productos"
+            xmlns:cliente="http://lenguaje-de-marcas/ejercicio8/clientes">
+    
+    <catalogo>
+        <prod:nombre>Laptop Pro</prod:nombre>
+        <precio>999</precio>
+    </catalogo>
+
+    <registro>
+        <cliente:nombre>Ana García</cliente:nombre>
+        <email>ana@email.com</email>
+    </registro>
+
+</ejercicio8>
+
+<!--
+    CORRECCIÓN
+
+    Funciona — la ambigüedad de <nombre> está resuelta. Técnicamente el ejercicio
+    está cumplido.
+
+    Observación de diseño: solo <nombre> lleva prefijo dentro de cada bloque,
+    mientras que <precio> y <email> van sin prefijo. Si los namespaces son para
+    separar el bloque de productos del de clientes, lo coherente es prefijar
+    todos los elementos de cada bloque:
+
+        <prod:catalogo>
+            <prod:nombre>Laptop Pro</prod:nombre>
+            <prod:precio>999</prod:precio>
+        </prod:catalogo>
+        <cliente:registro>
+            <cliente:nombre>Ana García</cliente:nombre>
+            <cliente:email>ana@email.com</cliente:email>
+        </cliente:registro>
+-->

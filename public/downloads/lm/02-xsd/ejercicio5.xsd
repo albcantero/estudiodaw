@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <!-- 
+        Soluciones:
+        
+        A) Números decimales de 0 al 10 con dos dígitos de coma flotante.
+        B) Solamente puede ser "bronce", "plata" u "oro" como opciones.
+        C) Una cadena de texto con 4 números del 0 al 9, seguido de 3 letras mayúsculas.
+        D) Una cadena de texto mínimo 3 caracteres y máximo 8 caracteres.
+    
+    -->
+
+</xs:schema>
+
+<!--
+    CORRECCIONES
+
+    A) Casi correcto. Dos matices:
+       - "dos dígitos de coma flotante" -> di "máximo 2 decimales". fractionDigits="2"
+         no exige exactamente 2, solo como máximo. Los valores 7 y 7.5 también son válidos.
+       - El enunciado pedía ejemplo válido e inválido, falta esa parte.
+       - Válido: 7, 7.5, 0, 10  |  Inválido: 10.5 (supera máximo), -1 (negativo), 7.555 (3 decimales).
+
+    B) Correcto. Solo faltaban los ejemplos.
+       - Válido: "oro"  |  Inválido: "Oro" (mayúscula), "diamante" (no en la lista).
+
+    C) Correcto. Solo faltaban los ejemplos.
+       - Válido: 1234ABC  |  Inválido: 123ABC (3 dígitos), 1234abc (minúsculas), 12345ABC (5 dígitos).
+
+    D) Correcto. Solo faltaban los ejemplos.
+       - Válido: "abc", "AB12CD56"  |  Inválido: "AB" (2 chars, demasiado corto),
+         "123456789" (9 chars, demasiado largo).
+-->

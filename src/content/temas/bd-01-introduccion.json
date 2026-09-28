@@ -1,0 +1,8 @@
+{
+  "subject": "bd",
+  "slug": "01-introduccion",
+  "number": 1,
+  "title": "Introducción a las bases de datos",
+  "description": "Ficheros, modelos de datos, el modelo relacional, SGBD, arquitectura ANSI/SPARC y Oracle XE.",
+  "unit": "UD1"
+}

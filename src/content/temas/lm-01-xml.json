@@ -1,0 +1,22 @@
+{
+  "subject": "lm",
+  "slug": "01-xml",
+  "number": 1,
+  "title": "XML: estructura y sintaxis",
+  "description": "Prólogo, elementos, atributos, entidades, CDATA, espacios de nombres y documentos bien formados.",
+  "unit": "UD1",
+  "downloads": [
+    { "label": "ejercicio1.xml", "file": "/downloads/lm/01-xml/ejercicio1.xml" },
+    { "label": "ejercicio2.xml", "file": "/downloads/lm/01-xml/ejercicio2.xml" },
+    { "label": "ejercicio3.xml", "file": "/downloads/lm/01-xml/ejercicio3.xml" },
+    { "label": "ejercicio4.xml", "file": "/downloads/lm/01-xml/ejercicio4.xml" },
+    { "label": "ejercicio5.xml", "file": "/downloads/lm/01-xml/ejercicio5.xml" },
+    { "label": "ejercicio6.xml", "file": "/downloads/lm/01-xml/ejercicio6.xml" },
+    { "label": "ejercicio7.xml", "file": "/downloads/lm/01-xml/ejercicio7.xml" },
+    { "label": "ejercicio8.xml", "file": "/downloads/lm/01-xml/ejercicio8.xml" },
+    { "label": "ejercicio9.xml", "file": "/downloads/lm/01-xml/ejercicio9.xml" },
+    { "label": "ejercicio10.xml", "file": "/downloads/lm/01-xml/ejercicio10.xml" },
+    { "label": "ejercicio11.xml", "file": "/downloads/lm/01-xml/ejercicio11.xml" },
+    { "label": "ejercicio12.xml", "file": "/downloads/lm/01-xml/ejercicio12.xml" }
+  ]
+}

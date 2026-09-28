@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?> <!-- Prólogo -->
+
+<!-- PRIMERA PARTE DEL EJERCICIO: Identificar cada parte del siguiente fragmento de XSD -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"> <!-- ejemplar obligatorio con prefijo y URI oficial de XSD -->
+
+    <xs:simpleType name="tipoDNI"> <!-- Tipo simple llamado "tipoDNI" -->
+        <xs:restriction base="xs:string"> <!-- La restricción que se va a aplicar es de tipo string, o sea, aplicada a una cadena de texto -->
+            <xs:pattern value="[0-9]{8}[A-Z]" /> <!-- La fórmula de la restricción, parecido a regex. Solo se admiten ocho números y letras mayúsculas -->
+        </xs:restriction> <!-- Etiqueta de cierre -->
+    </xs:simpleType> <!-- Etiqueta de cierre -->
+
+    <xs:element name="empleado"> <!-- Elemento simple llamado "empleado" -->
+        <xs:complexType> <!-- Tipo complejo que admite atributos y elementos hijo -->
+            <xs:sequence> <!-- Secuencia ordenada, se debe cumplir el mismo orden de declaración -->
+                <xs:element name="nombre" type="xs:string" /> <!-- Elemento simple llamado "nombre" de tipo string -->
+                <xs:element name="dni" type="tipoDNI" /> <!-- Elemento simple llamado "dni" de tipo simpleType "tipoDNI" definido arriba -->
+                <xs:element name="telefono" type="xs:string"  
+                            minOccurs="0" maxOccurs="3" /> <!-- Elemento simple llamado "teléfono" -->
+            </xs:sequence> <!-- Etiqueta de cierre -->
+            <xs:attribute name="id" type="xs:string" use="required" /> <!-- Atributo del complexTipe "" -->
+        </xs:complexType> <!-- Etiqueta de cierre -->
+    </xs:element> <!-- Etiqueta de cierre -->
+
+</xs:schema> <!-- Etiqueta de cierre -->
+
+<!-- 
+    SEGUNDA PARTE DEL EJERCICIO: Preguntas
+    
+    a) Es un tipo simple (simpleType) con restricciones aplicadas a cadenas de texto. Para utilizarlo debemos añadir type="tipoDNI" a un xs:element.
+    b) Añadir una restricción sobre las cadenas de texto (xs:string).
+    c) El patrón valida que la cadena de texto tenga hasta ocho números del 0 al 9, y una letra mayúscula.
+    d) <telefono> de 0 a 3 veces, según minOccurs y maxOcurrs; <nombre> no especifica nada, así que indefinido, es decir, una, ninguna, o varias.
+    e) La diferencia es que si defines "tipoDNI" como simpleType externo a un xs:element, puedes reutilizar toda la estructura de restricciones que definas en dicho tipo, sin duplicar código.
+-->
+
+<!--
+    CORRECCIONES
+
+    c) MAL: "{8}" significa EXACTAMENTE ocho, no "hasta ocho".
+       "Hasta ocho" sería {0,8} o {1,8}.
+       Corrección: "El patrón valida que la cadena tenga exactamente ocho dígitos del 0 al 9
+       seguidos de exactamente una letra mayúscula de la A a la Z."
+       Válido: 12345678A | Inválido: 1234567A (solo 7 dígitos), 12345678a (minúscula).
+
+    d) MAL (para <nombre>): sin minOccurs ni maxOccurs, el valor por defecto en XSD
+       es minOccurs="1" maxOccurs="1", es decir, aparece EXACTAMENTE UNA VEZ.
+       No es "indefinido". Solo <telefono> es el que tiene multiplicidad variable (0 a 3).
+       Corrección: "<nombre> aparece exactamente una vez (valor por defecto cuando no se especifica nada)."
+
+    Comentario línea 12 (del XSD de arriba): llamas a <empleado> "elemento simple" — es incorrecto.
+    Tiene xs:complexType con hijos y un atributo, así que es un elemento COMPLEJO.
+    Debería poner: "Elemento complejo llamado 'empleado'".
+-->

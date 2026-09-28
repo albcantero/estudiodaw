@@ -1,0 +1,160 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((doc) => {
+    const [subject, tema, kind] = doc.id.split('/');
+    return { params: { subject, tema, doc: kind }, props: { doc } };
+  });
+}
+
+const { doc } = Astro.props;
+const subjectId = Astro.params.subject!;
+const temaSlug = Astro.params.tema!;
+
+const subject = (await getEntry('subjects', subjectId))!;
+const tema = (await getCollection('temas')).find(
+  (t) => t.data.subject === subjectId && t.data.slug === temaSlug,
+)!;
+
+const kindOrder = { teoria: 0, ejercicios: 1, soluciones: 2 };
+const siblings = (await getCollection('docs'))
+  .filter((d) => d.id.startsWith(`${subjectId}/${temaSlug}/`))
+  .sort((a, b) => kindOrder[a.data.kind] - kindOrder[b.data.kind]);
+
+const { Content, headings } = await render(doc);
+const toc = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+
+const number = String(tema.data.number).padStart(2, '0');
+const downloadName = `${subjectId}-tema${number}-${doc.data.kind}.md`;
+const pageTitle = `${tema.data.title} · ${doc.data.title}`;
+---
+
+<Base title={pageTitle} description={tema.data.description}>
+  <div class="lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12 pt-8 md:pt-12">
+    <aside class="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pb-8 lg:pb-4 lg:pr-2">
+      <p class="eyebrow mb-3">
+        <a href={`/${subjectId}`} class="hover:text-fg transition-colors">{subject.data.short}</a>
+        <span class="mx-1">/</span>
+        <span>Tema {number}</span>
+      </p>
+      <h1 class="font-heading font-medium text-fg text-2xl leading-tight tracking-[-0.01em] text-balance mb-5">
+        {tema.data.title}
+      </h1>
+
+      <nav class="flex flex-wrap gap-1 mb-6" aria-label="Documentos del tema">
+        {
+          siblings.map((s) => (
+            <a
+              href={`/${subjectId}/${temaSlug}/${s.data.kind}`}
+              class:list={[
+                'text-[12px] px-2.5 py-1.5 rounded-full border transition-colors',
+                s.id === doc.id
+                  ? 'bg-fg text-bg border-fg'
+                  : 'border-line text-fg-dim hover:text-fg hover:border-line-strong',
+              ]}
+              aria-current={s.id === doc.id ? 'page' : undefined}
+            >
+              {s.data.title}
+            </a>
+          ))
+        }
+      </nav>
+
+      {
+        toc.length > 0 && (
+          <section class="mb-6">
+            <p class="eyebrow mb-2">Índice</p>
+            <div class="relative mb-2">
+              <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-fg-muted" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <circle cx="7" cy="7" r="4.5" />
+                <path d="M10.5 10.5 14 14" />
+              </svg>
+              <input
+                id="toc-filter"
+                type="search"
+                placeholder="Filtrar el índice"
+                autocomplete="off"
+                class="w-full rounded-full border border-line bg-surface pl-8 pr-3 py-1.5 text-[12px] text-fg placeholder:text-fg-muted hover:border-line-strong focus:border-accent/50 focus:outline-none transition-colors"
+              />
+            </div>
+            <ul id="toc" class="text-[13px] leading-snug">
+              {
+                toc.map((h) => (
+                  <li data-text={h.text.toLowerCase()} class:list={[h.depth === 3 && 'pl-3']}>
+                    <a href={`#${h.slug}`} class="block py-1 text-fg-dim hover:text-fg transition-colors">
+                      {h.text}
+                    </a>
+                  </li>
+                ))
+              }
+              <li id="toc-empty" hidden class="py-1 text-fg-muted">Nada coincide.</li>
+            </ul>
+          </section>
+        )
+      }
+
+      <section class="mb-6">
+        <p class="eyebrow mb-2">Descargar</p>
+        <a
+          href={`/${subjectId}/${temaSlug}/${doc.data.kind}.md`}
+          download={downloadName}
+          class="group inline-flex items-center gap-2 rounded-full bg-fg text-bg px-3.5 py-1.5 text-[12px] font-medium hover:opacity-85 transition-opacity"
+        >
+          {doc.data.title} en Markdown
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-3.5 transition-transform group-hover:translate-y-0.5">
+            <path d="M8 2.5v9M4 8l4 4 4-4M3 14h10" />
+          </svg>
+        </a>
+      </section>
+
+      {
+        tema.data.downloads.length > 0 && (
+          <section>
+            <p class="eyebrow mb-2">Mis soluciones</p>
+            <p class="text-[12px] text-fg-muted mb-2">Resueltas por mí y corregidas al final de cada fichero.</p>
+            <ul class="flex flex-wrap gap-1.5">
+              {
+                tema.data.downloads.map((d) => (
+                  <li>
+                    <a
+                      href={d.file}
+                      download
+                      class="inline-block font-mono text-[11px] px-2 py-1 rounded border border-line text-fg-dim hover:text-fg hover:border-line-strong transition-colors"
+                    >
+                      {d.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+        )
+      }
+    </aside>
+
+    <article class="prose prose-base min-w-0">
+      <h1 class="font-heading">{tema.data.title}: {doc.data.title.toLowerCase()}</h1>
+      <Content />
+    </article>
+  </div>
+</Base>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('#toc-filter');
+  const items = Array.from(document.querySelectorAll<HTMLLIElement>('#toc li[data-text]'));
+  const empty = document.querySelector<HTMLLIElement>('#toc-empty');
+
+  input?.addEventListener('input', () => {
+    const query = input.value.trim().toLowerCase();
+    let visible = 0;
+    for (const item of items) {
+      const match = query === '' || item.dataset.text!.includes(query);
+      item.hidden = !match;
+      if (match) visible += 1;
+    }
+    if (empty) empty.hidden = visible > 0;
+  });
+</script>

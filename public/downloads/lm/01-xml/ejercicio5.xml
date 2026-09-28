@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<ejercicio5>
+
+    <!-- 
+        a) Espacios de nombres hay dos: "xmlns:grado" y "xmlns:admin", cuyos prefijos son "grado"y "admin", y cuyos URIs son: "http://uni.es/grados" y "http://uni.es/administracion".
+        b) El prefijo es lo que produce que sean diferentes: con el prefijo podemos identificar de qué archivo estamos recibiendo la información de la etiqueta "titulacion".
+        c) Si eliminamos los prefijos, habría ambiguedad precisamente con la etiqueta <titulacion></titulacion>. Técnicamente el documento seguiría siendo válido, pero no sería correcto dado el contexto que puede inferirse de la estructura.
+        d) Se declaran como atributos en el elemento ejemplar, para ser utilizados dentro de él. No sé el motivo específico de por qué no podríamos declararlos dentro de cada elemento. Imagino que por comodida de no tener que repetir cada vez de dónde procede la etiqueta.
+    -->
+
+</ejercicio5>
+
+<!--
+    CORRECCIÓN
+
+    a) Correcto.
+
+    b) A medias. El prefijo sí es lo que los diferencia, pero vuelve la misma confusión
+       del ejercicio 2: el prefijo no identifica "de qué archivo viene la información".
+       Identifica a qué espacio de nombres (contexto semántico) pertenece la etiqueta.
+       El URI no es un fichero — es solo un identificador único.
+
+    c) Correcto en esencia. Matiz: mejor decir que el documento seguiría siendo "bien formado"
+       en vez de "válido". La validez depende de un esquema (DTD/XSD), no de los namespaces.
+
+    d) Muy bien. Dijiste "no sé" y luego razonaste exactamente la respuesta correcta:
+       se declaran en el elemento raíz para no repetirlos en cada elemento.
+       Se pueden declarar en cualquier elemento, pero entonces solo aplican
+       a ese elemento y sus hijos.
+-->

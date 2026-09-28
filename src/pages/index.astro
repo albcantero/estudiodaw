@@ -1,0 +1,62 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Card from '../components/Card.astro';
+
+const subjects = (await getCollection('subjects')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const temas = await getCollection('temas');
+const docs = await getCollection('docs');
+
+const temaCount = (subjectId: string) =>
+  temas.filter((t) => t.data.subject === subjectId).length;
+---
+
+<Base title="estudiodaw.dev">
+  <header class="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end pt-14 md:pt-24 pb-14 md:pb-20">
+    <div>
+      <p class="eyebrow mb-4">DAW a distancia · 2026-27</p>
+      <h1 class="font-heading font-medium text-fg text-[2.6rem] sm:text-6xl lg:text-[5.25rem] leading-[1.02] tracking-[-0.03em] text-balance">
+        Apuntes de <span class="text-accent">DAW</span>, tema a tema
+      </h1>
+    </div>
+    <div class="lg:pb-2">
+      <p class="text-lg leading-snug text-fg-dim text-balance mb-7">
+        Teoría para aprender, ejercicios de menos a más y soluciones para comparar. Se escriben mientras se estudia y se comparten con la clase.
+      </p>
+      <dl class="pt-5 border-t border-line flex gap-8 text-[12px]">
+        <div>
+          <dt class="sr-only">asignaturas</dt>
+          <dd><span class="font-heading text-2xl text-fg tabular-nums">{subjects.length}</span> <span class="text-fg-muted">asignaturas</span></dd>
+        </div>
+        <div>
+          <dt class="sr-only">temas</dt>
+          <dd><span class="font-heading text-2xl text-fg tabular-nums">{temas.length}</span> <span class="text-fg-muted">temas</span></dd>
+        </div>
+        <div>
+          <dt class="sr-only">documentos</dt>
+          <dd><span class="font-heading text-2xl text-fg tabular-nums">{docs.length}</span> <span class="text-fg-muted">documentos</span></dd>
+        </div>
+      </dl>
+    </div>
+  </header>
+
+  <h2 class="eyebrow border-t border-line pt-3 mb-4">Asignaturas</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {
+      subjects.map((s) => (
+        <Card
+          boxed
+          href={`/${s.id}`}
+          number={s.data.short}
+          label={s.data.name}
+          title={s.data.name}
+          description={s.data.description}
+          foot={`${temaCount(s.id)} ${temaCount(s.id) === 1 ? 'tema' : 'temas'}`}
+          color={s.data.color}
+        />
+      ))
+    }
+  </div>
+</Base>

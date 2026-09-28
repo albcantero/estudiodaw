@@ -1,0 +1,16 @@
+{
+  "subject": "lm",
+  "slug": "02-xsd",
+  "number": 2,
+  "title": "XSD: XML Schema Definition",
+  "description": "Tipos, restricciones, patrones, tipos con nombre, default y fixed, ref, recursividad, ID e IDREF.",
+  "unit": "UD4",
+  "downloads": [
+    { "label": "ejercicio1.xsd", "file": "/downloads/lm/02-xsd/ejercicio1.xsd" },
+    { "label": "ejercicio2.xsd", "file": "/downloads/lm/02-xsd/ejercicio2.xsd" },
+    { "label": "ejercicio3.xsd", "file": "/downloads/lm/02-xsd/ejercicio3.xsd" },
+    { "label": "ejercicio4.xsd", "file": "/downloads/lm/02-xsd/ejercicio4.xsd" },
+    { "label": "ejercicio5.xsd", "file": "/downloads/lm/02-xsd/ejercicio5.xsd" },
+    { "label": "ejercicio6.xsd", "file": "/downloads/lm/02-xsd/ejercicio6.xsd" }
+  ]
+}

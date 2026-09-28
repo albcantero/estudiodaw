@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<horario_semanal xmlns:centro="http://ies-ponferrada/datos/daw"
+                 xmlns:acad="http://ies-ponferrada/datos-academicos">
+    
+    <!-- LUNES -->
+    <centro:dia dia="lunes">
+
+        <centro:aula sala="sexto_a">
+
+            <acad:asignatura materia="Historia">
+                <centro:horario inicio="9:00" fin="10:00" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+            <acad:asignatura materia="Matemáticas">
+                <centro:horario inicio="10:00" fin="11:00" />
+                <centro:profesor empleado="María José" />
+            </acad:asignatura>
+
+            <acad:asignatura materia="Lengua">
+                <centro:horario inicio="12:00" fin="13:00" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+        <centro:recreo inicio="13:00" fin="13:30" />
+
+        <centro:aula sala="biblioteca">
+
+            <acad:asignatura materia="Inglés">
+                <centro:horario inicio="13:30" fin="14:30" />
+                <centro:profesor empleado="Matthiew" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+    </centro:dia>
+
+    <!-- MARTES -->
+    <centro:dia dia="martes">
+
+        <centro:aula sala="sexto_a">
+
+            <acad:asignatura materia="Lengua">
+                <centro:horario inicio="9:00" fin="10:00" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+            <acad:asignatura materia="Química">
+                <centro:horario inicio="10:00" fin="11:00" />
+                <centro:profesor empleado="Paco" />
+            </acad:asignatura>
+
+            <acad:asignatura materia="Química">
+                <centro:horario inicio="12:00" fin="13:00" />
+                <centro:profesor empleado="Paco" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+        <centro:recreo inicio="13:00" fin="13:30" />
+
+        <centro:aula sala="patio">
+
+            <acad:asignatura materia="Ed. Física">
+                <centro:horario inicio="13:30" fin="14:30" />
+                <centro:profesor empleado="Rodrigo" />
+            </acad:asignatura>
+
+        </centro:aula>
+        
+    </centro:dia>
+
+    <!-- MIÉRCOLES -->
+    <centro:dia dia="miercoles">
+
+        <centro:aula sala="sexto_a">
+
+            <acad:asignatura materia="Matemáticas">
+                <centro:horario inicio="9:00" fin="10:00" />
+                <centro:profesor empleado="María José" />
+            </acad:asignatura>
+
+            <acad:asignatura materia="Lengua">
+                <centro:horario inicio="10:00" fin="11:00" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+        <centro:aula sala="biblioteca">
+
+            <acad:asignatura materia="Inglés">
+                <centro:horario inicio="11:00" fin="12:00" />
+                <centro:profesor empleado="Matthiew" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+        <centro:aula sala="sexto_a">
+
+            <acad:asignatura materia="Historia">
+                <centro:horario inicio="12:00" fin="13:00" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+        </centro:aula>
+
+        <centro:recreo inicio="13:00" fin="13:30" />
+
+        <centro:aula sala="sexto_a">
+
+            <acad:asignatura materia="Historia">
+                <centro:horario inicio="13:30" fin="14:30" />
+                <centro:profesor empleado="Julián" />
+            </acad:asignatura>
+
+        </centro:aula>
+        
+    </centro:dia>
+
+</horario_semanal>
+
+<!--
+    CORRECCIÓN
+
+    Diseño muy bueno — estructura lógica, namespaces bien mezclados,
+    <centro:recreo/> como elemento vacío con significado es elegante.
+
+    1. Matiz de diseño: el enunciado pedía "el profesor va como atributo".
+       Pusiste <centro:profesor empleado="Julián"/> — decisión correcta y más rigurosa:
+       el profesor es un dato del centro, no de la asignatura académica, y separarlo
+       con el prefijo centro: lo deja explícito. El enunciado era ambiguo.
+-->

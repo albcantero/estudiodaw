@@ -1,0 +1,63 @@
+---
+import '../styles/global.css';
+import Navbar from '../components/Navbar.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Apuntes, ejercicios y soluciones de DAW, tema a tema.',
+} = Astro.props;
+
+const siteName = 'estudiodaw.dev';
+const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
+---
+
+<!doctype html>
+<html lang="es" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script is:inline>
+      // Tema antes del primer pintado: guardado > sistema > oscuro.
+      (() => {
+        const root = document.documentElement;
+        const system = window.matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark';
+        let theme = system;
+        try {
+          const stored = localStorage.getItem('site-theme');
+          if (stored === 'light' || stored === 'dark') theme = stored;
+        } catch {}
+        root.dataset.theme = theme;
+        root.style.colorScheme = theme;
+      })();
+    </script>
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Navbar />
+    <main id="main" class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 pb-24">
+      <slot />
+    </main>
+    <footer class="border-t border-line">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-fg-muted">
+        <span>Alberto Cantero · DAW a distancia, CIFP Ponferrada</span>
+        <span>Apuntes escritos con palabras propias a partir del material del ciclo.</span>
+      </div>
+    </footer>
+  </body>
+</html>

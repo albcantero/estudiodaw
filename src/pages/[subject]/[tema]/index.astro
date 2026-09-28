@@ -1,0 +1,11 @@
+---
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const temas = await getCollection('temas');
+  return temas.map((t) => ({ params: { subject: t.data.subject, tema: t.data.slug } }));
+}
+
+// La URL del tema lleva siempre a la teoría.
+return Astro.redirect(`/${Astro.params.subject}/${Astro.params.tema}/teoria`);
+---

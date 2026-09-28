@@ -1,0 +1,8 @@
+{
+  "subject": "bd",
+  "slug": "02-relacional",
+  "number": 2,
+  "title": "Bases de datos relacionales",
+  "description": "Claves, índices, NULL, vistas, usuarios y roles, y primer contacto con SQL: DDL y DCL.",
+  "unit": "UD2"
+}
