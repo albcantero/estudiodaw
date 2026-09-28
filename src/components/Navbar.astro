@@ -1,90 +1,86 @@
 ---
 import { getCollection } from 'astro:content';
 
-const subjects = (await getCollection('subjects')).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+// En la barra solo van las asignaturas con algún tema publicado; el resto, desde la home.
+const temas = await getCollection('temas');
+const published = new Set(temas.map((t) => t.data.subject));
+const subjects = (await getCollection('subjects'))
+  .filter((s) => published.has(s.id))
+  .sort((a, b) => a.data.order - b.data.order);
 const current = Astro.url.pathname.split('/')[1];
 ---
 
-<header class="navbar sticky top-0 z-50 border-b border-line">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-4">
-    <a href="/" class="flex items-baseline gap-0.5 shrink-0 font-heading text-[17px] font-medium">
-      <span class="text-fg">estudiodaw</span><span class="text-accent">.dev</span>
+<header class="sticky top-0 z-50 max-w-screen overflow-x-clip bg-background px-2">
+  <div class="screen-line-top screen-line-bottom screen-line-strong mx-auto flex h-(--header-height) items-center gap-2 border-x pr-2 pl-4 after:z-1 sm:gap-4 md:max-w-3xl">
+    <a href="/" class="flex items-baseline text-[15px] font-medium tracking-tight" aria-label="Inicio">
+      <span>estudiodaw</span><span class="text-muted-foreground">.dev</span>
     </a>
 
-    <nav class="flex items-center gap-1 ml-auto" aria-label="Asignaturas">
+    <div class="flex-1"></div>
+
+    <nav class="flex items-center gap-4 max-sm:hidden" aria-label="Asignaturas">
       {
         subjects.map((s) => (
           <a
             href={`/${s.id}`}
-            class:list={[
-              'text-[12px] px-2.5 py-1.5 rounded-full transition-colors hover:bg-surface',
-              current === s.id ? 'text-fg' : 'text-fg-dim hover:text-fg',
-            ]}
+            class="text-sm font-medium tracking-wide text-muted-foreground transition-[color] hover:text-foreground aria-[current=page]:text-foreground"
             aria-current={current === s.id ? 'page' : undefined}
           >
             {s.data.short}
           </a>
         ))
       }
-      <span class="w-px h-4 bg-line-strong mx-1" aria-hidden="true"></span>
+    </nav>
+
+    <div class="flex items-center">
+      <span class="mr-2 h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
+      <a
+        href="https://github.com/albcantero/estudiodaw"
+        class="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        aria-label="Código en GitHub"
+      >
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="size-4">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+        </svg>
+      </a>
+      <span class="mx-2 h-5 w-px bg-border" aria-hidden="true"></span>
       <button
         type="button"
-        class="theme-toggle inline-flex items-center justify-center size-8 rounded-full text-fg-dim hover:text-fg hover:bg-surface transition-colors"
-        aria-label="Cambiar tema"
+        class="theme-toggle relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-[0.98]"
+        aria-label="Cambiar tema (tecla D)"
       >
-        <svg class="theme-icon theme-icon-moon size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" />
+        <svg class="theme-icon-moon size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
         </svg>
-        <svg class="theme-icon theme-icon-sun size-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="8" cy="8" r="3" />
-          <path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" />
+        <svg class="theme-icon-sun size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 3v1M12 20v1M3 12h1M20 12h1M5.6 5.6l.7.7M17.7 17.7l.7.7M5.6 18.4l.7-.7M17.7 6.3l.7-.7" />
         </svg>
       </button>
-    </nav>
+    </div>
   </div>
 </header>
 
-<style>
-  .navbar {
-    background: var(--navbar-bg);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-  }
-
-  .theme-toggle {
-    position: relative;
-  }
-
-  .theme-icon {
-    position: absolute;
-    transition: opacity 140ms ease, transform 140ms ease;
-  }
-
-  :root[data-theme='dark'] .theme-icon-sun,
-  :root[data-theme='light'] .theme-icon-moon {
-    opacity: 0;
-    transform: scale(0.8) rotate(-12deg);
-  }
-
-  :root[data-theme='dark'] .theme-icon-moon,
-  :root[data-theme='light'] .theme-icon-sun {
-    opacity: 1;
-    transform: none;
-  }
-</style>
-
 <script>
   const root = document.documentElement;
+
+  function toggleTheme() {
+    const dark = root.classList.toggle('dark');
+    root.style.colorScheme = dark ? 'dark' : 'light';
+    try {
+      localStorage.setItem('site-theme', dark ? 'dark' : 'light');
+    } catch {}
+  }
+
   document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach((button) => {
-    button.addEventListener('click', () => {
-      const next = root.dataset.theme === 'light' ? 'dark' : 'light';
-      root.dataset.theme = next;
-      root.style.colorScheme = next;
-      try {
-        localStorage.setItem('site-theme', next);
-      } catch {}
-    });
+    button.addEventListener('click', toggleTheme);
+  });
+
+  // Atajo "D" como en chanhdai, salvo escribiendo en un campo.
+  document.addEventListener('keydown', (event) => {
+    const target = event.target as HTMLElement;
+    if (event.key !== 'd' || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (target.closest('input, textarea, [contenteditable="true"]')) return;
+    toggleTheme();
   });
 </script>

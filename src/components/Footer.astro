@@ -1,0 +1,74 @@
+---
+// Pie como el cajetín de un plano técnico (SiteFooterCad de chanhdai).
+const buildDate = new Date().toISOString().slice(0, 10);
+const INSPIRED_BY = ['chanhdai.com', '100cosas.dev', 'shadcn/ui', 'alg0.dev'];
+
+const fields: { label: string; value: string; href?: string; span?: string }[] = [
+  { label: 'Autor', value: 'Alberto Cantero' },
+  { label: 'Ciclo', value: 'DAW a distancia' },
+  { label: 'Centro', value: 'CIFP Ponferrada' },
+  { label: 'Build', value: buildDate },
+  { label: 'Código', value: 'GitHub', href: 'https://github.com/albcantero/estudiodaw' },
+  { label: 'Desplegado en', value: '▲ Vercel' },
+  { label: 'Tipografía', value: 'Geist' },
+  { label: 'Stack', value: 'Astro · Tailwind CSS' },
+];
+---
+
+<footer class="max-w-screen overflow-x-clip px-2 lg:px-0">
+  <div class="mx-auto border-x md:max-w-3xl">
+    <div class="screen-line-top screen-line-bottom screen-line-strong before:z-1">
+      <div class="stripe-divider h-12"></div>
+    </div>
+
+    <div class="screen-line-bottom flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3 font-mono text-sm">
+      <span class="font-medium">estudiodaw.dev</span>
+      <span class="font-sans text-muted-foreground">Apuntes de DAW, tema a tema.</span>
+    </div>
+
+    <dl class="grid grid-cols-2 gap-px bg-line font-mono md:grid-cols-4">
+      {
+        fields.map((f) => (
+          <div class:list={['flex min-w-0 flex-col gap-1 bg-background px-4 py-3', f.span]}>
+            <dt class="text-[0.625rem]/4 font-medium tracking-wider text-muted-foreground uppercase">{f.label}</dt>
+            <dd class="text-sm">
+              {f.href ? (
+                <a class="link-underline" href={f.href} target="_blank" rel="noopener">
+                  {f.value}
+                </a>
+              ) : (
+                f.value
+              )}
+            </dd>
+          </div>
+        ))
+      }
+      <div class="col-span-2 flex min-w-0 flex-col gap-1 bg-background px-4 py-3 md:col-span-4">
+        <dt class="text-[0.625rem]/4 font-medium tracking-wider text-muted-foreground uppercase">Inspirado en</dt>
+        <dd>
+          <ol class="-mx-4 grid grid-cols-2 gap-x-px gap-y-0.5 font-sans text-sm md:grid-cols-4">
+            {
+              INSPIRED_BY.map((name, i) => (
+                <li class="flex gap-2 px-4">
+                  <span class="font-mono text-muted-foreground/80" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {name}
+                </li>
+              ))
+            }
+          </ol>
+        </dd>
+      </div>
+    </dl>
+
+    <div class="screen-line-top h-4"></div>
+
+    <div class="screen-line-top screen-line-bottom screen-line-strong flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground">
+      <a href="/" class="mr-auto font-medium tracking-tight transition-[color] hover:text-foreground">estudiodaw<span class="opacity-60">.dev</span></a>
+      <span>Apuntes con palabras propias a partir del material del ciclo.</span>
+    </div>
+
+    <div class="h-(--fade-bottom-height)"></div>
+  </div>
+</footer>

@@ -1,0 +1,17 @@
+---
+// Cabecera de página de chanhdai: etiqueta pequeña, título entre líneas a sangre y descripción.
+interface Props {
+  tagline?: string;
+  title: string;
+  description?: string;
+}
+
+const { tagline, title, description } = Astro.props;
+---
+
+<div class="border-x pt-12">
+  {tagline && <div class="px-4 pb-2 text-sm leading-none font-medium tracking-wider text-muted-foreground"><Fragment set:html={tagline} /></div>}
+  <h1 class="screen-line-top screen-line-bottom heading px-4 text-4xl text-balance">{title}</h1>
+  {description && <p class="screen-line-bottom p-4 text-base text-balance text-muted-foreground">{description}</p>}
+  <slot />
+</div>

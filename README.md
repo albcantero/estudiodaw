@@ -4,7 +4,9 @@ Apuntes, ejercicios y soluciones de DAW (CIFP Ponferrada, a distancia), tema a t
 
 ## Stack
 
-Astro 7 + Tailwind 4 + `@tailwindcss/typography`. Sin JavaScript de cliente salvo el cambio de tema y el filtro del índice. Fuentes: Inter (texto), Newsreader (títulos) y Geist Mono (código), desde Google Fonts.
+Astro 7 + Tailwind 4 + `@tailwindcss/typography`. Sin JavaScript de cliente salvo el cambio de tema y el filtro del índice. Fuentes: Geist (texto) y Geist Mono (código), servidas desde `public/fonts/` con los ficheros variables de Vercel; Cardo (títulos) desde Google Fonts.
+
+Estilo: tokens de shadcn/ui (tema neutral, `--radius: 0.625rem`, oscuro por clase `.dark`), claro por defecto. La página de lectura y los bloques de código (figure con etiqueta de lenguaje, a sangre en móvil) siguen la estructura de 100cosas.dev.
 
 ## Estructura del contenido
 

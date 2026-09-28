@@ -1,0 +1,28 @@
+---
+// Panel de chanhdai: sección con bordes laterales, línea a sangre arriba y abajo,
+// cabecera con título grande y contador en superíndice.
+interface Props {
+  id?: string;
+  title?: string;
+  count?: number;
+  class?: string;
+}
+
+const { id, title, count, class: className } = Astro.props;
+---
+
+<section id={id} class:list={['screen-line-top screen-line-bottom screen-line-strong border-x', className]}>
+  {
+    title && (
+      <header class="screen-line-bottom px-4">
+        <h2 class="heading text-3xl text-balance">
+          {id ? <a href={`#${id}`}>{title}</a> : title}
+          {count !== undefined && (
+            <sup class="top-[-0.75em] ml-1 text-sm font-medium tracking-normal text-muted-foreground">({count})</sup>
+          )}
+        </h2>
+      </header>
+    )
+  }
+  <slot />
+</section>

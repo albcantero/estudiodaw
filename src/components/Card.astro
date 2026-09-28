@@ -1,4 +1,6 @@
 ---
+// Elemento de rejilla al estilo PostItem de chanhdai: sin caja, hover con fondo tenue
+// y todo el bloque clicable. Las líneas las pone la rejilla que lo contiene (ItemGrid).
 interface Props {
   href: string;
   number: string;
@@ -7,139 +9,32 @@ interface Props {
   description?: string;
   foot?: string;
   color?: string;
-  /** Tarjeta con borde y fondo (asignaturas) en vez de fila con separador (temas). */
-  boxed?: boolean;
 }
 
-const { href, number, label, title, description, foot, color, boxed = false } = Astro.props;
+const { href, number, label, title, description, foot, color } = Astro.props;
 ---
 
-<article class:list={['card group', boxed && 'card-boxed']}>
-  <a href={href} class="card-link">
-    <div class="card-meta">
-      <span class="card-num font-mono">{number}</span>
-      {color && <span class="card-dot" style={`background:${color}`} aria-hidden="true" />}
-      <span>{label}</span>
-    </div>
-    <h3 class="card-title font-heading">{title}</h3>
-    {description && <p class="card-desc">{description}</p>}
-    <div class="card-foot">
-      {foot && <span>{foot}</span>}
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="card-arrow">
-        <path d="M3 8h10M9 4l4 4-4 4" />
-      </svg>
-    </div>
-  </a>
-</article>
-
-<style>
-  .card {
-    border-bottom: 1px solid var(--border);
+<div class="group/item relative flex h-full flex-col gap-1 p-4 transition-[background-color] ease-out hover:bg-accent-muted">
+  <div class="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
+    <span class="font-mono tabular-nums">{number}</span>
+    {color && <span class="size-1.5 rounded-full" style={`background:${color}`} aria-hidden="true" />}
+    <span>{label}</span>
+  </div>
+  <h3 class="heading text-xl leading-snug text-balance">
+    <a href={href} class="outline-none">
+      <span class="absolute inset-0 group-has-[a:focus-visible]/item:ring-2 group-has-[a:focus-visible]/item:ring-ring/50 group-has-[a:focus-visible]/item:ring-inset" aria-hidden="true"></span>
+      {title}
+    </a>
+  </h3>
+  {description && <p class="text-sm text-balance text-muted-foreground">{description}</p>}
+  {
+    foot && (
+      <p class="mt-auto flex items-center gap-2 pt-3 text-sm text-muted-foreground">
+        {foot}
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100">
+          <path d="M3 8h10M9 4l4 4-4 4" />
+        </svg>
+      </p>
+    )
   }
-
-  .card-link {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 9.5rem;
-    padding: 1.375rem 0 1.25rem;
-    border-radius: 2px;
-  }
-
-  .card-link:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 4px;
-  }
-
-  .card-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 11px;
-    line-height: 1rem;
-    color: var(--text-muted);
-  }
-
-  .card-num {
-    font-variant-numeric: tabular-nums;
-    color: var(--text-dim);
-    margin-right: 0.25rem;
-    transition: color 150ms ease;
-  }
-
-  .card-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 999px;
-  }
-
-  .card-title {
-    font-size: 1.3125rem;
-    line-height: 1.3;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--text);
-    text-wrap: balance;
-  }
-
-  .card-desc {
-    margin-top: 0.5rem;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-dim);
-  }
-
-  .card-foot {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: auto;
-    padding-top: 1.25rem;
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-
-  .card-arrow {
-    width: 14px;
-    height: 14px;
-    margin-left: auto;
-    color: var(--accent);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition: opacity 150ms ease, transform 200ms ease;
-  }
-
-  .card-boxed {
-    border-bottom: 0;
-  }
-
-  .card-boxed .card-link {
-    padding: 1.375rem 1.5rem 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface);
-    transition: border-color 150ms ease, background-color 150ms ease, transform 200ms ease;
-  }
-
-  .card-boxed:hover .card-link,
-  .card-boxed:focus-within .card-link {
-    border-color: var(--border-hover);
-    background: var(--surface-2);
-  }
-
-  .card-boxed .card-title {
-    font-size: 1.5rem;
-  }
-
-  .card:hover .card-num,
-  .card:focus-within .card-num {
-    color: var(--accent);
-  }
-
-  .card:hover .card-arrow,
-  .card:focus-within .card-arrow {
-    opacity: 1;
-    transform: none;
-  }
-</style>
+</div>

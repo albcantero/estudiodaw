@@ -20,6 +20,7 @@ const tema = (await getCollection('temas')).find(
 )!;
 
 const kindOrder = { teoria: 0, ejercicios: 1, soluciones: 2 };
+const tabLabel = { teoria: 'Teoría', ejercicios: 'Ejercicios', soluciones: 'Soluciones' };
 const siblings = (await getCollection('docs'))
   .filter((d) => d.id.startsWith(`${subjectId}/${temaSlug}/`))
   .sort((a, b) => kindOrder[a.data.kind] - kindOrder[b.data.kind]);
@@ -30,119 +31,170 @@ const toc = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 const number = String(tema.data.number).padStart(2, '0');
 const downloadName = `${subjectId}-tema${number}-${doc.data.kind}.md`;
 const pageTitle = `${tema.data.title} · ${doc.data.title}`;
+const idx = siblings.findIndex((s) => s.id === doc.id);
+const prev = siblings[idx - 1];
+const next = siblings[idx + 1];
 ---
 
 <Base title={pageTitle} description={tema.data.description}>
-  <div class="lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12 pt-8 md:pt-12">
-    <aside class="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto pb-8 lg:pb-4 lg:pr-2">
-      <p class="eyebrow mb-3">
-        <a href={`/${subjectId}`} class="hover:text-fg transition-colors">{subject.data.short}</a>
-        <span class="mx-1">/</span>
-        <span>Tema {number}</span>
-      </p>
-      <h1 class="font-heading font-medium text-fg text-2xl leading-tight tracking-[-0.01em] text-balance mb-5">
-        {tema.data.title}
-      </h1>
+  <!-- Cabecera en la columna central (DocContainer de chanhdai) -->
+  <div class="mx-auto w-full border-x md:max-w-3xl">
+    <div class="screen-line-bottom h-px"></div>
 
-      <nav class="flex flex-wrap gap-1 mb-6" aria-label="Documentos del tema">
+    <div class="flex items-center justify-between p-2 pl-4">
+      <a href={`/${subjectId}`} class="inline-flex h-7 items-center gap-2 text-sm tracking-wider text-muted-foreground transition-colors hover:text-foreground">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4">
+          <path d="M13 8H3M7 4 3 8l4 4" />
+        </svg>
+        {subject.data.short} · Tema {number}
+      </a>
+      <div class="flex items-center gap-2">
+        {
+          prev && (
+            <a href={`/${subjectId}/${temaSlug}/${prev.data.kind}`} class="inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80" aria-label={`Anterior: ${tabLabel[prev.data.kind]}`}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4"><path d="M13 8H3M7 4 3 8l4 4" /></svg>
+            </a>
+          )
+        }
+        {
+          next && (
+            <a href={`/${subjectId}/${temaSlug}/${next.data.kind}`} class="inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80" aria-label={`Siguiente: ${tabLabel[next.data.kind]}`}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4"><path d="M3 8h10M9 4l4 4-4 4" /></svg>
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    <div class="screen-line-top screen-line-bottom py-px"><div class="h-4"></div></div>
+
+    <h1 class="screen-line-bottom heading px-4 text-4xl text-balance">{tema.data.title}</h1>
+
+    <!-- Pestañas del tema: Tabs de shadcn a lo ancho de la columna -->
+    <div class="screen-line-bottom p-2">
+      <nav class="flex h-9 w-full items-center rounded-lg bg-muted p-[3px] text-muted-foreground" aria-label="Documentos del tema">
         {
           siblings.map((s) => (
             <a
               href={`/${subjectId}/${temaSlug}/${s.data.kind}`}
               class:list={[
-                'text-[12px] px-2.5 py-1.5 rounded-full border transition-colors',
-                s.id === doc.id
-                  ? 'bg-fg text-bg border-fg'
-                  : 'border-line text-fg-dim hover:text-fg hover:border-line-strong',
+                'inline-flex h-full flex-1 items-center justify-center rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow]',
+                s.id === doc.id ? 'bg-background text-foreground shadow-sm dark:bg-input/30' : 'hover:text-foreground',
               ]}
               aria-current={s.id === doc.id ? 'page' : undefined}
             >
-              {s.data.title}
+              {tabLabel[s.data.kind]}
             </a>
           ))
         }
       </nav>
-
-      {
-        toc.length > 0 && (
-          <section class="mb-6">
-            <p class="eyebrow mb-2">Índice</p>
-            <div class="relative mb-2">
-              <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-fg-muted" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-                <circle cx="7" cy="7" r="4.5" />
-                <path d="M10.5 10.5 14 14" />
-              </svg>
-              <input
-                id="toc-filter"
-                type="search"
-                placeholder="Filtrar el índice"
-                autocomplete="off"
-                class="w-full rounded-full border border-line bg-surface pl-8 pr-3 py-1.5 text-[12px] text-fg placeholder:text-fg-muted hover:border-line-strong focus:border-accent/50 focus:outline-none transition-colors"
-              />
-            </div>
-            <ul id="toc" class="text-[13px] leading-snug">
-              {
-                toc.map((h) => (
-                  <li data-text={h.text.toLowerCase()} class:list={[h.depth === 3 && 'pl-3']}>
-                    <a href={`#${h.slug}`} class="block py-1 text-fg-dim hover:text-fg transition-colors">
-                      {h.text}
-                    </a>
-                  </li>
-                ))
-              }
-              <li id="toc-empty" hidden class="py-1 text-fg-muted">Nada coincide.</li>
-            </ul>
-          </section>
-        )
-      }
-
-      <section class="mb-6">
-        <p class="eyebrow mb-2">Descargar</p>
-        <a
-          href={`/${subjectId}/${temaSlug}/${doc.data.kind}.md`}
-          download={downloadName}
-          class="group inline-flex items-center gap-2 rounded-full bg-fg text-bg px-3.5 py-1.5 text-[12px] font-medium hover:opacity-85 transition-opacity"
-        >
-          {doc.data.title} en Markdown
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-3.5 transition-transform group-hover:translate-y-0.5">
-            <path d="M8 2.5v9M4 8l4 4 4-4M3 14h10" />
-          </svg>
-        </a>
-      </section>
-
-      {
-        tema.data.downloads.length > 0 && (
-          <section>
-            <p class="eyebrow mb-2">Mis soluciones</p>
-            <p class="text-[12px] text-fg-muted mb-2">Resueltas por mí y corregidas al final de cada fichero.</p>
-            <ul class="flex flex-wrap gap-1.5">
-              {
-                tema.data.downloads.map((d) => (
-                  <li>
-                    <a
-                      href={d.file}
-                      download
-                      class="inline-block font-mono text-[11px] px-2 py-1 rounded border border-line text-fg-dim hover:text-fg hover:border-line-strong transition-colors"
-                    >
-                      {d.label}
-                    </a>
-                  </li>
-                ))
-              }
-            </ul>
-          </section>
-        )
-      }
-    </aside>
-
-    <article class="prose prose-base min-w-0">
-      <h1 class="font-heading">{tema.data.title}: {doc.data.title.toLowerCase()}</h1>
-      <Content />
-    </article>
+    </div>
   </div>
+
+  <div class="mx-auto w-full min-w-0 border-x md:max-w-3xl">
+      <div class="prose prose-ncdai px-4 pt-8 pb-8">
+        <p class="lead !mt-0 text-muted-foreground">{tema.data.description}</p>
+
+        {
+          toc.length > 0 && (
+            <details class="toc-inline not-prose lg:hidden">
+              <summary>En este documento · {toc.length} secciones</summary>
+              <ol class="mt-1 mb-2 flex flex-col gap-1 px-3 text-sm">
+                {toc.map((h) => (
+                  <li class:list={[h.depth === 3 && 'pl-3']}>
+                    <a href={`#${h.slug}`} class="text-muted-foreground transition-colors hover:text-foreground">{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )
+        }
+
+        <Content />
+      </div>
+
+      <div class="screen-line-top screen-line-bottom p-4">
+        <p class="mb-3 text-sm font-medium tracking-wider text-muted-foreground">Descargas</p>
+        <div class="flex flex-wrap gap-2">
+          <a
+            href={`/${subjectId}/${temaSlug}/${doc.data.kind}.md`}
+            download={downloadName}
+            class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.98]"
+          >
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10" /></svg>
+            {doc.data.title}.md
+          </a>
+          {
+            tema.data.downloads.map((d) => (
+              <a
+                href={d.file}
+                download
+                class="inline-flex h-8 items-center rounded-lg border bg-background px-2.5 font-mono text-sm shadow-xs transition-all hover:bg-muted active:scale-[0.98] dark:border-input dark:bg-input/30 dark:hover:bg-input/50"
+              >
+                {d.label}
+              </a>
+            ))
+          }
+        </div>
+        {
+          tema.data.downloads.length > 0 && (
+            <p class="mt-3 text-sm text-muted-foreground">Mis soluciones: resueltas por mí y corregidas al final de cada fichero.</p>
+          )
+        }
+      </div>
+      <div class="h-4"></div>
+  </div>
+
+  {
+    toc.length > 0 && (
+      <section slot="sidebar" class="mt-5">
+        <p class="mb-2 font-mono text-[0.625rem] tracking-wider text-muted-foreground uppercase">En este documento</p>
+        <input
+          id="toc-filter"
+          type="search"
+          placeholder="Filtrar el índice…"
+          autocomplete="off"
+          class="mb-2 h-8 w-full rounded-[10px] border border-input bg-transparent px-2.5 text-[0.8125rem] outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+        />
+        <ul id="toc" class="flex flex-col text-[0.8125rem]">
+          {toc.map((h) => (
+            <li data-text={h.text.toLowerCase()} class="flex">
+              <a href={`#${h.slug}`} data-slug={h.slug} data-depth={h.depth} class="toc-link line-clamp-2 w-full rounded-[6px] px-2 py-1 text-muted-foreground transition-[color] duration-200 hover:text-foreground data-[depth=3]:pl-5">
+                {h.text}
+              </a>
+            </li>
+          ))}
+          <li id="toc-empty" hidden class="px-2 py-1 text-muted-foreground">Nada coincide.</li>
+        </ul>
+      </section>
+    )
+  }
 </Base>
 
+<style>
+  .toc-inline {
+    margin-top: 1.25em;
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 64%, transparent);
+    padding: 0.25rem;
+  }
+
+  .toc-inline > summary {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+
+  .toc-link[aria-current='true'] {
+    color: var(--foreground);
+  }
+</style>
+
 <script>
+  // Filtro del índice
   const input = document.querySelector<HTMLInputElement>('#toc-filter');
   const items = Array.from(document.querySelectorAll<HTMLLIElement>('#toc li[data-text]'));
   const empty = document.querySelector<HTMLLIElement>('#toc-empty');
@@ -157,4 +209,28 @@ const pageTitle = `${tema.data.title} · ${doc.data.title}`;
     }
     if (empty) empty.hidden = visible > 0;
   });
+
+  // Sección activa del índice según el scroll
+  const links = new Map(
+    Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-link')).map((a) => [a.dataset.slug!, a]),
+  );
+  const headings = Array.from(links.keys())
+    .map((slug) => document.getElementById(slug))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (headings.length > 0) {
+    let active: HTMLAnchorElement | undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          active?.removeAttribute('aria-current');
+          active = links.get(entry.target.id);
+          active?.setAttribute('aria-current', 'true');
+        }
+      },
+      { rootMargin: '-80px 0px -70% 0px' },
+    );
+    headings.forEach((h) => observer.observe(h));
+  }
 </script>

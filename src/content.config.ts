@@ -9,6 +9,8 @@ const subjects = defineCollection({
     short: z.string(),
     description: z.string(),
     order: z.number(),
+    /** 1 = pendiente de primero, 2 = segundo curso */
+    year: z.union([z.literal(1), z.literal(2)]),
     color: z.string(),
   }),
 });

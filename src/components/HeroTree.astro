@@ -1,0 +1,321 @@
+---
+// Fondo del hero: el propio contenido de la web escrito como documento XML,
+// con una barra de XPath que va lanzando consultas y resaltando los nodos que casan.
+// Todo se genera en el build a partir de las colecciones; el script solo alterna consultas.
+import { getCollection } from 'astro:content';
+import type { Exam } from '../data/exams';
+
+interface Props {
+  exams: Exam[];
+}
+
+const { exams } = Astro.props;
+
+const subjects = (await getCollection('subjects')).sort((a, b) => a.data.order - b.data.order);
+const temas = (await getCollection('temas')).sort((a, b) => a.data.number - b.data.number);
+
+type Token = { t: 'punct' | 'tag' | 'attr' | 'value' | 'text'; v: string };
+type Line = { depth: number; tokens: Token[]; q: string[] };
+
+const open = (name: string, attrs: [string, string][], selfClose = false): Token[] => [
+  { t: 'punct', v: '<' },
+  { t: 'tag', v: name },
+  ...attrs.flatMap(([k, v]): Token[] => [
+    { t: 'text', v: ' ' },
+    { t: 'attr', v: k },
+    { t: 'punct', v: '="' },
+    { t: 'value', v },
+    { t: 'punct', v: '"' },
+  ]),
+  { t: 'punct', v: selfClose ? '/>' : '>' },
+];
+const close = (name: string): Token[] => [
+  { t: 'punct', v: '</' },
+  { t: 'tag', v: name },
+  { t: 'punct', v: '>' },
+];
+
+const lines: Line[] = [];
+lines.push({ depth: 0, tokens: open('daw', [['curso', '2026-27']]), q: [] });
+
+for (const s of subjects) {
+  const own = temas.filter((t) => t.data.subject === s.id);
+  const attrs: [string, string][] = [['id', s.id], ['curso', String(s.data.year)]];
+  const isPending = s.data.year === 1;
+  if (own.length === 0) {
+    lines.push({ depth: 1, tokens: open('modulo', attrs, true), q: ['vacios'] });
+    continue;
+  }
+  lines.push({ depth: 1, tokens: open('modulo', attrs), q: isPending ? ['pendientes'] : [] });
+  for (const t of own) {
+    lines.push({
+      depth: 2,
+      tokens: [
+        ...open('tema', [['n', String(t.data.number)]]),
+        { t: 'text', v: t.data.title.split(':')[0] },
+        ...close('tema'),
+      ],
+      q: ['temas', ...(isPending ? ['pendientes'] : [])],
+    });
+  }
+  lines.push({ depth: 1, tokens: close('modulo'), q: isPending ? ['pendientes'] : [] });
+}
+
+const nextExams = exams.slice(0, 3);
+if (nextExams.length > 0) {
+  lines.push({ depth: 1, tokens: open('examenes', []), q: [] });
+  nextExams.forEach((e, i) => {
+    lines.push({
+      depth: 2,
+      tokens: open('examen', [['modulo', e.subject], ['fecha', e.start.slice(0, 10)]], true),
+      q: i === 0 ? ['proximo', 'examenes'] : ['examenes'],
+    });
+  });
+  lines.push({ depth: 1, tokens: close('examenes'), q: [] });
+}
+lines.push({ depth: 0, tokens: close('daw'), q: [] });
+
+// Nodos que devuelve cada consulta (el resaltado incluye además los hijos, como en un inspector).
+const withTemas = new Set(temas.map((t) => t.data.subject));
+const queries = [
+  { id: 'temas', expr: '//tema', n: temas.length },
+  { id: 'pendientes', expr: '//modulo[@curso="1"]', n: subjects.filter((s) => s.data.year === 1 && withTemas.has(s.id)).length },
+  { id: 'proximo', expr: '//examen[1]', n: nextExams.length > 0 ? 1 : 0 },
+  { id: 'vacios', expr: '//modulo[not(tema)]', n: subjects.filter((s) => !withTemas.has(s.id)).length },
+  { id: 'examenes', expr: '//examenes/examen', n: nextExams.length },
+].filter((q) => q.n > 0);
+
+const first = queries[0];
+---
+
+<div class="hero-tree" aria-hidden="true" data-queries={JSON.stringify(queries)}>
+  <div class="xpath-bar">
+    <span class="xpath-prompt">xpath</span>
+    <span class="xpath-expr">{first?.expr}</span><span class="xpath-caret"></span>
+    <span class="xpath-result">{first ? `${first.n} ${first.n === 1 ? 'nodo' : 'nodos'}` : ''}</span>
+  </div>
+  <div class="tree-body">
+    {
+      lines.map((line, i) => (
+        <div
+          class:list={['tree-line', first && line.q.includes(first.id) && 'is-match']}
+          data-q={line.q.join(' ')}
+          style={`--i:${i}`}
+        >
+          <span class="tree-num">{String(i + 1).padStart(2, '0')}</span>
+          {Array.from({ length: line.depth }).map(() => <span class="tree-indent" />)}
+          {line.tokens.map((tok) => <span class={`tok-${tok.t}`}>{tok.v}</span>)}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .hero-tree {
+    position: absolute;
+    top: 50%;
+    right: max(1rem, calc((100vw - 72rem) / 2 - 3rem));
+    width: min(44rem, 92vw);
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted-foreground);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 30%, #000 100%),
+      linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent 0%, #000 30%, #000 100%),
+      linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  .xpath-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.9rem 3.25rem;
+    color: var(--foreground);
+    white-space: nowrap;
+  }
+
+  .xpath-prompt {
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) * 0.6);
+    padding: 0 0.4rem;
+    font-size: 11px;
+    color: var(--muted-foreground);
+  }
+
+  .xpath-caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    margin-left: -0.45rem;
+    background: var(--foreground);
+    animation: blink 1s steps(1) infinite;
+  }
+
+  .xpath-result {
+    margin-left: 0.5rem;
+    color: var(--muted-foreground);
+    transition: opacity 200ms ease;
+  }
+
+  .hero-tree[data-typing] .xpath-result {
+    opacity: 0;
+  }
+
+  .tree-line {
+    position: relative;
+    display: flex;
+    align-items: center;
+    white-space: pre;
+    padding: 0 0.75rem 0 0;
+    border-radius: calc(var(--radius) * 0.6);
+    opacity: 0.45;
+    transition: opacity 300ms ease, background-color 300ms ease;
+  }
+
+  .tree-line.is-match {
+    opacity: 1;
+    background: color-mix(in oklch, var(--muted) 85%, transparent);
+    color: var(--foreground);
+  }
+
+  .tree-line.is-match::before {
+    content: '';
+    position: absolute;
+    left: 2.6rem;
+    top: 20%;
+    bottom: 20%;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--foreground);
+  }
+
+  .tree-num {
+    width: 3.25rem;
+    padding-right: 1rem;
+    text-align: right;
+    flex-shrink: 0;
+    font-size: 11px;
+    opacity: 0.5;
+  }
+
+  .tree-indent {
+    display: inline-block;
+    width: 2ch;
+    align-self: stretch;
+    border-left: 1px solid var(--border);
+    margin-left: 0.5ch;
+  }
+
+  .tok-tag {
+    color: var(--foreground);
+  }
+
+  .tok-attr {
+    font-style: italic;
+  }
+
+  .tok-value {
+    color: var(--foreground);
+  }
+
+  .tok-punct {
+    opacity: 0.6;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .hero-tree {
+      top: 0;
+      right: -6rem;
+      transform: none;
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .xpath-caret {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  type Query = { id: string; expr: string; n: number };
+
+  const root = document.querySelector<HTMLElement>('.hero-tree');
+  const queries: Query[] = root ? JSON.parse(root.dataset.queries ?? '[]') : [];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (root && queries.length > 1 && !reduceMotion) {
+    const exprEl = root.querySelector<HTMLElement>('.xpath-expr')!;
+    const resultEl = root.querySelector<HTMLElement>('.xpath-result')!;
+    const lines = Array.from(root.querySelectorAll<HTMLElement>('.tree-line'));
+    const HOLD_MS = 3800;
+    const TYPE_MS = 45;
+    let index = 0;
+    let timer = 0;
+
+    const wait = (ms: number) => new Promise<void>((resolve) => (timer = window.setTimeout(resolve, ms)));
+
+    const highlight = (id: string | null) => {
+      for (const line of lines) {
+        line.classList.toggle('is-match', id !== null && (line.dataset.q ?? '').split(' ').includes(id));
+      }
+    };
+
+    async function run(query: Query) {
+      root!.dataset.typing = '';
+      highlight(null);
+      // Borrar la consulta anterior y teclear la nueva
+      for (let i = exprEl.textContent!.length; i >= 0; i--) {
+        exprEl.textContent = exprEl.textContent!.slice(0, i);
+        await wait(TYPE_MS / 2);
+      }
+      for (let i = 1; i <= query.expr.length; i++) {
+        exprEl.textContent = query.expr.slice(0, i);
+        await wait(TYPE_MS);
+      }
+      await wait(250);
+      resultEl.textContent = `${query.n} ${query.n === 1 ? 'nodo' : 'nodos'}`;
+      delete root!.dataset.typing;
+      highlight(query.id);
+    }
+
+    let active = true;
+    async function loop() {
+      while (active) {
+        await wait(HOLD_MS);
+        if (!active) break;
+        index = (index + 1) % queries.length;
+        await run(queries[index]);
+      }
+    }
+
+    // Solo corre mientras el hero se ve y la pestaña está activa.
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      active = true;
+      loop();
+    };
+    const stop = () => {
+      started = false;
+      active = false;
+      clearTimeout(timer);
+    };
+
+    new IntersectionObserver(([entry]) => (entry.isIntersecting && !document.hidden ? start() : stop())).observe(root);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+  }
+</script>

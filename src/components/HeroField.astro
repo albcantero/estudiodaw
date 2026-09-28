@@ -1,0 +1,267 @@
+---
+// Campo de glifos para el hero: ruido animado dibujado con caracteres monoespaciados,
+// fragmentos de sintaxis del ciclo que se "teclean" y se desvanecen, y un halo que sigue al puntero.
+// Canvas 2D sin librerías. Con prefers-reduced-motion se pinta un único fotograma estático.
+---
+
+<canvas class="hero-field" aria-hidden="true"></canvas>
+
+<style>
+  .hero-field {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    -webkit-mask-image:
+      radial-gradient(ellipse 60% 85% at 78% 42%, #000 25%, transparent 78%);
+    mask-image:
+      radial-gradient(ellipse 60% 85% at 78% 42%, #000 25%, transparent 78%);
+  }
+
+  @media (max-width: 1023px) {
+    .hero-field {
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+      mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+      opacity: 0.6;
+    }
+  }
+</style>
+
+<script>
+  const CELL_W = 11;
+  const CELL_H = 18;
+  const FONT = '450 12px "Geist Mono", ui-monospace, monospace';
+  const RAMP = ' .:-=+<>/*{}#';
+  const THRESHOLD = 0.5;
+  const POINTER_RADIUS = 170;
+  const FRAME_MS = 1000 / 30;
+  const SNIPPETS = [
+    '<xs:element name="tema">',
+    'SELECT * FROM empleados',
+    '<xsl:template match="/">',
+    'for $x in doc("libros.xml")',
+    '<?php session_start(); ?>',
+    'await fetch("/api/temas")',
+    'GROUP BY dpto HAVING',
+    'git push origin main',
+    'display: grid;',
+    'addEventListener("click")',
+    'CREATE TABLE alumno (',
+    '<xs:keyref refer="idCurso">',
+    'docker compose up -d',
+    'LEFT JOIN centros c',
+    'document.querySelector()',
+    '@media (min-width: 768px)',
+  ];
+
+  interface Snippet {
+    text: string;
+    col: number;
+    row: number;
+    born: number;
+    life: number;
+  }
+
+  // Ruido de valor 3D con hash entero: barato y suficiente para un campo suave.
+  function hash(x: number, y: number, z: number) {
+    let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1440662683);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+  function noise(x: number, y: number, z: number) {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const zi = Math.floor(z);
+    const u = smooth(x - xi);
+    const v = smooth(y - yi);
+    const w = smooth(z - zi);
+    const x0 = lerp(hash(xi, yi, zi), hash(xi + 1, yi, zi), u);
+    const x1 = lerp(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), u);
+    const x2 = lerp(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), u);
+    const x3 = lerp(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), u);
+    return lerp(lerp(x0, x1, v), lerp(x2, x3, v), w);
+  }
+
+  const field = (x: number, y: number, t: number) =>
+    0.65 * noise(x, y, t) + 0.35 * noise(x * 2.1, y * 2.1, t * 1.7 + 11);
+
+  function init(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let width = 0;
+    let height = 0;
+    let cols = 0;
+    let rows = 0;
+    let color = '#000';
+    let pointerX = -1e4;
+    let pointerY = -1e4;
+    let snippets: Snippet[] = [];
+    let nextSpawn = 0;
+    let raf = 0;
+    let running = false;
+    let visible = true;
+    let lastFrame = 0;
+    const start = performance.now();
+
+    function readColor() {
+      color = getComputedStyle(canvas).color || '#000';
+    }
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(width / CELL_W);
+      rows = Math.ceil(height / CELL_H);
+      snippets = snippets.filter((s) => s.col + s.text.length <= cols && s.row < rows);
+    }
+
+    function spawn(t: number) {
+      if (cols < 30 || rows < 4) return;
+      const text = SNIPPETS[Math.floor(Math.random() * SNIPPETS.length)];
+      // Más probable a la derecha, donde el campo es visible.
+      const minCol = Math.floor(cols * 0.45);
+      const maxCol = Math.max(minCol, cols - text.length - 1);
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const row = 1 + Math.floor(Math.random() * (rows - 2));
+        if (snippets.some((s) => Math.abs(s.row - row) < 2)) continue;
+        const col = minCol + Math.floor(Math.random() * (maxCol - minCol + 1));
+        snippets.push({ text, col, row, born: t, life: 5 + Math.random() * 2 });
+        return;
+      }
+    }
+
+    function draw(t: number) {
+      ctx!.clearRect(0, 0, width, height);
+      ctx!.font = FONT;
+      ctx!.textBaseline = 'top';
+      ctx!.fillStyle = color;
+
+      // Celdas ocupadas por fragmentos: el ruido no se pinta debajo.
+      const occupied = new Set<number>();
+      for (const s of snippets) {
+        for (let i = 0; i < s.text.length; i++) occupied.add(s.row * cols + s.col + i);
+      }
+
+      const tz = t * 0.12;
+      for (let r = 0; r < rows; r++) {
+        const y = r * CELL_H;
+        for (let c = 0; c < cols; c++) {
+          if (occupied.has(r * cols + c)) continue;
+          const x = c * CELL_W;
+          let v = field(c * 0.085, r * 0.15, tz);
+          const dx = x + CELL_W / 2 - pointerX;
+          const dy = y + CELL_H / 2 - pointerY;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < POINTER_RADIUS * POINTER_RADIUS) {
+            v += (1 - Math.sqrt(d2) / POINTER_RADIUS) * 0.4;
+          }
+          if (v < THRESHOLD) continue;
+          const k = Math.min(1, (v - THRESHOLD) / (1 - THRESHOLD));
+          const idx = Math.min(RAMP.length - 1, 1 + Math.floor(k * (RAMP.length - 1)));
+          ctx!.globalAlpha = 0.07 + k * 0.38;
+          ctx!.fillText(RAMP[idx], x, y);
+        }
+      }
+
+      for (const s of snippets) {
+        const age = t - s.born;
+        const typed = reduceMotion ? s.text.length : Math.min(s.text.length, Math.floor(age * 22));
+        const fadeIn = Math.min(1, age / 0.4);
+        const fadeOut = Math.min(1, (s.life - age) / 1.2);
+        ctx!.globalAlpha = Math.max(0, Math.min(fadeIn, fadeOut)) * 0.62;
+        ctx!.fillText(s.text.slice(0, typed), s.col * CELL_W, s.row * CELL_H);
+        // Cursor de escritura mientras se teclea
+        if (typed < s.text.length && !reduceMotion) {
+          ctx!.fillRect(s.col * CELL_W + typed * CELL_W + 1, s.row * CELL_H + 1, CELL_W - 3, CELL_H - 4);
+        }
+      }
+      ctx!.globalAlpha = 1;
+    }
+
+    function frame(now: number) {
+      raf = requestAnimationFrame(frame);
+      if (now - lastFrame < FRAME_MS) return;
+      lastFrame = now;
+      const t = (now - start) / 1000;
+      snippets = snippets.filter((s) => t - s.born < s.life);
+      if (t >= nextSpawn && snippets.length < 4) {
+        spawn(t);
+        nextSpawn = t + 1.1 + Math.random() * 0.9;
+      }
+      draw(t);
+    }
+
+    function play() {
+      if (running || reduceMotion || !visible || document.hidden) return;
+      running = true;
+      raf = requestAnimationFrame(frame);
+    }
+
+    function pause() {
+      running = false;
+      cancelAnimationFrame(raf);
+    }
+
+    function drawStatic() {
+      snippets = [];
+      for (let i = 0; i < 3; i++) spawn(0);
+      snippets.forEach((s) => (s.born = -1));
+      draw(8.3);
+    }
+
+    readColor();
+    resize();
+
+    if (reduceMotion) {
+      drawStatic();
+    } else {
+      play();
+      window.addEventListener(
+        'pointermove',
+        (event) => {
+          const rect = canvas.getBoundingClientRect();
+          pointerX = event.clientX - rect.left;
+          pointerY = event.clientY - rect.top;
+        },
+        { passive: true },
+      );
+      document.documentElement.addEventListener('pointerleave', () => {
+        pointerX = pointerY = -1e4;
+      });
+    }
+
+    new ResizeObserver(() => {
+      resize();
+      if (reduceMotion) drawStatic();
+    }).observe(canvas);
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      visible ? play() : pause();
+    }).observe(canvas);
+
+    document.addEventListener('visibilitychange', () => (document.hidden ? pause() : play()));
+
+    // Cambio de tema: se relee el color del texto.
+    new MutationObserver(() => {
+      readColor();
+      if (reduceMotion) drawStatic();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  const canvas = document.querySelector<HTMLCanvasElement>('.hero-field');
+  if (canvas) document.fonts.ready.then(() => init(canvas));
+</script>

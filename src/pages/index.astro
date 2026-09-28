@@ -2,61 +2,157 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Card from '../components/Card.astro';
+import ItemGrid from '../components/ItemGrid.astro';
+import PageHeading from '../components/PageHeading.astro';
+import Panel from '../components/Panel.astro';
+import Separator from '../components/Separator.astro';
+import { exams } from '../data/exams';
 
 const subjects = (await getCollection('subjects')).sort(
   (a, b) => a.data.order - b.data.order,
 );
 const temas = await getCollection('temas');
 const docs = await getCollection('docs');
+const subjectById = new Map(subjects.map((s) => [s.id, s.data]));
 
 const temaCount = (subjectId: string) =>
   temas.filter((t) => t.data.subject === subjectId).length;
+
+const foot = (subjectId: string) => {
+  const n = temaCount(subjectId);
+  if (n === 0) return 'Sin temas todavía';
+  return `${n} ${n === 1 ? 'tema' : 'temas'}`;
+};
+
+// Exámenes pendientes en el momento del build; el script del cliente recalcula los días
+// y oculta los que ya han pasado, así la lista no envejece entre despliegues.
+const buildTime = Date.now();
+const upcoming = exams
+  .filter((e) => new Date(e.start).getTime() > buildTime)
+  .sort((a, b) => a.start.localeCompare(b.start));
+
+const dayFormat = new Intl.DateTimeFormat('es-ES', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'Europe/Madrid',
+});
+const timeFormat = new Intl.DateTimeFormat('es-ES', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Madrid',
+});
+const VISIBLE_EXAMS = 5;
 ---
 
 <Base title="estudiodaw.dev">
-  <header class="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-end pt-14 md:pt-24 pb-14 md:pb-20">
-    <div>
-      <p class="eyebrow mb-4">DAW a distancia · 2026-27</p>
-      <h1 class="font-heading font-medium text-fg text-[2.6rem] sm:text-6xl lg:text-[5.25rem] leading-[1.02] tracking-[-0.03em] text-balance">
-        Apuntes de <span class="text-accent">DAW</span>, tema a tema
-      </h1>
-    </div>
-    <div class="lg:pb-2">
-      <p class="text-lg leading-snug text-fg-dim text-balance mb-7">
-        Teoría para aprender, ejercicios de menos a más y soluciones para comparar. Se escriben mientras se estudia y se comparten con la clase.
-      </p>
-      <dl class="pt-5 border-t border-line flex gap-8 text-[12px]">
-        <div>
-          <dt class="sr-only">asignaturas</dt>
-          <dd><span class="font-heading text-2xl text-fg tabular-nums">{subjects.length}</span> <span class="text-fg-muted">asignaturas</span></dd>
+  <div class="mx-auto md:max-w-3xl">
+    <PageHeading
+      tagline="DAW a distancia · Curso 2026-27"
+      title="Apuntes de DAW, tema a tema"
+      description="Teoría para aprender, ejercicios de menos a más y soluciones para comparar. Se escriben mientras se estudia y se comparten con la clase."
+    >
+      <dl class="grid grid-cols-3 gap-px bg-line">
+        <div class="bg-background px-4 py-3">
+          <dt class="text-sm text-muted-foreground">Asignaturas</dt>
+          <dd class="font-mono text-2xl font-medium tabular-nums">{subjects.length}</dd>
         </div>
-        <div>
-          <dt class="sr-only">temas</dt>
-          <dd><span class="font-heading text-2xl text-fg tabular-nums">{temas.length}</span> <span class="text-fg-muted">temas</span></dd>
+        <div class="bg-background px-4 py-3">
+          <dt class="text-sm text-muted-foreground">Temas</dt>
+          <dd class="font-mono text-2xl font-medium tabular-nums">{temas.length}</dd>
         </div>
-        <div>
-          <dt class="sr-only">documentos</dt>
-          <dd><span class="font-heading text-2xl text-fg tabular-nums">{docs.length}</span> <span class="text-fg-muted">documentos</span></dd>
+        <div class="bg-background px-4 py-3">
+          <dt class="text-sm text-muted-foreground">Documentos</dt>
+          <dd class="font-mono text-2xl font-medium tabular-nums">{docs.length}</dd>
         </div>
       </dl>
-    </div>
-  </header>
+    </PageHeading>
 
-  <h2 class="eyebrow border-t border-line pt-3 mb-4">Asignaturas</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {
-      subjects.map((s) => (
-        <Card
-          boxed
-          href={`/${s.id}`}
-          number={s.data.short}
-          label={s.data.name}
-          title={s.data.name}
-          description={s.data.description}
-          foot={`${temaCount(s.id)} ${temaCount(s.id) === 1 ? 'tema' : 'temas'}`}
-          color={s.data.color}
-        />
-      ))
-    }
+    <Separator />
+
+    <Panel id="examenes" title="Próximos exámenes">
+      <ol id="exam-list">
+        {
+          upcoming.map((e, i) => {
+            const s = subjectById.get(e.subject);
+            const date = new Date(e.start);
+            return (
+              <li class="exam-row screen-line-bottom flex items-center gap-3 px-4 py-3" data-start={e.start} hidden={i >= VISIBLE_EXAMS}>
+                <span class="flex size-6 shrink-0 items-center justify-center rounded-md border bg-muted/50" aria-hidden="true">
+                  <span class="size-2 rounded-full" style={`background:${s?.color}`} />
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium">{s?.name ?? e.subject}</p>
+                  <p class="flex items-center gap-2 text-sm text-muted-foreground tabular-nums">
+                    <span>{e.label}</span>
+                    <span class="h-3.5 w-px bg-border" aria-hidden="true" />
+                    <span>{dayFormat.format(date)}</span>
+                    <span class="h-3.5 w-px bg-border" aria-hidden="true" />
+                    <span>{timeFormat.format(date)} h</span>
+                  </p>
+                </div>
+                <span class="exam-countdown shrink-0 rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs tabular-nums text-muted-foreground" />
+              </li>
+            );
+          })
+        }
+      </ol>
+      <p id="exam-empty" class="px-4 py-6 text-muted-foreground" hidden={upcoming.length > 0}>
+        No quedan exámenes en el calendario cargado.
+      </p>
+    </Panel>
+
+    <Separator />
+
+    <Panel id="asignaturas" title="Asignaturas" count={subjects.length}>
+      <ItemGrid>
+        {
+          subjects.map((s) => (
+            <li>
+              <Card
+                href={`/${s.id}`}
+                number={s.data.short}
+                label={s.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}
+                title={s.data.name}
+                description={s.data.description}
+                foot={foot(s.id)}
+                color={s.data.color}
+              />
+            </li>
+          ))
+        }
+      </ItemGrid>
+    </Panel>
   </div>
 </Base>
+
+<script>
+  const VISIBLE_EXAMS = 5;
+  const DAY = 24 * 60 * 60 * 1000;
+
+  function countdown(ms: number) {
+    const days = Math.floor(ms / DAY);
+    if (days === 0) return 'hoy';
+    if (days === 1) return 'mañana';
+    return `${days} días`;
+  }
+
+  function refresh() {
+    const now = Date.now();
+    const rows = Array.from(document.querySelectorAll<HTMLLIElement>('.exam-row'));
+    let shown = 0;
+    for (const row of rows) {
+      const diff = new Date(row.dataset.start!).getTime() - now;
+      const show = diff > 0 && shown < VISIBLE_EXAMS;
+      row.hidden = !show;
+      if (!show) continue;
+      shown += 1;
+      const badge = row.querySelector<HTMLElement>('.exam-countdown');
+      if (badge) badge.textContent = countdown(diff);
+    }
+    const empty = document.querySelector<HTMLElement>('#exam-empty');
+    if (empty) empty.hidden = shown > 0;
+  }
+
+  refresh();
+</script>

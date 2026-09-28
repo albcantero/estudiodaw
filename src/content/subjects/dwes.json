@@ -1,0 +1,8 @@
+{
+  "name": "Desarrollo Web en Entorno Servidor",
+  "short": "DWES",
+  "description": "PHP: sesiones, acceso a datos, servicios web REST y arquitectura MVC.",
+  "order": 5,
+  "year": 2,
+  "color": "#f472b6"
+}

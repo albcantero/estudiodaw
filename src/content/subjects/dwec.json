@@ -1,0 +1,8 @@
+{
+  "name": "Desarrollo Web en Entorno Cliente",
+  "short": "DWEC",
+  "description": "JavaScript en el navegador: DOM, eventos, asincronía, almacenamiento y frameworks de cliente.",
+  "order": 4,
+  "year": 2,
+  "color": "#fbbf24"
+}

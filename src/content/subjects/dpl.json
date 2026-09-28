@@ -1,0 +1,8 @@
+{
+  "name": "Despliegue de Aplicaciones Web",
+  "short": "DPL",
+  "description": "Servidores web y de aplicaciones, control de versiones, contenedores, documentación y monitorización.",
+  "order": 6,
+  "year": 2,
+  "color": "#fb923c"
+}

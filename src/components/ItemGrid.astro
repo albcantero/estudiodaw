@@ -1,0 +1,46 @@
+---
+// Rejilla de dos columnas con las líneas de chanhdai: guías verticales de fondo y
+// líneas a sangre en cada fila (en móvil, en cada elemento).
+---
+
+<div class="relative py-4">
+  <div class="pointer-events-none absolute inset-0 -z-1 grid grid-cols-1 gap-4 max-sm:hidden sm:grid-cols-2" aria-hidden="true">
+    <div class="border-r border-line"></div>
+    <div class="border-l border-line"></div>
+  </div>
+  <ul class="item-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <slot />
+  </ul>
+</div>
+
+<style>
+  .item-grid > :global(li) {
+    position: relative;
+  }
+
+  .item-grid > :global(li)::before,
+  .item-grid > :global(li)::after {
+    content: '';
+    position: absolute;
+    left: -100vw;
+    z-index: -1;
+    height: 1px;
+    width: 200vw;
+    background: var(--line);
+  }
+
+  .item-grid > :global(li)::before {
+    top: 0;
+  }
+
+  .item-grid > :global(li)::after {
+    bottom: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .item-grid > :global(li:nth-child(2n))::before,
+    .item-grid > :global(li:nth-child(2n))::after {
+      content: none;
+    }
+  }
+</style>

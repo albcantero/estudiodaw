@@ -1,212 +1,620 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Tokens semánticos expuestos a Tailwind: bg-bg, bg-surface, border-line, text-fg, text-accent... */
+/* Sistema visual portado de chanhdai.com (ncdai, MIT): tokens zinc de shadcn,
+   columna central de 3xl con bordes, líneas a sangre (screen-line) y separadores a rayas. */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Pixel";
+  src: url("/fonts/GeistPixel-Square.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-line: var(--border);
-  --color-line-strong: var(--border-hover);
-  --color-fg: var(--text);
-  --color-fg-body: var(--text-body);
-  --color-fg-dim: var(--text-dim);
-  --color-fg-muted: var(--text-muted);
+  --font-heading: "Cardo", Georgia, "Times New Roman", serif;
+  /* Conjuntos estilísticos de albcantero.com. Van colgados de cada familia: son por fuente,
+     el ss01 de una no significa lo mismo en otra.
+     Geist:      ss01 "a" de un solo piso · ss05 "I" con remates (no se confunde con l ni 1)
+     Geist Mono: ss01 la misma "a" de un piso, para que casen cuerpo y código.
+     Sin ss11 en mono (ligaduras de código): en apuntes para aprender, "=>" debe verse
+     como se teclea. Tampoco "zero" ni "tnum": Geist Mono no los trae. */
+  --font-sans--font-feature-settings: "ss01" 1, "ss05" 1;
+  --font-mono--font-feature-settings: "ss01" 1;
+  --default-font-feature-settings: var(--font-sans--font-feature-settings);
+  --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
   --color-accent: var(--accent);
-  --color-accent-dim: var(--accent-dim);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-line: var(--line);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-surface: var(--surface);
+  --color-code: var(--code);
+  --color-code-number: var(--code-number);
 }
 
-:root,
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0e0e0f;
-  --surface: #151516;
-  --surface-2: #1c1c1e;
-  --border: rgba(255, 255, 255, 0.075);
-  --border-hover: rgba(255, 255, 255, 0.16);
-  --accent: #4cc3ff;
-  --accent-dim: rgba(76, 195, 255, 0.12);
-  --text: #edece8;
-  --text-body: #cfcec8;
-  --text-dim: #a9a8a2;
-  --text-muted: #7f7e79;
-  --code-bg: #131314;
-  --navbar-bg: rgba(14, 14, 15, 0.78);
-  --selection: rgba(76, 195, 255, 0.28);
-  --card-hover-bg: rgba(255, 255, 255, 0.025);
-}
-
-:root[data-theme="light"] {
+:root {
   color-scheme: light;
-  --bg: #fbfaf6;
-  --surface: #f3f1eb;
-  --surface-2: #eae7df;
-  --border: rgba(28, 25, 20, 0.1);
-  --border-hover: rgba(28, 25, 20, 0.22);
-  --accent: #0a6399;
-  --accent-dim: rgba(10, 99, 153, 0.09);
-  --text: #1b1a17;
-  --text-body: #2e2d29;
-  --text-dim: #4f4d47;
-  --text-muted: #726f68;
-  --code-bg: #f4f2ec;
-  --navbar-bg: rgba(251, 250, 246, 0.82);
-  --selection: rgba(10, 99, 153, 0.18);
-  --card-hover-bg: rgba(28, 25, 20, 0.025);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.141 0.005 285.823);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.141 0.005 285.823);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-muted: color-mix(in oklab, var(--accent) 50%, transparent);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --border: oklch(0.92 0.004 286.32);
+  --line: color-mix(in oklab, var(--border) 64%, var(--background));
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+  --info: oklch(0.67 0.17 244.98);
+  --success: oklch(0.723 0.219 149.579);
+  --surface: oklch(0.985 0 0);
+  --code: var(--background);
+  --code-number: oklch(0.24 0.01 0 / 0.3);
+  --selection: oklch(0.141 0.005 285.823);
+  --selection-foreground: oklch(0.985 0 0);
+  --header-height: 3.5rem;
+  --fade-bottom-height: 6rem;
 }
 
-html {
-  -webkit-text-size-adjust: 100%;
-  text-rendering: optimizeLegibility;
-  scroll-padding-top: 4.5rem;
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.141 0.005 285.823);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-muted: color-mix(in oklab, var(--accent) 20%, transparent);
+  --accent-foreground: oklch(0.985 0 0);
+  --border: oklch(0.274 0.006 286.033);
+  --input: lab(100% 0 0 / 0.15);
+  --ring: oklch(0.552 0.016 285.938);
+  --success: oklch(0.723 0.219 149.579);
+  --surface: oklch(0.21 0.006 285.885);
+  --code: var(--background);
+  --code-number: oklch(0.43 0 0);
+  --selection: oklch(0.985 0 0);
+  --selection-foreground: oklch(0.141 0.005 285.823);
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
+
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--selection);
+    color: var(--selection-foreground);
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 5px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  [id] {
+    scroll-margin-top: 4.5rem;
+  }
 }
 
-::selection {
-  background: var(--selection);
+/* ---------- Utilidades de chanhdai ---------- */
+
+@utility link-underline {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease;
+  &:hover {
+    text-decoration-color: currentColor;
+  }
 }
 
-.font-heading {
-  font-optical-sizing: auto;
-  font-kerning: normal;
+/* Línea horizontal que cruza toda la pantalla por encima / por debajo del elemento */
+@utility screen-line-top {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100vw;
+    z-index: -1;
+    height: 1px;
+    width: 200vw;
+    background: var(--line);
+  }
 }
 
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+@utility screen-line-bottom {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: -100vw;
+    z-index: -1;
+    height: 1px;
+    width: 200vw;
+    background: var(--line);
+  }
 }
 
-/* ---------- Prosa (apuntes) ---------- */
-.prose {
-  --tw-prose-body: var(--text-body);
-  --tw-prose-headings: var(--text);
-  --tw-prose-lead: var(--text-dim);
-  --tw-prose-links: var(--accent);
-  --tw-prose-bold: var(--text);
-  --tw-prose-counters: var(--text-muted);
-  --tw-prose-bullets: var(--text-muted);
-  --tw-prose-hr: var(--border);
-  --tw-prose-quotes: var(--text-dim);
-  --tw-prose-quote-borders: var(--accent);
-  --tw-prose-captions: var(--text-muted);
-  --tw-prose-code: var(--text);
-  --tw-prose-pre-code: var(--text-body);
-  --tw-prose-pre-bg: var(--code-bg);
-  --tw-prose-th-borders: var(--border-hover);
+/* Variante con el color de borde completo (cabecera, final de panel) */
+@utility screen-line-strong {
+  &::before,
+  &::after {
+    background: var(--border);
+  }
+}
+
+@utility screen-line-front {
+  &::before,
+  &::after {
+    z-index: 1;
+  }
+}
+
+@utility diagonal-stripes {
+  --pattern-foreground: color-mix(in oklab, var(--line) 56%, transparent);
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--pattern-foreground) 0,
+    var(--pattern-foreground) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+}
+
+/* Separador a rayas que sale a sangre por los dos lados */
+@utility stripe-divider {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    left: -100vw;
+    z-index: -1;
+    height: 100%;
+    width: 200vw;
+    --pattern-foreground: color-mix(in oklab, var(--line) 56%, transparent);
+    background-image: repeating-linear-gradient(
+      315deg,
+      var(--pattern-foreground) 0,
+      var(--pattern-foreground) 1px,
+      transparent 0,
+      transparent 50%
+    );
+    background-size: 10px 10px;
+  }
+}
+
+/* Títulos en Cardo (solo tiene Regular y Bold: 400 fijo para que el navegador no
+   sintetice un 500), con su espaciado original y sin heredar los ss de Geist. */
+.heading,
+.prose-ncdai :where(h1, h2, h3, h4) {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: normal;
+  font-feature-settings: normal;
+}
+
+/* ---------- Marco de designeer.xyz ---------- */
+
+/* Fondo fuera del marco y canaletas: 8 px en móvil, 16 px por fuera del marco en escritorio */
+.hatch {
+  --gutter: 8px;
+  background-color: var(--background);
+  padding-inline: var(--gutter);
+  overflow-x: clip;
+}
+
+@media (min-width: 64rem) {
+  .hatch {
+    --gutter: 16px;
+    padding-inline: 0;
+  }
+}
+
+.frame {
+  position: relative;
+  background: var(--background);
+}
+
+.frame::before,
+.frame::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--gutter);
+  pointer-events: none;
+  border-inline: 1px solid var(--border);
+  background-image: repeating-linear-gradient(
+    315deg,
+    color-mix(in srgb, var(--foreground) 9%, transparent) 0 1px,
+    transparent 0 50%
+  );
+  background-size: 10px 10px;
+}
+
+.frame::before {
+  left: calc(var(--gutter) * -1);
+}
+
+.frame::after {
+  right: calc(var(--gutter) * -1);
+}
+
+/* Dentro de la columna del cuerpo los bordes laterales los pone el marco:
+   se quitan los border-x de chanhdai para no duplicar líneas. */
+@media (min-width: 64rem) {
+  .app-main .border-x {
+    border-inline-width: 0;
+  }
+
+  .bottom-fade {
+    left: calc(max(0px, (100vw - 66rem) / 2) + 18rem);
+    right: max(0px, (100vw - 66rem) / 2);
+  }
+}
+
+@media (max-width: 63.999rem) {
+  .bottom-fade {
+    left: 0;
+    right: 0;
+  }
+}
+
+.font-pixel {
+  font-family: "Geist Pixel", var(--font-mono);
+  font-feature-settings: normal;
+}
+
+/* Plato del hover de la navegación lateral */
+.hover-plate {
+  border-radius: 6px;
+  opacity: 0;
+  background: linear-gradient(to bottom, var(--muted), var(--muted));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--border) 70%, transparent),
+    inset 0 1px 0 #ffffffe6,
+    inset 0 2px 5px #0000000a,
+    inset 0 -2px 8px #ffffffb3,
+    0 2px 6px -4px #00000047,
+    0 6px 14px -6px #0000001a;
+}
+
+.dark .hover-plate {
+  background: linear-gradient(to bottom, var(--accent), var(--accent));
+  box-shadow:
+    inset 0 0 0 1px #ffffff1f,
+    inset 0 1px 0 #ffffff1a,
+    inset 0 2px 5px #00000040,
+    inset 0 -2px 8px #ffffff08,
+    0 2px 6px -4px #0009,
+    0 6px 14px -6px #0006;
+}
+
+/* Entrada escalonada del panel: sube 10 px desenfocado */
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--d, 0s);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* Icono del botón de tema: luna en oscuro, sol en claro */
+.theme-icon-moon,
+.dark .theme-icon-sun {
+  display: none;
+}
+
+.dark .theme-icon-moon {
+  display: block;
+}
+
+/* ---------- Prosa: prose-ncdai + typeset de shadcn ---------- */
+
+.prose-ncdai {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: color-mix(in oklab, var(--foreground) 25%, transparent);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--muted-foreground);
+  --tw-prose-quote-borders: var(--line);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--code);
+  --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
   max-width: none;
+  font-size: 1rem;
+  line-height: 1.75;
 }
 
-.prose :where(h1, h2, h3, h4) {
-  font-family: var(--font-heading);
-  font-optical-sizing: auto;
+.prose-ncdai :where(h1, h2, h3, h4) {
+  text-wrap: balance;
+}
+
+.prose-ncdai :where(h2) {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.prose-ncdai :where(h3) {
+  font-size: 1.125rem;
+}
+
+.prose-ncdai :where(a) {
+  font-weight: 400;
+  overflow-wrap: break-word;
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.prose-ncdai :where(a:hover) {
+  text-decoration-color: currentColor;
+}
+
+.prose-ncdai :where(strong) {
   font-weight: 500;
-  letter-spacing: -0.015em;
-  scroll-margin-top: 4.5rem;
 }
 
-.prose :where(h1) {
-  font-size: 2.5em;
-  line-height: 1.1;
-}
-
-.prose :where(h2) {
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
-}
-
-.prose :where(h2 + hr, hr + h2) {
-  border-top: 0;
-}
-
-.prose :where(code) {
+.prose-ncdai :where(:not(pre) > code) {
   font-family: var(--font-mono);
   font-size: 0.875em;
   font-weight: 400;
-}
-
-.prose :where(:not(pre) > code) {
-  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0.1em 0.35em;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+  padding: 1px 0.25rem;
+  white-space: pre-wrap;
 }
 
-.prose :where(code)::before,
-.prose :where(code)::after {
+.prose-ncdai :where(code)::before,
+.prose-ncdai :where(code)::after {
   content: none;
 }
 
-.prose :where(pre) {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  line-height: 1.6;
+.prose-ncdai :where(blockquote) {
+  border-left: 1px solid var(--line);
+  font-weight: 400;
+  font-style: normal;
+  color: var(--muted-foreground);
 }
 
-.prose :where(pre.astro-code) {
-  background-color: var(--code-bg) !important;
+.prose-ncdai :where(blockquote p:first-of-type)::before,
+.prose-ncdai :where(blockquote p:last-of-type)::after {
+  content: none;
 }
 
-/* Shiki con dos temas: en oscuro se usan las variables --shiki-dark */
-:root[data-theme="dark"] .prose :where(pre.astro-code),
-:root[data-theme="dark"] .prose :where(pre.astro-code span) {
-  color: var(--shiki-dark) !important;
+.prose-ncdai :where(ul > li)::marker {
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
-.prose :where(table) {
+/* Tablas: las de prose-zinc tal cual; solo se añade scroll horizontal para las anchas */
+.prose-ncdai :where(table) {
   display: block;
   overflow-x: auto;
-  font-size: 0.875rem;
 }
 
-.prose :where(thead th) {
-  font-weight: 600;
-  text-align: left;
+@media (min-resolution: 2x) {
+  .prose-ncdai :where(:not(pre) > code) {
+    border-width: 0.5px;
+  }
 }
 
-.prose :where(blockquote) {
-  font-style: normal;
-  font-weight: 400;
-  background: var(--accent-dim);
-  border-radius: 0 8px 8px 0;
-  padding: 0.75rem 1rem;
-}
-
-.prose :where(blockquote p:first-of-type)::before,
-.prose :where(blockquote p:last-of-type)::after {
-  content: none;
-}
-
-.prose :where(details) {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  margin: 1.25rem 0;
+/* Soluciones plegadas */
+.prose-ncdai :where(details) {
+  margin: 1.25em 0;
+  border-radius: var(--radius-xl);
   background: var(--surface);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 64%, transparent);
+  padding: 0.25rem;
 }
 
-.prose :where(details[open]) {
-  border-color: var(--border-hover);
-}
-
-.prose :where(summary) {
+.prose-ncdai :where(details > summary) {
   cursor: pointer;
   font-weight: 500;
-  color: var(--accent);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted-foreground);
+  list-style-position: inside;
+}
+
+.prose-ncdai :where(details > summary)::marker {
+  color: var(--muted-foreground);
+}
+
+.prose-ncdai :where(details[open] > summary) {
+  color: var(--foreground);
+}
+
+.prose-ncdai :where(details > :not(summary)) {
+  margin-inline: 0.75rem;
+}
+
+.prose-ncdai :where(details > .code-block) {
+  margin-inline: 0;
+}
+
+/* ---------- Bloques de código (figure de rehype-pretty-code en chanhdai) ---------- */
+
+/* figure: rounded-xl bg-surface p-1 inset-ring-1 inset-ring-border/64; con título, pt-0 */
+.prose-ncdai .code-block {
+  position: relative;
+  margin: 1.25em 0;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  padding: 0 0.25rem 0.25rem;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 64%, transparent);
+}
+
+/* título: flex items-center gap-3 py-2.5 pr-8.5 pl-3 font-mono text-sm text-muted-foreground */
+.prose-ncdai .code-lang-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 2.125rem 0.625rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.prose-ncdai .code-lang-badge svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* pre dentro de un contenedor rounded-[9px] border bg-code; py-4 y cada línea con pl-4 */
+.prose-ncdai pre.astro-code {
+  margin: 0 !important;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background-color: var(--code) !important;
+  padding: 1rem 1rem 1rem 0;
+  font-size: 0.875rem;
+  line-height: 1.7142857;
+  tab-size: 2;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.prose-ncdai pre.astro-code::-webkit-scrollbar {
+  display: none;
+}
+
+.prose-ncdai pre.astro-code .line {
+  padding-left: 1rem;
+}
+
+/* Bloques sin lenguaje reconocido: sin barra de título */
+.prose-ncdai > pre.astro-code {
+  margin: 1.25em 0 !important;
+}
+
+.prose-ncdai pre.astro-code code {
+  min-width: 100%;
+  font-family: var(--font-mono);
+  font-feature-settings: var(--font-mono--font-feature-settings);
+  font-size: inherit;
+}
+
+.dark .prose-ncdai pre.astro-code,
+.dark .prose-ncdai pre.astro-code span {
+  color: var(--shiki-dark) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

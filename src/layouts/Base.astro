@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import Sidebar from '../components/Sidebar.astro';
 
 interface Props {
   title: string;
@@ -17,23 +19,19 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
 ---
 
 <!doctype html>
-<html lang="es" data-theme="dark">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script is:inline>
-      // Tema antes del primer pintado: guardado > sistema > oscuro.
+      // Tema antes del primer pintado: claro por defecto; oscuro solo si se eligió.
       (() => {
         const root = document.documentElement;
-        const system = window.matchMedia('(prefers-color-scheme: light)').matches
-          ? 'light'
-          : 'dark';
-        let theme = system;
+        let theme = 'light';
         try {
-          const stored = localStorage.getItem('site-theme');
-          if (stored === 'light' || stored === 'dark') theme = stored;
+          if (localStorage.getItem('site-theme') === 'dark') theme = 'dark';
         } catch {}
-        root.dataset.theme = theme;
+        root.classList.toggle('dark', theme === 'dark');
         root.style.colorScheme = theme;
       })();
     </script>
@@ -41,23 +39,40 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/GeistPixel-Square.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
   </head>
-  <body class="min-h-screen flex flex-col">
-    <Navbar />
-    <main id="main" class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 pb-24">
-      <slot />
-    </main>
-    <footer class="border-t border-line">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-fg-muted">
-        <span>Alberto Cantero · DAW a distancia, CIFP Ponferrada</span>
-        <span>Apuntes escritos con palabras propias a partir del material del ciclo.</span>
+  <!-- Marco de designeer: canaletas rayadas a los lados, panel fijo a la izquierda
+       y el cuerpo de chanhdai a la derecha, con sus líneas recortadas dentro. -->
+  <body class="hatch min-h-dvh">
+    <div class="frame mx-auto w-full max-w-[66rem]">
+      <div class="lg:hidden">
+        <Navbar />
       </div>
-    </footer>
+
+      <div class="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+        <div class="max-lg:hidden">
+          <Sidebar>
+            <slot name="sidebar" />
+          </Sidebar>
+        </div>
+
+        <div class="app-main relative isolate min-w-0 overflow-x-clip lg:border-l">
+          <main class="px-2 lg:px-0">
+            <slot />
+          </main>
+          <Footer />
+        </div>
+      </div>
+    </div>
+
+    <!-- Fundido inferior fijo (chanhdai), limitado a la columna del cuerpo en escritorio -->
+    <div class="bottom-fade pointer-events-none fixed bottom-0 z-50" aria-hidden="true">
+      <div class="h-(--fade-bottom-height) bg-linear-to-b from-transparent to-background mask-linear-[to_top,var(--background)_25%,transparent] backdrop-blur-[1px]"></div>
+      <div class="bg-background pb-[env(safe-area-inset-bottom,0)]"></div>
+    </div>
   </body>
 </html>
