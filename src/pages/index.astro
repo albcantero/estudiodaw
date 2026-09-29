@@ -154,5 +154,5 @@ const VISIBLE_EXAMS = 5;
     if (empty) empty.hidden = shown > 0;
   }
 
-  refresh();
+  document.addEventListener('astro:page-load', refresh);
 </script>

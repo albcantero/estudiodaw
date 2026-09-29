@@ -7,10 +7,11 @@ const published = new Set(temas.map((t) => t.data.subject));
 const subjects = (await getCollection('subjects'))
   .filter((s) => published.has(s.id))
   .sort((a, b) => a.data.order - b.data.order);
+const { class: className } = Astro.props;
 const current = Astro.url.pathname.split('/')[1];
 ---
 
-<header class="sticky top-0 z-50 max-w-screen overflow-x-clip bg-background px-2">
+<header class:list={['sticky top-0 z-50 max-w-screen overflow-x-clip bg-background px-2 lg:px-0', className]}>
   <div class="screen-line-top screen-line-bottom screen-line-strong mx-auto flex h-(--header-height) items-center gap-2 border-x pr-2 pl-4 after:z-1 sm:gap-4 md:max-w-3xl">
     <a href="/" class="flex items-baseline text-[15px] font-medium tracking-tight" aria-label="Inicio">
       <span>estudiodaw</span><span class="text-muted-foreground">.dev</span>
@@ -62,9 +63,10 @@ const current = Astro.url.pathname.split('/')[1];
 </header>
 
 <script>
-  const root = document.documentElement;
-
+  // Módulo: se ejecuta una sola vez aunque se navegue con ClientRouter,
+  // así que se escucha en el documento y no en cada botón.
   function toggleTheme() {
+    const root = document.documentElement;
     const dark = root.classList.toggle('dark');
     root.style.colorScheme = dark ? 'dark' : 'light';
     try {
@@ -72,8 +74,8 @@ const current = Astro.url.pathname.split('/')[1];
     } catch {}
   }
 
-  document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach((button) => {
-    button.addEventListener('click', toggleTheme);
+  document.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('.theme-toggle')) toggleTheme();
   });
 
   // Atajo "D" como en chanhdai, salvo escribiendo en un campo.

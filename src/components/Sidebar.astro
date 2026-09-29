@@ -1,7 +1,7 @@
 ---
 // Panel lateral izquierdo fijo, portado de designeer.xyz: marca, descripción,
 // navegación con contadores y pie con enlaces.
-// Las páginas pueden añadir contenido propio (el índice de un documento) con slot="sidebar".
+// Persiste entre páginas (transition:persist): el enlace activo lo actualiza el script.
 import { getCollection } from 'astro:content';
 
 const subjects = (await getCollection('subjects')).sort((a, b) => a.data.order - b.data.order);
@@ -11,7 +11,7 @@ const { class: className } = Astro.props;
 const current = Astro.url.pathname.split('/')[1] ?? '';
 ---
 
-<aside class:list={['sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0', className]}>
+<aside class:list={['sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0', className]} transition:persist="sidebar">
   <div class="flex min-h-0 flex-col px-5 pt-[clamp(2rem,6vh,3.25rem)] pb-5 lg:h-full">
     <div class="shrink-0">
       <a href="/" class="rise block w-fit rounded-full focus-visible:outline-2 focus-visible:outline-offset-2" style="--d:0ms" aria-label="estudiodaw.dev, inicio">
@@ -55,7 +55,6 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
         </ul>
       </nav>
 
-      <slot />
     </div>
 
     <div class="rise mt-5 flex shrink-0 items-center justify-between gap-2 border-t border-dashed pt-5" style="--d:400ms">
@@ -116,3 +115,19 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
     }
   }
 </style>
+
+<script>
+  // El panel no se vuelve a renderizar al navegar: se marca el activo según la URL.
+  function markActive() {
+    const section = location.pathname.split('/')[1] ?? '';
+    document.querySelectorAll<HTMLAnchorElement>('.sidebar .nav-link').forEach((link) => {
+      const target = new URL(link.href).pathname.split('/')[1] ?? '';
+      const active = section !== '' && target === section;
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  document.addEventListener('astro:page-load', markActive);
+</script>

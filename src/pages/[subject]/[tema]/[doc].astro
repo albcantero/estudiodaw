@@ -36,7 +36,7 @@ const prev = siblings[idx - 1];
 const next = siblings[idx + 1];
 ---
 
-<Base title={pageTitle} description={tema.data.description}>
+<Base title={pageTitle} description={tema.data.description} sidebar={false}>
   <!-- Cabecera en la columna central (DocContainer de chanhdai) -->
   <div class="mx-auto w-full border-x md:max-w-3xl">
     <div class="screen-line-bottom h-px"></div>
@@ -97,7 +97,7 @@ const next = siblings[idx + 1];
 
         {
           toc.length > 0 && (
-            <details class="toc-inline not-prose lg:hidden">
+            <details class="toc-inline not-prose">
               <summary>En este documento · {toc.length} secciones</summary>
               <ol class="mt-1 mb-2 flex flex-col gap-1 px-3 text-sm">
                 {toc.map((h) => (
@@ -145,30 +145,6 @@ const next = siblings[idx + 1];
       <div class="h-4"></div>
   </div>
 
-  {
-    toc.length > 0 && (
-      <section slot="sidebar" class="mt-5">
-        <p class="mb-2 font-mono text-[0.625rem] tracking-wider text-muted-foreground uppercase">En este documento</p>
-        <input
-          id="toc-filter"
-          type="search"
-          placeholder="Filtrar el índice…"
-          autocomplete="off"
-          class="mb-2 h-8 w-full rounded-[10px] border border-input bg-transparent px-2.5 text-[0.8125rem] outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-        />
-        <ul id="toc" class="flex flex-col text-[0.8125rem]">
-          {toc.map((h) => (
-            <li data-text={h.text.toLowerCase()} class="flex">
-              <a href={`#${h.slug}`} data-slug={h.slug} data-depth={h.depth} class="toc-link line-clamp-2 w-full rounded-[6px] px-2 py-1 text-muted-foreground transition-[color] duration-200 hover:text-foreground data-[depth=3]:pl-5">
-                {h.text}
-              </a>
-            </li>
-          ))}
-          <li id="toc-empty" hidden class="px-2 py-1 text-muted-foreground">Nada coincide.</li>
-        </ul>
-      </section>
-    )
-  }
 </Base>
 
 <style>
@@ -192,45 +168,3 @@ const next = siblings[idx + 1];
     color: var(--foreground);
   }
 </style>
-
-<script>
-  // Filtro del índice
-  const input = document.querySelector<HTMLInputElement>('#toc-filter');
-  const items = Array.from(document.querySelectorAll<HTMLLIElement>('#toc li[data-text]'));
-  const empty = document.querySelector<HTMLLIElement>('#toc-empty');
-
-  input?.addEventListener('input', () => {
-    const query = input.value.trim().toLowerCase();
-    let visible = 0;
-    for (const item of items) {
-      const match = query === '' || item.dataset.text!.includes(query);
-      item.hidden = !match;
-      if (match) visible += 1;
-    }
-    if (empty) empty.hidden = visible > 0;
-  });
-
-  // Sección activa del índice según el scroll
-  const links = new Map(
-    Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-link')).map((a) => [a.dataset.slug!, a]),
-  );
-  const headings = Array.from(links.keys())
-    .map((slug) => document.getElementById(slug))
-    .filter((el): el is HTMLElement => el !== null);
-
-  if (headings.length > 0) {
-    let active: HTMLAnchorElement | undefined;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          active?.removeAttribute('aria-current');
-          active = links.get(entry.target.id);
-          active?.setAttribute('aria-current', 'true');
-        }
-      },
-      { rootMargin: '-80px 0px -70% 0px' },
-    );
-    headings.forEach((h) => observer.observe(h));
-  }
-</script>

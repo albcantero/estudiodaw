@@ -340,17 +340,15 @@
     border-inline-width: 0;
   }
 
-  .bottom-fade {
+  [data-sidebar] .bottom-fade {
     left: calc(max(0px, (100vw - 66rem) / 2) + 18rem);
     right: max(0px, (100vw - 66rem) / 2);
   }
 }
 
-@media (max-width: 63.999rem) {
-  .bottom-fade {
-    left: 0;
-    right: 0;
-  }
+.bottom-fade {
+  left: 0;
+  right: 0;
 }
 
 .font-pixel {

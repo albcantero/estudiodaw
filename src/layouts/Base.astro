@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
@@ -7,11 +8,14 @@ import Sidebar from '../components/Sidebar.astro';
 interface Props {
   title: string;
   description?: string;
+  /** Con panel lateral (portada y asignaturas). Las páginas de lectura van sin él. */
+  sidebar?: boolean;
 }
 
 const {
   title,
   description = 'Apuntes, ejercicios y soluciones de DAW, tema a tema.',
+  sidebar = true,
 } = Astro.props;
 
 const siteName = 'estudiodaw.dev';
@@ -25,14 +29,22 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script is:inline>
       // Tema antes del primer pintado: claro por defecto; oscuro solo si se eligió.
+      // Con ClientRouter el <html> se sustituye en cada navegación: se vuelve a aplicar.
       (() => {
-        const root = document.documentElement;
-        let theme = 'light';
-        try {
-          if (localStorage.getItem('site-theme') === 'dark') theme = 'dark';
-        } catch {}
-        root.classList.toggle('dark', theme === 'dark');
-        root.style.colorScheme = theme;
+        const apply = () => {
+          const root = document.documentElement;
+          let theme = 'light';
+          try {
+            if (localStorage.getItem('site-theme') === 'dark') theme = 'dark';
+          } catch {}
+          root.classList.toggle('dark', theme === 'dark');
+          root.style.colorScheme = theme;
+        };
+        apply();
+        if (!window.__themeSwapHook) {
+          window.__themeSwapHook = true;
+          document.addEventListener('astro:after-swap', apply);
+        }
       })();
     </script>
     <title>{pageTitle}</title>
@@ -44,21 +56,23 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+    <!-- Navegación sin recarga: el panel lateral persiste entre la portada y las asignaturas -->
+    <ClientRouter />
   </head>
   <!-- Marco de designeer: canaletas rayadas a los lados, panel fijo a la izquierda
-       y el cuerpo de chanhdai a la derecha, con sus líneas recortadas dentro. -->
-  <body class="hatch min-h-dvh">
-    <div class="frame mx-auto w-full max-w-[66rem]">
-      <div class="lg:hidden">
-        <Navbar />
-      </div>
+       y el cuerpo de chanhdai a la derecha, con sus líneas recortadas dentro.
+       Sin panel (páginas de lectura) el marco se estrecha a la columna de chanhdai. -->
+  <body class="hatch min-h-dvh" data-sidebar={sidebar ? '' : undefined}>
+    <div class:list={['frame mx-auto w-full', sidebar ? 'max-w-[66rem]' : 'max-w-3xl']}>
+      <div class:list={[sidebar && 'lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start']}>
+        {
+          sidebar && (
+            <Sidebar class="max-lg:hidden" />
+          )
+        }
 
-      <div class="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <Sidebar class="max-lg:hidden">
-          <slot name="sidebar" />
-        </Sidebar>
-
-        <div class="app-main relative isolate min-w-0 overflow-x-clip lg:border-l">
+        <div class:list={['app-main relative isolate min-w-0 overflow-x-clip', sidebar && 'lg:border-l']}>
+          <Navbar class={sidebar ? 'lg:hidden' : undefined} />
           <main class="px-2 lg:px-0">
             <slot />
           </main>
