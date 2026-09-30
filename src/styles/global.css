@@ -250,22 +250,9 @@
   }
 }
 
-@utility screen-line-front {
-  &::before,
-  &::after {
-    z-index: 1;
-  }
-}
-
-@utility diagonal-stripes {
-  --pattern-foreground: color-mix(in oklab, var(--line) 56%, transparent);
-  background-image: repeating-linear-gradient(
-    315deg,
-    var(--pattern-foreground) 0,
-    var(--pattern-foreground) 1px,
-    transparent 0,
-    transparent 50%
-  );
+/* Rayado diagonal de 10 px; el color sale de --pattern-foreground */
+@utility stripes {
+  background-image: repeating-linear-gradient(315deg, var(--pattern-foreground) 0 1px, transparent 0 50%);
   background-size: 10px 10px;
 }
 
@@ -280,14 +267,7 @@
     height: 100%;
     width: 200vw;
     --pattern-foreground: color-mix(in oklab, var(--line) 56%, transparent);
-    background-image: repeating-linear-gradient(
-      315deg,
-      var(--pattern-foreground) 0,
-      var(--pattern-foreground) 1px,
-      transparent 0,
-      transparent 50%
-    );
-    background-size: 10px 10px;
+    @apply stripes;
   }
 }
 
@@ -332,12 +312,8 @@
   width: var(--gutter);
   pointer-events: none;
   border-inline: 1px solid var(--border);
-  background-image: repeating-linear-gradient(
-    315deg,
-    color-mix(in srgb, var(--foreground) 9%, transparent) 0 1px,
-    transparent 0 50%
-  );
-  background-size: 10px 10px;
+  --pattern-foreground: color-mix(in srgb, var(--foreground) 9%, transparent);
+  @apply stripes;
 }
 
 .frame::before {
@@ -429,17 +405,13 @@ html:not([data-view="list"]) .view-list {
   transition-duration: 150ms;
   transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   &:active {
-    scale: 0.98;
+    scale: var(--press-scale, 0.98);
   }
 }
 
 @utility press-icon {
-  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
-  &:active {
-    scale: 0.96;
-  }
+  --press-scale: 0.96;
+  @apply press;
 }
 
 /* ---------- Prosa: prose-ncdai + typeset de shadcn ---------- */
@@ -482,14 +454,7 @@ html:not([data-view="list"]) .view-list {
 .prose-ncdai :where(a) {
   font-weight: 400;
   overflow-wrap: break-word;
-  text-decoration-line: underline;
-  text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
-.prose-ncdai :where(a:hover) {
-  text-decoration-color: currentColor;
+  @apply link-underline;
 }
 
 .prose-ncdai :where(strong) {
