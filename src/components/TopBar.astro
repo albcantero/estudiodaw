@@ -28,7 +28,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
             <a
               href={l.href}
               class:list={[
-                'flex h-8 items-center rounded-[10px] px-2 text-[0.8125rem] transition-[color,background-color,scale] duration-150 hover:bg-muted active:scale-[0.98]',
+                'press flex h-8 items-center rounded-[10px] px-2 text-[0.8125rem] hover:bg-muted',
                 isActive(l.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
               ]}
               aria-current={isActive(l.href) ? 'page' : undefined}
@@ -44,14 +44,14 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
   <div class="ml-auto flex items-center gap-1">
     <a
       href="https://github.com/albcantero/estudiodaw"
-      class="grid size-8 place-items-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.96]"
+      class="press-icon grid size-8 place-items-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
       aria-label="Código en GitHub"
     >
       <Icon name="brand-github" class="size-4" />
     </a>
     <button
       type="button"
-      class="theme-toggle grid size-8 place-items-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.96]"
+      class="theme-toggle press-icon grid size-8 place-items-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
       aria-label="Cambiar tema (tecla D)"
     >
       <Icon name="moon" class="theme-icon-moon size-4" />

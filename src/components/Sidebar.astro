@@ -31,7 +31,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
       <nav aria-label="Navegación">
         <ul class="flex flex-col">
           <li>
-            <a href="/calendario" class="nav-link">
+            <a href="/calendario" class="nav-link press">
               <Icon name="calendar" class="size-4 shrink-0" />
               <span class="truncate">Fechas de exámenes</span>
             </a>
@@ -42,7 +42,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
               const n = count(s.id);
               return (
                 <li>
-                  <a href={`/${s.id}`} class:list={['nav-link', active && 'is-active']} aria-current={active ? 'page' : undefined} title={s.data.name}>
+                  <a href={`/${s.id}`} class:list={['nav-link press', active && 'is-active']} aria-current={active ? 'page' : undefined} title={s.data.name}>
                     <span class="grid size-4 shrink-0 place-items-center" aria-hidden="true">
                       <span class="size-1.5 rounded-full" style={`background:${s.data.color}`} />
                     </span>
@@ -65,7 +65,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
       </div>
       <button
         type="button"
-        class="theme-toggle inline-flex size-7 items-center justify-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] hover:bg-muted hover:text-foreground active:scale-[0.96]"
+        class="theme-toggle press-icon inline-flex size-7 items-center justify-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
         aria-label="Cambiar tema (tecla D)"
       >
         <Icon name="moon" class="theme-icon-moon size-4" />
@@ -87,16 +87,11 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
     font-size: 0.8125rem;
     line-height: 1.4;
     color: var(--muted-foreground);
-    transition: color 150ms ease, background-color 150ms ease, scale 150ms ease;
   }
 
   .nav-link:hover {
     color: var(--foreground);
     background: var(--accent-muted);
-  }
-
-  .nav-link:active {
-    scale: 0.98;
   }
 
   .nav-link.is-active {

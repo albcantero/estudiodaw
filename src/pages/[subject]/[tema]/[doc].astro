@@ -43,21 +43,21 @@ const next = siblings[idx + 1];
     <div class="screen-line-bottom h-px"></div>
 
     <div class="flex items-center justify-between p-2 pl-4">
-      <a href={`/${subjectId}`} class="inline-flex h-7 items-center gap-2 text-sm tracking-wider text-muted-foreground transition-colors hover:text-foreground">
+      <a href={`/${subjectId}`} class="press inline-flex h-7 items-center gap-2 text-sm tracking-wider text-muted-foreground hover:text-foreground">
         <Icon name="arrow-left" class="size-4" />
         {subject.data.short} · Tema {number}
       </a>
       <div class="flex items-center gap-2">
         {
           prev && (
-            <a href={`/${subjectId}/${temaSlug}/${prev.data.kind}`} class="inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80" aria-label={`Anterior: ${tabLabel[prev.data.kind]}`}>
+            <a href={`/${subjectId}/${temaSlug}/${prev.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Anterior: ${tabLabel[prev.data.kind]}`}>
               <Icon name="arrow-left" class="size-4" />
             </a>
           )
         }
         {
           next && (
-            <a href={`/${subjectId}/${temaSlug}/${next.data.kind}`} class="inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80" aria-label={`Siguiente: ${tabLabel[next.data.kind]}`}>
+            <a href={`/${subjectId}/${temaSlug}/${next.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Siguiente: ${tabLabel[next.data.kind]}`}>
               <Icon name="arrow-right" class="size-4" />
             </a>
           )
@@ -77,7 +77,7 @@ const next = siblings[idx + 1];
             <a
               href={`/${subjectId}/${temaSlug}/${s.data.kind}`}
               class:list={[
-                'inline-flex h-full flex-1 items-center justify-center rounded-md px-2 text-sm font-medium whitespace-nowrap transition-[color,box-shadow]',
+                'press inline-flex h-full flex-1 items-center justify-center rounded-md px-2 text-sm font-medium whitespace-nowrap',
                 s.id === doc.id ? 'bg-background text-foreground shadow-sm dark:bg-input/30' : 'hover:text-foreground',
               ]}
               aria-current={s.id === doc.id ? 'page' : undefined}
@@ -118,7 +118,7 @@ const next = siblings[idx + 1];
           <a
             href={`/${subjectId}/${temaSlug}/${doc.data.kind}.md`}
             download={downloadName}
-            class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/80 active:scale-[0.98]"
+            class="press inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
           >
             <Icon name="download" class="size-4" />
             {doc.data.title}.md
@@ -128,7 +128,7 @@ const next = siblings[idx + 1];
               <a
                 href={d.file}
                 download
-                class="inline-flex h-8 items-center rounded-lg border bg-background px-2.5 font-mono text-sm shadow-xs transition-all hover:bg-muted active:scale-[0.98] dark:border-input dark:bg-input/30 dark:hover:bg-input/50"
+                class="press inline-flex h-8 items-center rounded-lg border bg-background px-2.5 font-mono text-sm shadow-xs hover:bg-muted dark:border-input dark:bg-input/30 dark:hover:bg-input/50"
               >
                 {d.label}
               </a>
