@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { GITHUB_URL, isSectionActive, normalizePath, sectionLinks } from '../data/site';
 
 // Barra de móvil y de las páginas de lectura: las secciones (sin Inicio, que es la marca)
@@ -50,41 +51,7 @@ const links = sectionLinks.filter((l) => l.href !== '/');
         <Icon name="brand-github" class="size-4" />
       </a>
       <span class="mx-2 h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
-      <button
-        type="button"
-        class="theme-toggle press-icon relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-        aria-label="Cambiar tema (tecla D)"
-      >
-        <Icon name="moon" class="theme-icon-moon size-4" />
-        <Icon name="sun" class="theme-icon-sun size-4" />
-      </button>
+      <ThemeToggle />
     </div>
   </div>
 </header>
-
-<script>
-  import { STORAGE_KEYS } from '../data/storage';
-
-  // Módulo: se ejecuta una sola vez aunque se navegue con ClientRouter,
-  // así que se escucha en el documento y no en cada botón.
-  function toggleTheme() {
-    const root = document.documentElement;
-    const dark = root.classList.toggle('dark');
-    root.style.colorScheme = dark ? 'dark' : 'light';
-    try {
-      localStorage.setItem(STORAGE_KEYS.theme, dark ? 'dark' : 'light');
-    } catch {}
-  }
-
-  document.addEventListener('click', (event) => {
-    if ((event.target as HTMLElement).closest('.theme-toggle')) toggleTheme();
-  });
-
-  // Atajo "D" como en chanhdai, salvo escribiendo en un campo.
-  document.addEventListener('keydown', (event) => {
-    const target = event.target as HTMLElement;
-    if (event.key !== 'd' || event.metaKey || event.ctrlKey || event.altKey) return;
-    if (target.closest('input, textarea, [contenteditable="true"]')) return;
-    toggleTheme();
-  });
-</script>

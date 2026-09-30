@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { GITHUB_URL } from '../data/site';
 // Panel lateral izquierdo fijo, portado de designeer.xyz: marca, descripción,
 // navegación con contadores y pie con enlaces.
@@ -22,7 +23,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
       <a href="/" class="rise mt-6 flex w-fit items-center font-pixel text-[1.125rem] leading-none" style="--d:80ms">
         estudiodaw<span class="text-muted-foreground">.dev</span>
       </a>
-      <p class="rise mt-3 max-w-[34ch] text-[0.8125rem] leading-relaxed text-pretty" style="--d:160ms">
+      <p class="rise mt-3 max-w-[34ch] text-ui leading-relaxed text-pretty" style="--d:160ms">
         Apuntes, ejercicios y soluciones de DAW, tema a tema. Se escriben mientras se estudia y se comparten con la clase.
       </p>
     </div>
@@ -60,18 +61,11 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
     </div>
 
     <div class="rise mt-5 flex shrink-0 items-center justify-between gap-2 border-t border-dashed pt-5" style="--d:400ms">
-      <div class="flex items-center gap-3 text-[0.8125rem] text-muted-foreground">
+      <div class="flex items-center gap-3 text-ui text-muted-foreground">
         <a class="transition-colors hover:text-foreground" href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a>
         <a class="transition-colors hover:text-foreground" href="/#asignaturas">Índice</a>
       </div>
-      <button
-        type="button"
-        class="theme-toggle press-icon inline-flex size-7 items-center justify-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
-        aria-label="Cambiar tema (tecla D)"
-      >
-        <Icon name="moon" class="theme-icon-moon size-4" />
-        <Icon name="sun" class="theme-icon-sun size-4" />
-      </button>
+      <ThemeToggle class="size-7" />
     </div>
   </div>
 </aside>

@@ -3,6 +3,7 @@
 // fija arriba al hacer scroll, línea discontinua debajo, navegación a la izquierda y
 // acciones a la derecha. Solo en escritorio y en las páginas con panel lateral.
 import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { GITHUB_URL, isSectionActive, normalizePath, sectionLinks } from '../data/site';
 
 // Las migas se muestran en otro sitio; el tipo se sigue exportando para Base.
@@ -24,7 +25,7 @@ const isActive = (href: string) => isSectionActive(path, href);
             <a
               href={l.href}
               class:list={[
-                'press flex h-8 items-center rounded-[10px] px-2 text-[0.8125rem] hover:bg-muted',
+                'press flex h-8 items-center rounded-lg px-2 text-ui hover:bg-muted',
                 isActive(l.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
               ]}
               aria-current={isActive(l.href) ? 'page' : undefined}
@@ -40,7 +41,7 @@ const isActive = (href: string) => isSectionActive(path, href);
   <div class="ml-auto flex items-center gap-1">
     <button
       type="button"
-      class="group/enroll press flex h-8 items-center gap-1.5 rounded-[10px] px-2 text-[0.8125rem] text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
+      class="group/enroll press flex h-8 items-center gap-1.5 rounded-lg px-2 text-ui text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
       data-enrollment-open
       aria-haspopup="dialog"
     >
@@ -50,18 +51,11 @@ const isActive = (href: string) => isSectionActive(path, href);
     </button>
     <a
       href={GITHUB_URL}
-      class="press-icon grid size-8 place-items-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
+      class="press-icon grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
       aria-label="Código en GitHub"
     >
       <Icon name="brand-github" class="size-4" />
     </a>
-    <button
-      type="button"
-      class="theme-toggle press-icon grid size-8 place-items-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
-      aria-label="Cambiar tema (tecla D)"
-    >
-      <Icon name="moon" class="theme-icon-moon size-4" />
-      <Icon name="sun" class="theme-icon-sun size-4" />
-    </button>
+    <ThemeToggle />
   </div>
 </div>

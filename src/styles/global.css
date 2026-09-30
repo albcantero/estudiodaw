@@ -50,6 +50,9 @@
   --default-font-feature-settings: var(--font-sans--font-feature-settings);
   --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
 
+  /* Texto de controles (barras, botones, buscador, panel lateral): 13 px, como en designeer */
+  --text-ui: 0.8125rem;
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
