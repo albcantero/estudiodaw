@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import PageHeading from '../components/PageHeading.astro';
 import Panel from '../components/Panel.astro';
 import Separator from '../components/Separator.astro';
@@ -9,8 +10,6 @@ import { COURSE_LABELS, otherModules } from '../data/modules';
 
 const subjects = await getCollection('subjects');
 const byId = new Map(subjects.map((s) => [s.id, s.data]));
-
-
 
 const TZ = 'Europe/Madrid';
 const monthKey = new Intl.DateTimeFormat('es-ES', { year: 'numeric', month: '2-digit', timeZone: TZ });
@@ -32,6 +31,13 @@ for (const e of sorted) {
   months.get(key)!.items.push(e);
 }
 const groups = [...months.values()];
+
+const courseFilters = [
+  { value: 'all', label: 'Todos' },
+  { value: '1', label: '1º' },
+  { value: '2', label: '2º' },
+  { value: 'loe', label: 'LOE' },
+];
 ---
 
 <Base
@@ -45,7 +51,26 @@ const groups = [...months.values()];
       tagline="Curso 2026-27 · Presenciales"
       title="Calendario de exámenes"
       description="Parciales y finales de 1º y 2º de DAW, con las dos convocatorias, y los finales del plan LOE. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
-    />
+    >
+      <div class="screen-line-bottom flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+        <div class="flex items-center gap-0.5 rounded-lg bg-muted p-0.5" role="group" aria-label="Curso">
+          {
+            courseFilters.map((f) => (
+              <button type="button" class="segment-option press h-7 rounded-md px-2.5 text-ui text-muted-foreground" data-exam-course={f.value}>
+                {f.label}
+              </button>
+            ))
+          }
+        </div>
+        <button
+          type="button"
+          class="exam-ics press inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-ui font-medium hover:bg-muted"
+        >
+          <Icon name="calendar-plus" class="size-4" />
+          Añadir a mi calendario
+        </button>
+      </div>
+    </PageHeading>
 
     {
       groups.map((g, gi) => (
@@ -58,7 +83,16 @@ const groups = [...months.values()];
                 const s = page ?? otherModules[e.subject];
                 const d = new Date(e.start);
                 return (
-                  <li class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity" data-start={e.start} data-end={e.end} data-subject={e.course === 'loe' ? `loe-${e.subject}` : e.subject} data-count-item>
+                  <li
+                    class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity"
+                    data-start={e.start}
+                    data-end={e.end}
+                    data-course={e.course}
+                    data-title={s?.name ?? e.subject}
+                    data-label={e.label}
+                    data-subject={e.course === 'loe' ? `loe-${e.subject}` : e.subject}
+                    data-count-item
+                  >
                     <div class="flex w-10 shrink-0 flex-col items-center leading-none">
                       <span class="font-mono text-xl font-medium tabular-nums">{dayNum.format(d)}</span>
                       <span class="mt-1 text-[0.625rem] tracking-wider text-muted-foreground uppercase">{weekday.format(d).replace('.', '')}</span>
@@ -90,11 +124,20 @@ const groups = [...months.values()];
         </div>
       ))
     }
+
+    <p class="border-x p-4 text-sm text-muted-foreground" data-groups-empty hidden>
+      Ningún examen con este filtro y tu matrícula.
+    </p>
   </div>
 </Base>
 
 <script>
+  import { STORAGE_KEYS } from '../data/storage';
+  import { buildIcs } from '../scripts/ics';
+  import { isShown, refreshLists } from '../scripts/visibility';
+
   const DAY = 24 * 60 * 60 * 1000;
+  const rows = () => [...document.querySelectorAll<HTMLLIElement>('.exam-row')];
 
   // Día del calendario en Madrid como número de días desde 1970: la cuenta atrás va por
   // días naturales ("Mañana" es mañana aunque falten menos de 24 horas).
@@ -110,9 +153,9 @@ const groups = [...months.values()];
     return `${days} días`;
   }
 
-  function refresh() {
+  function refreshCountdown() {
     const now = Date.now();
-    document.querySelectorAll<HTMLLIElement>('.exam-row').forEach((row) => {
+    rows().forEach((row) => {
       const start = Date.parse(row.dataset.start!);
       const end = Date.parse(row.dataset.end!);
       row.classList.toggle('opacity-45', now >= end);
@@ -121,11 +164,69 @@ const groups = [...months.values()];
     });
   }
 
-  document.addEventListener('astro:page-load', refresh);
+  // Filtro por curso: se recuerda en el navegador
+  function readCourse() {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.examCourse) ?? 'all';
+    } catch {
+      return 'all';
+    }
+  }
+
+  function applyCourse(course: string) {
+    rows().forEach((row) => {
+      row.hidden = course !== 'all' && row.dataset.course !== course;
+    });
+    document.querySelectorAll<HTMLButtonElement>('[data-exam-course]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.examCourse === course));
+    });
+    refreshLists();
+  }
+
+  // .ics con lo que se ve (filtro y matrícula) que aún no ha pasado
+  function downloadIcs() {
+    const now = Date.now();
+    const events = rows()
+      .filter((row) => isShown(row) && Date.parse(row.dataset.end!) > now)
+      .map((row) => ({
+        uid: `${row.dataset.subject}-${row.dataset.start}`,
+        title: `Examen: ${row.dataset.title} (${row.dataset.label})`,
+        description: `DAW a distancia, CIFP de Ponferrada. ${row.dataset.label}.`,
+        start: row.dataset.start!,
+        end: row.dataset.end!,
+      }));
+    const blob = new Blob([buildIcs(events, 'Exámenes DAW 2026-27')], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'examenes-daw-2026-27.ics';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const option = target.closest<HTMLButtonElement>('[data-exam-course]');
+    if (option) {
+      const course = option.dataset.examCourse!;
+      try {
+        localStorage.setItem(STORAGE_KEYS.examCourse, course);
+      } catch {}
+      applyCourse(course);
+      return;
+    }
+    if (target.closest('.exam-ics')) downloadIcs();
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    if (!document.querySelector('.exam-row')) return;
+    refreshCountdown();
+    applyCourse(readCourse());
+  });
+
   // Con la página abierta de un día para otro la cuenta sigue al día. Un solo intervalo
   // para toda la sesión: el script de módulo se ejecuta una vez aunque se navegue.
-  setInterval(refresh, 60_000);
+  setInterval(refreshCountdown, 60_000);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) refresh();
+    if (!document.hidden) refreshCountdown();
   });
 </script>

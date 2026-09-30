@@ -389,7 +389,7 @@ html:not([data-view="list"]) .view-list {
   display: none;
 }
 
-.view-option[aria-pressed="true"] {
+.segment-option[aria-pressed="true"] {
   background: var(--background);
   color: var(--foreground);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 1px var(--border);
