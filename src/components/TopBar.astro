@@ -34,21 +34,20 @@ const isActive = (href: string) => isSectionActive(path, href);
           </li>
         ))
       }
-      <li>
-        <button
-          type="button"
-          class="group/enroll press flex h-8 items-center gap-1.5 rounded-[10px] px-2 text-[0.8125rem] text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
-          data-enrollment-open
-          aria-haspopup="dialog"
-        >
-          Mi matrícula
-          <span class="hidden size-1.5 rounded-full bg-accent-ink group-data-active/enroll:block" aria-hidden="true"></span>
-        </button>
-      </li>
     </ul>
   </nav>
 
   <div class="ml-auto flex items-center gap-1">
+    <button
+      type="button"
+      class="group/enroll press flex h-8 items-center gap-1.5 rounded-[10px] px-2 text-[0.8125rem] text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
+      data-enrollment-open
+      aria-haspopup="dialog"
+    >
+      <Icon name="school" class="size-4" />
+      Mi matrícula
+      <span class="hidden size-1.5 rounded-full bg-accent-ink group-data-active/enroll:block" aria-hidden="true"></span>
+    </button>
     <a
       href={GITHUB_URL}
       class="press-icon grid size-8 place-items-center rounded-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
