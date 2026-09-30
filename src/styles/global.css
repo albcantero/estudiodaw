@@ -364,6 +364,11 @@
   }
 }
 
+/* Panel ya mostrado: no se repite la entrada al navegar (ver Sidebar.astro) */
+.sidebar[data-entered] .rise {
+  animation: none;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;

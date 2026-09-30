@@ -1,6 +1,7 @@
 ---
-// Elemento de rejilla al estilo PostItem de chanhdai: sin caja, hover con fondo tenue
-// y todo el bloque clicable. Las líneas las pone la rejilla que lo contiene (ItemGrid).
+// Elemento de rejilla con la anatomía de PostItem de chanhdai: un bloque con 8 px de
+// margen que se sombrea en el hover y, dentro, la tarjeta con borde (rounded-xl,
+// borde interior al 15 %). Aquí la tarjeta lleva toda la información en vez de una imagen.
 interface Props {
   href: string;
   number: string;
@@ -14,27 +15,30 @@ interface Props {
 const { href, number, label, title, description, foot, color } = Astro.props;
 ---
 
-<div class="group/item relative flex h-full flex-col gap-1 p-4 transition-[background-color] ease-out hover:bg-accent-muted">
-  <div class="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
-    <span class="font-mono tabular-nums">{number}</span>
-    {color && <span class="size-1.5 rounded-full" style={`background:${color}`} aria-hidden="true" />}
-    <span>{label}</span>
+<div class="group/item relative flex h-full flex-col p-2 transition-[background-color] ease-out hover:bg-accent-muted">
+  <div class="relative flex h-full flex-col gap-1 rounded-xl bg-background p-4">
+    <div class="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
+      <span class="font-mono tabular-nums">{number}</span>
+      {color && <span class="size-1.5 rounded-full" style={`background:${color}`} aria-hidden="true" />}
+      <span>{label}</span>
+    </div>
+    <h3 class="heading text-xl leading-snug text-balance">
+      <a href={href} class="outline-none">
+        <span class="absolute inset-0 rounded-xl group-has-[a:focus-visible]/item:ring-2 group-has-[a:focus-visible]/item:ring-ring/50" aria-hidden="true"></span>
+        {title}
+      </a>
+    </h3>
+    {description && <p class="text-sm text-balance text-muted-foreground">{description}</p>}
+    {
+      foot && (
+        <p class="mt-auto flex items-center gap-2 pt-3 text-sm text-muted-foreground">
+          {foot}
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100">
+            <path d="M3 8h10M9 4l4 4-4 4" />
+          </svg>
+        </p>
+      )
+    }
+    <div class="pointer-events-none absolute inset-0 rounded-xl inset-ring-1 inset-ring-black/15 dark:inset-ring-white/15" aria-hidden="true"></div>
   </div>
-  <h3 class="heading text-xl leading-snug text-balance">
-    <a href={href} class="outline-none">
-      <span class="absolute inset-0 group-has-[a:focus-visible]/item:ring-2 group-has-[a:focus-visible]/item:ring-ring/50 group-has-[a:focus-visible]/item:ring-inset" aria-hidden="true"></span>
-      {title}
-    </a>
-  </h3>
-  {description && <p class="text-sm text-balance text-muted-foreground">{description}</p>}
-  {
-    foot && (
-      <p class="mt-auto flex items-center gap-2 pt-3 text-sm text-muted-foreground">
-        {foot}
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100">
-          <path d="M3 8h10M9 4l4 4-4 4" />
-        </svg>
-      </p>
-    )
-  }
 </div>

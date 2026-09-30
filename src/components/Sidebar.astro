@@ -11,7 +11,7 @@ const { class: className } = Astro.props;
 const current = Astro.url.pathname.split('/')[1] ?? '';
 ---
 
-<aside class:list={['sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0', className]} transition:persist="sidebar">
+<aside class:list={['sidebar flex flex-col lg:sticky lg:top-0 lg:h-dvh lg:min-h-0', className]} transition:persist="sidebar" transition:name="sidebar" transition:animate="none">
   <div class="flex min-h-0 flex-col px-5 pt-[clamp(2rem,6vh,3.25rem)] pb-5 lg:h-full">
     <div class="shrink-0">
       <a href="/" class="rise block w-fit rounded-full focus-visible:outline-2 focus-visible:outline-offset-2" style="--d:0ms" aria-label="estudiodaw.dev, inicio">
@@ -130,4 +130,11 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
   }
 
   document.addEventListener('astro:page-load', markActive);
+
+  // Al persistir, Astro mueve el mismo nodo al <body> nuevo y el navegador reinicia sus
+  // animaciones CSS: la entrada escalonada se repetía en cada navegación. Se marca el
+  // panel antes del cambio para que las animaciones de entrada solo corran la primera vez.
+  document.addEventListener('astro:before-swap', () => {
+    document.querySelector('.sidebar')?.setAttribute('data-entered', '');
+  });
 </script>
