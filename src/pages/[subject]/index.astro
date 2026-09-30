@@ -7,6 +7,7 @@ import PageHeading from '../../components/PageHeading.astro';
 import Panel from '../../components/Panel.astro';
 import Separator from '../../components/Separator.astro';
 import { DOC_LABELS, docsOfTema, temaNumber } from '../../data/content';
+import { COURSE_LABELS } from '../../data/modules';
 
 export async function getStaticPaths() {
   const subjects = await getCollection('subjects');
@@ -30,7 +31,7 @@ const docList = (slug: string) =>
     .map((d) => DOC_LABELS[d.data.kind])
     .join(' · ');
 
-const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${subject.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}`;
+const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${COURSE_LABELS[subject.data.year]}`;
 ---
 
 <Base title={subject.data.name} description={subject.data.description} crumbs={[{ label: 'Inicio', href: '/' }, { label: 'Asignaturas', href: '/#asignaturas' }, { label: subject.data.name }]}>

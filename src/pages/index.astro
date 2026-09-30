@@ -4,6 +4,7 @@ import CollectionView from '../components/CollectionView.astro';
 import CollectionTools from '../components/CollectionTools.astro';
 import Panel from '../components/Panel.astro';
 import { getSubjects, getTemaCounts } from '../data/content';
+import { COURSE_LABELS } from '../data/modules';
 
 const subjects = await getSubjects();
 const temaCounts = await getTemaCounts();
@@ -24,7 +25,7 @@ const foot = (subjectId: string) => {
         items={subjects.map((s) => ({
           href: `/${s.id}`,
           subject: s.id,
-          label: s.data.year === 1 ? 'Pendiente de 1º' : '2º curso',
+          label: COURSE_LABELS[s.data.year],
           title: s.data.name,
           description: s.data.description,
           foot: foot(s.id),

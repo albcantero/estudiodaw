@@ -1,6 +1,9 @@
 // Módulos de DAW por curso, en el orden del calendario oficial. Los que tienen página
 // salen de la colección `subjects`; los demás solo existen aquí (calendario y matrícula).
 
+/** Nombre del curso en toda la web (1 y 2 del plan actual; 'loe' = plan antiguo) */
+export const COURSE_LABELS = { 1: '1º curso', 2: '2º curso', loe: 'Plan LOE' } as const;
+
 export const courseModules: Record<1 | 2, string[]> = {
   1: ['lm', 'si', 'bd', 'prog', 'ed', 'ingles', 'cid1', 'ipe1'],
   2: ['diw', 'dwes', 'dwec', 'dpl', 'ipe', 'cid', 'sasp', 'dasp', 'tfg'],
