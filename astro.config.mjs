@@ -1,9 +1,12 @@
 import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 import { codeLangBadge } from './src/utils/code-lang-badge.mjs';
 
 export default defineConfig({
   site: 'https://estudiodaw.dev',
+  // sitemap-index.xml para buscadores; las URL de tema son solo redirecciones y no entran
+  integrations: [sitemap({ filter: (page) => !/^https:\/\/estudiodaw\.dev\/[^/]+\/[^/]+\/?$/.test(page) })],
   vite: { plugins: [tailwindcss()] },
   // Fuentes de Google descargadas en el build y servidas desde el propio dominio.
   // Astro genera además una fuente de respaldo con las métricas ajustadas (size-adjust,
