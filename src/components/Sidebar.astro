@@ -4,11 +4,11 @@ import { GITHUB_URL } from '../data/site';
 // Panel lateral izquierdo fijo, portado de designeer.xyz: marca, descripción,
 // navegación con contadores y pie con enlaces.
 // Persiste entre páginas (transition:persist): el enlace activo lo actualiza el script.
-import { getCollection } from 'astro:content';
+import { getSubjects, getTemaCounts } from '../data/content';
 
-const subjects = (await getCollection('subjects')).sort((a, b) => a.data.order - b.data.order);
-const temas = await getCollection('temas');
-const count = (id: string) => temas.filter((t) => t.data.subject === id).length;
+const subjects = await getSubjects();
+const temaCounts = await getTemaCounts();
+const count = (id: string) => temaCounts.get(id) ?? 0;
 const { class: className } = Astro.props;
 const current = Astro.url.pathname.split('/')[1] ?? '';
 ---

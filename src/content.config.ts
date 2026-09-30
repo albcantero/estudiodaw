@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { DOC_KINDS } from './data/doc-kinds';
 
 // Asignaturas: un JSON por asignatura (id = nombre del fichero).
 const subjects = defineCollection({
@@ -35,7 +36,7 @@ const docs = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/docs' }),
   schema: z.object({
     title: z.string(),
-    kind: z.enum(['teoria', 'ejercicios', 'soluciones']),
+    kind: z.enum(DOC_KINDS),
   }),
 });
 

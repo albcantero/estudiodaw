@@ -2,6 +2,7 @@
 import Icon from '../../../components/Icon.astro';
 import { getCollection, getEntry, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
+import { DOC_LABELS, docsOfTema, temaNumber } from '../../../data/content';
 
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
@@ -20,16 +21,12 @@ const tema = (await getCollection('temas')).find(
   (t) => t.data.subject === subjectId && t.data.slug === temaSlug,
 )!;
 
-const kindOrder = { teoria: 0, ejercicios: 1, soluciones: 2 };
-const tabLabel = { teoria: 'Teoría', ejercicios: 'Ejercicios', soluciones: 'Soluciones' };
-const siblings = (await getCollection('docs'))
-  .filter((d) => d.id.startsWith(`${subjectId}/${temaSlug}/`))
-  .sort((a, b) => kindOrder[a.data.kind] - kindOrder[b.data.kind]);
+const siblings = docsOfTema(await getCollection('docs'), subjectId, temaSlug);
 
 const { Content, headings } = await render(doc);
 const toc = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 
-const number = String(tema.data.number).padStart(2, '0');
+const number = temaNumber(tema.data.number);
 const downloadName = `${subjectId}-tema${number}-${doc.data.kind}.md`;
 const pageTitle = `${tema.data.title} · ${doc.data.title}`;
 const idx = siblings.findIndex((s) => s.id === doc.id);
@@ -50,14 +47,14 @@ const next = siblings[idx + 1];
       <div class="flex items-center gap-2">
         {
           prev && (
-            <a href={`/${subjectId}/${temaSlug}/${prev.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Anterior: ${tabLabel[prev.data.kind]}`}>
+            <a href={`/${subjectId}/${temaSlug}/${prev.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Anterior: ${DOC_LABELS[prev.data.kind]}`}>
               <Icon name="arrow-left" class="size-4" />
             </a>
           )
         }
         {
           next && (
-            <a href={`/${subjectId}/${temaSlug}/${next.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Siguiente: ${tabLabel[next.data.kind]}`}>
+            <a href={`/${subjectId}/${temaSlug}/${next.data.kind}`} class="press-icon inline-flex size-7 items-center justify-center rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80" aria-label={`Siguiente: ${DOC_LABELS[next.data.kind]}`}>
               <Icon name="arrow-right" class="size-4" />
             </a>
           )
@@ -82,7 +79,7 @@ const next = siblings[idx + 1];
               ]}
               aria-current={s.id === doc.id ? 'page' : undefined}
             >
-              {tabLabel[s.data.kind]}
+              {DOC_LABELS[s.data.kind]}
             </a>
           ))
         }

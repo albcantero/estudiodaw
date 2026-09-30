@@ -1,11 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
+import { docsOfTema } from '../../../data/content';
 
 export async function getStaticPaths() {
   const temas = await getCollection('temas');
-  return temas.map((t) => ({ params: { subject: t.data.subject, tema: t.data.slug } }));
+  const docs = await getCollection('docs');
+  return temas.flatMap((t) => {
+    const first = docsOfTema(docs, t.data.subject, t.data.slug)[0];
+    return first ? [{ params: { subject: t.data.subject, tema: t.data.slug }, props: { kind: first.data.kind } }] : [];
+  });
 }
 
-// La URL del tema lleva siempre a la teoría.
-return Astro.redirect(`/${Astro.params.subject}/${Astro.params.tema}/teoria`);
+// La URL del tema lleva al primer documento que tenga (normalmente, la teoría).
+return Astro.redirect(`/${Astro.params.subject}/${Astro.params.tema}/${Astro.props.kind}`);
 ---

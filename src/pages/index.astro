@@ -1,20 +1,15 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import CollectionView from '../components/CollectionView.astro';
 import CollectionTools from '../components/CollectionTools.astro';
 import Panel from '../components/Panel.astro';
+import { getSubjects, getTemaCounts } from '../data/content';
 
-const subjects = (await getCollection('subjects')).sort(
-  (a, b) => a.data.order - b.data.order,
-);
-const temas = await getCollection('temas');
-
-const temaCount = (subjectId: string) =>
-  temas.filter((t) => t.data.subject === subjectId).length;
+const subjects = await getSubjects();
+const temaCounts = await getTemaCounts();
 
 const foot = (subjectId: string) => {
-  const n = temaCount(subjectId);
+  const n = temaCounts.get(subjectId) ?? 0;
   if (n === 0) return 'Sin temas todavía';
   return `${n} ${n === 1 ? 'tema' : 'temas'}`;
 };

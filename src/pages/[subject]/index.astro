@@ -6,6 +6,7 @@ import CollectionTools from '../../components/CollectionTools.astro';
 import PageHeading from '../../components/PageHeading.astro';
 import Panel from '../../components/Panel.astro';
 import Separator from '../../components/Separator.astro';
+import { DOC_LABELS, docsOfTema, temaNumber } from '../../data/content';
 
 export async function getStaticPaths() {
   const subjects = await getCollection('subjects');
@@ -21,11 +22,12 @@ const temas = (await getCollection('temas'))
   .sort((a, b) => a.data.number - b.data.number);
 const docs = await getCollection('docs');
 
-const kindLabel = { teoria: 'Teoría', ejercicios: 'Ejercicios', soluciones: 'Soluciones' };
-const docsOf = (slug: string) =>
-  docs
-    .filter((d) => d.id.startsWith(`${subject.id}/${slug}/`))
-    .map((d) => kindLabel[d.data.kind])
+const docsOf = (slug: string) => docsOfTema(docs, subject.id, slug);
+// Directo al primer documento, sin pasar por la redirección de la URL del tema
+const firstDoc = (slug: string) => docsOf(slug)[0]?.data.kind ?? 'teoria';
+const docList = (slug: string) =>
+  docsOf(slug)
+    .map((d) => DOC_LABELS[d.data.kind])
     .join(' · ');
 
 const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${subject.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}`;
@@ -47,12 +49,12 @@ const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asi
         ) : (
           <CollectionView
             items={temas.map((t) => ({
-              href: `/${subject.id}/${t.data.slug}/teoria`,
-              number: String(t.data.number).padStart(2, '0'),
+              href: `/${subject.id}/${t.data.slug}/${firstDoc(t.data.slug)}`,
+              number: temaNumber(t.data.number),
               label: t.data.unit ?? `Tema ${t.data.number}`,
               title: t.data.title,
               description: t.data.description,
-              foot: docsOf(t.data.slug),
+              foot: docList(t.data.slug),
               color: subject.data.color,
             }))}
           />
