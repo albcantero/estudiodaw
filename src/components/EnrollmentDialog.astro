@@ -10,6 +10,14 @@ import Icon from './Icon.astro';
 import { courseModules, otherModules } from '../data/modules';
 
 const subjects = new Map((await getCollection('subjects')).map((s) => [s.id, s.data]));
+
+// Cada asignatura con página tiene que estar en su curso de courseModules: si falta, no
+// se podría marcar y quedaría oculta para cualquiera con matrícula. Se para la build.
+for (const [id, data] of subjects) {
+  if (!courseModules[data.year].includes(id)) {
+    throw new Error(`La asignatura "${id}" (year ${data.year}) falta en courseModules[${data.year}] de src/data/modules.ts`);
+  }
+}
 const moduleOf = (id: string) => subjects.get(id) ?? otherModules[id];
 
 const columns = [
