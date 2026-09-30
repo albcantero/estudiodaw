@@ -38,8 +38,8 @@
   }
 
   @media (min-width: 40rem) {
-    .item-grid > :global(li:nth-child(2n))::before,
-    .item-grid > :global(li:nth-child(2n))::after {
+    .item-grid > :global(li:nth-child(2n of :not([hidden], [data-unenrolled])))::before,
+    .item-grid > :global(li:nth-child(2n of :not([hidden], [data-unenrolled])))::after {
       content: none;
     }
   }

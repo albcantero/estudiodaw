@@ -1,57 +1,67 @@
-// Calendario oficial 2026-27 (presentación del CIFP Ponferrada, modalidad virtual).
-// Horas en hora peninsular: de noviembre a marzo CET (+01:00); abril a junio CEST (+02:00).
+// Calendario oficial 2026-27 (presentación del CIFP Ponferrada, DAW modalidad virtual).
+// Cada módulo se copia como una fila de las tablas del PDF: 1er parcial, 2º parcial,
+// final de 1ª convocatoria y final de 2ª. Horas peninsulares: de noviembre a marzo
+// CET (+01:00); de abril a junio CEST (+02:00).
 export type ExamKind = 'parcial' | 'final';
+
+/** 1 y 2 = curso de DAW (plan LFP); 'loe' = finales del plan antiguo */
+export type ExamCourse = 1 | 2 | 'loe';
 
 export interface Exam {
   subject: string;
+  course: ExamCourse;
   kind: ExamKind;
   label: string;
   start: string;
+  end: string;
+}
+
+/** [fecha, hora de inicio, hora de fin]; null donde el PDF pone "---" */
+type Slot = [date: string, from: string, to: string] | null;
+
+const LABELS = ['1er parcial', '2º parcial', 'Final, 1ª convocatoria', 'Final, 2ª convocatoria'];
+
+const iso = (date: string, hour: string) => {
+  const month = Number(date.slice(5, 7));
+  const offset = month >= 4 && month <= 10 ? '+02:00' : '+01:00';
+  return `${date}T${hour}:00${offset}`;
+};
+
+function row(subject: string, course: ExamCourse, slots: [Slot, Slot, Slot, Slot]): Exam[] {
+  return slots.flatMap((slot, i) => {
+    if (!slot) return [];
+    const [date, from, to] = slot;
+    const kind: ExamKind = i < 2 ? 'parcial' : 'final';
+    const label = course === 'loe' ? LABELS[i].replace('Final', 'Final LOE') : LABELS[i];
+    return [{ subject, course, kind, label, start: iso(date, from), end: iso(date, to) }];
+  });
 }
 
 export const exams: Exam[] = [
-  // 1er parcial de 2º
-  { subject: 'dwec', kind: 'parcial', label: '1er parcial', start: '2026-12-01T15:00:00+01:00' },
-  { subject: 'dpl', kind: 'parcial', label: '1er parcial', start: '2026-12-01T17:30:00+01:00' },
-  { subject: 'diw', kind: 'parcial', label: '1er parcial', start: '2026-12-02T15:00:00+01:00' },
-  { subject: 'sasp', kind: 'parcial', label: '1er parcial', start: '2026-12-02T17:00:00+01:00' },
-  { subject: 'dasp', kind: 'parcial', label: '1er parcial', start: '2026-12-02T18:30:00+01:00' },
-  { subject: 'ipe', kind: 'parcial', label: '1er parcial', start: '2026-12-03T15:00:00+01:00' },
-  { subject: 'dwes', kind: 'parcial', label: '1er parcial', start: '2026-12-03T17:00:00+01:00' },
-  // Pendientes de 1º, 1er parcial
-  { subject: 'lm', kind: 'parcial', label: '1er parcial', start: '2027-01-20T15:00:00+01:00' },
-  { subject: 'bd', kind: 'parcial', label: '1er parcial', start: '2027-01-20T17:30:00+01:00' },
-  // 2º parcial de 2º
-  { subject: 'ipe', kind: 'parcial', label: '2º parcial', start: '2027-01-22T15:00:00+01:00' },
-  { subject: 'sasp', kind: 'parcial', label: '2º parcial', start: '2027-01-22T17:00:00+01:00' },
-  { subject: 'diw', kind: 'parcial', label: '2º parcial', start: '2027-01-26T15:00:00+01:00' },
-  { subject: 'dwes', kind: 'parcial', label: '2º parcial', start: '2027-01-26T17:00:00+01:00' },
-  { subject: 'dwec', kind: 'parcial', label: '2º parcial', start: '2027-01-27T15:00:00+01:00' },
-  { subject: 'dasp', kind: 'parcial', label: '2º parcial', start: '2027-01-27T17:30:00+01:00' },
-  { subject: 'dpl', kind: 'parcial', label: '2º parcial', start: '2027-01-28T15:00:00+01:00' },
-  { subject: 'cid', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-01-28T17:00:00+01:00' },
-  // Pendientes de 1º, 2º parcial
-  { subject: 'lm', kind: 'parcial', label: '2º parcial', start: '2027-04-14T15:00:00+02:00' },
-  { subject: 'bd', kind: 'parcial', label: '2º parcial', start: '2027-04-15T17:00:00+02:00' },
-  // Finales, 1ª convocatoria
-  { subject: 'lm', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-05-28T16:00:00+02:00' },
-  { subject: 'bd', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-02T16:00:00+02:00' },
-  { subject: 'dwec', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-03T15:00:00+02:00' },
-  { subject: 'dwes', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-03T17:30:00+02:00' },
-  { subject: 'ipe', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-04T15:00:00+02:00' },
-  { subject: 'dasp', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-04T17:00:00+02:00' },
-  { subject: 'dpl', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-07T15:00:00+02:00' },
-  { subject: 'diw', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-07T17:00:00+02:00' },
-  { subject: 'sasp', kind: 'final', label: 'Final, 1ª convocatoria', start: '2027-06-07T19:00:00+02:00' },
-  // Finales, 2ª convocatoria
-  { subject: 'dwec', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-16T15:00:00+02:00' },
-  { subject: 'bd', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-16T17:30:00+02:00' },
-  { subject: 'dpl', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-17T15:00:00+02:00' },
-  { subject: 'ipe', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-17T17:00:00+02:00' },
-  { subject: 'dasp', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-17T19:00:00+02:00' },
-  { subject: 'dwes', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-18T15:00:00+02:00' },
-  { subject: 'lm', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-18T17:30:00+02:00' },
-  { subject: 'diw', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-21T17:00:00+02:00' },
-  { subject: 'sasp', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-21T19:00:00+02:00' },
-  { subject: 'cid', kind: 'final', label: 'Final, 2ª convocatoria', start: '2027-06-22T19:30:00+02:00' },
+  // 1º DAW
+  ...row('lm', 1, [['2027-01-20', '15:00', '17:00'], ['2027-04-14', '15:00', '17:00'], ['2027-05-28', '16:00', '19:00'], ['2027-06-18', '17:30', '20:30']]),
+  ...row('si', 1, [['2027-01-18', '17:00', '18:30'], ['2027-04-12', '17:00', '18:30'], ['2027-05-31', '17:00', '18:30'], ['2027-06-21', '17:00', '18:30']]),
+  ...row('bd', 1, [['2027-01-20', '17:30', '19:00'], ['2027-04-15', '17:00', '18:30'], ['2027-06-02', '16:00', '17:30'], ['2027-06-16', '17:30', '19:00']]),
+  ...row('prog', 1, [['2027-01-19', '17:00', '18:30'], ['2027-04-14', '17:30', '19:00'], ['2027-06-01', '17:00', '18:30'], ['2027-06-17', '17:00', '18:30']]),
+  ...row('ed', 1, [['2027-01-18', '15:00', '16:30'], ['2027-04-12', '15:00', '16:30'], ['2027-05-31', '15:00', '16:30'], ['2027-06-21', '15:00', '16:30']]),
+  ...row('ingles', 1, [['2027-01-15', '15:00', '17:00'], ['2027-04-13', '17:00', '18:30'], ['2027-06-02', '18:00', '20:00'], ['2027-06-22', '18:00', '20:00']]),
+  ...row('cid1', 1, [null, null, ['2027-01-15', '17:30', '18:30'], ['2027-06-17', '15:00', '16:00']]),
+  ...row('ipe1', 1, [['2027-01-19', '15:00', '16:30'], ['2027-04-13', '15:00', '16:30'], ['2027-06-01', '16:00', '17:30'], ['2027-06-18', '17:30', '19:00']]),
+
+  // 2º DAW
+  ...row('diw', 2, [['2026-12-02', '15:00', '16:30'], ['2027-01-26', '15:00', '16:30'], ['2027-06-07', '17:00', '18:30'], ['2027-06-21', '17:00', '18:30']]),
+  ...row('dwes', 2, [['2026-12-03', '17:00', '18:30'], ['2027-01-26', '17:00', '18:30'], ['2027-06-03', '17:30', '19:00'], ['2027-06-18', '15:00', '16:30']]),
+  ...row('dwec', 2, [['2026-12-01', '15:00', '17:00'], ['2027-01-27', '15:00', '17:00'], ['2027-06-03', '15:00', '17:00'], ['2027-06-16', '15:00', '17:00']]),
+  ...row('dpl', 2, [['2026-12-01', '17:30', '19:00'], ['2027-01-28', '15:00', '16:30'], ['2027-06-07', '15:00', '16:30'], ['2027-06-17', '15:00', '16:30']]),
+  ...row('ipe', 2, [['2026-12-03', '15:00', '16:30'], ['2027-01-22', '15:00', '16:30'], ['2027-06-04', '15:00', '16:30'], ['2027-06-17', '17:00', '18:30']]),
+  ...row('cid', 2, [null, null, ['2027-01-28', '17:00', '18:00'], ['2027-06-22', '19:30', '20:30']]),
+  ...row('sasp', 2, [['2026-12-02', '17:00', '18:00'], ['2027-01-22', '17:00', '18:00'], ['2027-06-07', '19:00', '20:00'], ['2027-06-21', '19:00', '20:00']]),
+  ...row('dasp', 2, [['2026-12-02', '18:30', '19:30'], ['2027-01-27', '17:30', '18:30'], ['2027-06-04', '17:00', '18:00'], ['2027-06-17', '19:00', '20:00']]),
+
+  // 2º DAW, plan LOE (solo finales)
+  ...row('diw', 'loe', [null, null, ['2027-01-26', '15:00', '16:30'], ['2027-06-07', '17:00', '18:30']]),
+  ...row('dwes', 'loe', [null, null, ['2027-01-26', '17:00', '18:30'], ['2027-06-03', '17:30', '19:00']]),
+  ...row('dwec', 'loe', [null, null, ['2027-01-27', '15:00', '17:00'], ['2027-06-03', '15:00', '17:00']]),
+  ...row('dpl', 'loe', [null, null, ['2027-01-28', '15:00', '16:30'], ['2027-06-07', '15:00', '16:30']]),
+  ...row('eie', 'loe', [null, null, ['2027-01-22', '15:00', '16:30'], ['2027-06-04', '15:00', '16:30']]),
 ];

@@ -41,7 +41,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
               const active = current === s.id;
               const n = count(s.id);
               return (
-                <li>
+                <li data-subject={s.id}>
                   <a href={`/${s.id}`} class:list={['nav-link press', active && 'is-active']} aria-current={active ? 'page' : undefined} title={s.data.name}>
                     <span class="grid size-4 shrink-0 place-items-center" aria-hidden="true">
                       <span class="size-1.5 rounded-full" style={`background:${s.data.color}`} />

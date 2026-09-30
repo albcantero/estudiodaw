@@ -1,0 +1,75 @@
+---
+// Colección de asignaturas o de temas en dos vistas: rejilla de tarjetas (la de siempre) o
+// lista de filas. Se pintan las dos y el CSS muestra la elegida según html[data-view],
+// que fija el script del <head> antes del primer pintado (sin parpadeo). El conmutador
+// es <ViewToggle /> y la preferencia se guarda en el navegador.
+import Card from './Card.astro';
+import ItemGrid from './ItemGrid.astro';
+import Icon from './Icon.astro';
+
+export interface CollectionItem {
+  href: string;
+  number?: string;
+  label: string;
+  title: string;
+  description?: string;
+  foot?: string;
+  color?: string;
+  /** Id del módulo: lo filtra "Mi matrícula" */
+  subject?: string;
+}
+
+interface Props {
+  items: CollectionItem[];
+}
+
+const { items } = Astro.props;
+
+// Mismo criterio que el buscador: minúsculas y sin tildes
+const searchText = (i: CollectionItem) =>
+  [i.title, i.description, i.label, i.foot]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase('es')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+---
+
+<div class="view-grid">
+  <ItemGrid>
+    {
+      items.map((item) => (
+        <li data-search={searchText(item)} data-subject={item.subject}>
+          <Card {...item} />
+        </li>
+      ))
+    }
+  </ItemGrid>
+</div>
+
+<ul class="view-list">
+  {
+    items.map((item) => (
+      <li class="screen-line-bottom" data-search={searchText(item)} data-subject={item.subject} data-count-item>
+        <a
+          href={item.href}
+          class="group/row flex items-center gap-4 px-4 py-3 transition-[background-color] ease-out hover:bg-accent-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        >
+          {item.number && <span class="w-8 shrink-0 font-mono text-sm tabular-nums text-muted-foreground">{item.number}</span>}
+          {item.color && <span class="size-2 shrink-0 rounded-full" style={`background:${item.color}`} aria-hidden="true" />}
+          <span class="min-w-0 flex-1">
+            <span class="heading block truncate text-lg leading-snug">{item.title}</span>
+            {item.description && <span class="block truncate text-sm text-muted-foreground max-sm:hidden">{item.description}</span>}
+          </span>
+          <span class="hidden shrink-0 text-right text-sm text-muted-foreground md:block">
+            <span class="block">{item.label}</span>
+            {item.foot && <span class="block text-xs">{item.foot}</span>}
+          </span>
+          <Icon name="arrow-right" class="size-4 shrink-0 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/row:translate-x-0 group-hover/row:opacity-100" />
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<p class="collection-empty p-4 text-sm text-muted-foreground" hidden>Nada coincide con la búsqueda.</p>

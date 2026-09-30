@@ -404,6 +404,18 @@
   display: block;
 }
 
+/* ---------- Vistas de colección (CollectionView) ---------- */
+html[data-view="list"] .view-grid,
+html:not([data-view="list"]) .view-list {
+  display: none;
+}
+
+.view-option[aria-pressed="true"] {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 1px var(--border);
+}
+
 /* ---------- Pulsación de botones (regla de designeer.xyz) ----------
    press:      botones con texto (navegación, pestañas, descargas, volver) → 0,98
    press-icon: botones cuadrados de solo icono (tema, GitHub, anterior/siguiente) → 0,96

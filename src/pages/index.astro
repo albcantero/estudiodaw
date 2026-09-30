@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import Card from '../components/Card.astro';
-import ItemGrid from '../components/ItemGrid.astro';
+import CollectionView from '../components/CollectionView.astro';
+import CollectionTools from '../components/CollectionTools.astro';
 import Panel from '../components/Panel.astro';
 
 const subjects = (await getCollection('subjects')).sort(
@@ -24,23 +24,18 @@ const foot = (subjectId: string) => {
 <Base title="estudiodaw.dev" crumbs={[{ label: 'Inicio' }]}>
   <div class="mx-auto md:max-w-3xl">
     <Panel id="asignaturas" title="Asignaturas" count={subjects.length}>
-      <ItemGrid>
-        {
-          subjects.map((s) => (
-            <li>
-              <Card
-                href={`/${s.id}`}
-                number={s.data.short}
-                label={s.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}
-                title={s.data.name}
-                description={s.data.description}
-                foot={foot(s.id)}
-                color={s.data.color}
-              />
-            </li>
-          ))
-        }
-      </ItemGrid>
+      <CollectionTools slot="actions" placeholder="Buscar asignatura…" />
+      <CollectionView
+        items={subjects.map((s) => ({
+          href: `/${s.id}`,
+          subject: s.id,
+          label: s.data.year === 1 ? 'Pendiente de 1º' : '2º curso',
+          title: s.data.name,
+          description: s.data.description,
+          foot: foot(s.id),
+          color: s.data.color,
+        }))}
+      />
     </Panel>
 
   </div>

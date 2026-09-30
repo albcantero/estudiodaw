@@ -1,6 +1,5 @@
 {
   "name": "Bases de Datos",
-  "short": "BD",
   "description": "Modelo relacional, diseño E-R, normalización y SQL con Oracle.",
   "order": 2,
   "year": 1,

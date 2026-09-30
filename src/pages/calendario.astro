@@ -4,10 +4,14 @@ import Base from '../layouts/Base.astro';
 import PageHeading from '../components/PageHeading.astro';
 import Panel from '../components/Panel.astro';
 import Separator from '../components/Separator.astro';
-import { exams } from '../data/exams';
+import { exams, type ExamCourse } from '../data/exams';
+import { otherModules } from '../data/modules';
 
 const subjects = await getCollection('subjects');
 const byId = new Map(subjects.map((s) => [s.id, s.data]));
+
+const COURSE_LABEL: Record<string, string> = { 1: '1º curso', 2: '2º curso', loe: 'Plan LOE' };
+const courseLabel = (c: ExamCourse) => COURSE_LABEL[String(c)];
 
 const TZ = 'Europe/Madrid';
 const monthKey = new Intl.DateTimeFormat('es-ES', { year: 'numeric', month: '2-digit', timeZone: TZ });
@@ -17,7 +21,7 @@ const weekday = new Intl.DateTimeFormat('es-ES', { weekday: 'short', timeZone: T
 const time = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
 
 // Agrupado por mes, en orden
-const sorted = [...exams].sort((a, b) => a.start.localeCompare(b.start));
+const sorted = [...exams].sort((a, b) => a.start.localeCompare(b.start) || String(a.course).localeCompare(String(b.course)));
 const months = new Map<string, { title: string; items: typeof sorted }>();
 for (const e of sorted) {
   const d = new Date(e.start);
@@ -41,20 +45,21 @@ const groups = [...months.values()];
     <PageHeading
       tagline="Curso 2026-27 · Presenciales"
       title="Calendario de exámenes"
-      description="Parciales de 2º, pendientes de 1º y finales de las dos convocatorias. Todas las horas son peninsulares; los ya pasados quedan atenuados."
+      description="Parciales y finales de 1º y 2º de DAW, con las dos convocatorias, y los finales del plan LOE. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
     />
 
     {
       groups.map((g, gi) => (
-        <>
+        <div data-subject-group>
           <Separator />
           <Panel id={`mes-${gi}`} title={g.title} count={g.items.length}>
             <ol>
               {g.items.map((e) => {
-                const s = byId.get(e.subject);
+                const page = byId.get(e.subject);
+                const s = page ?? otherModules[e.subject];
                 const d = new Date(e.start);
                 return (
-                  <li class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity" data-start={e.start}>
+                  <li class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity" data-start={e.start} data-subject={e.course === 'loe' ? `loe-${e.subject}` : e.subject} data-count-item>
                     <div class="flex w-10 shrink-0 flex-col items-center leading-none">
                       <span class="font-mono text-xl font-medium tabular-nums">{dayNum.format(d)}</span>
                       <span class="mt-1 text-[0.625rem] tracking-wider text-muted-foreground uppercase">{weekday.format(d).replace('.', '')}</span>
@@ -63,18 +68,18 @@ const groups = [...months.values()];
                     <div class="min-w-0 flex-1">
                       <p class="flex items-center gap-2 font-medium">
                         <span class="size-2 shrink-0 rounded-full" style={`background:${s?.color}`} aria-hidden="true" />
-                        <a href={`/${e.subject}`} class="truncate hover:underline hover:decoration-current/30 hover:underline-offset-3">{s?.name ?? e.subject}</a>
+                        {page ? (
+                          <a href={`/${e.subject}`} class="truncate hover:underline hover:decoration-current/30 hover:underline-offset-3">{s.name}</a>
+                        ) : (
+                          <span class="truncate">{s?.name ?? e.subject}</span>
+                        )}
                       </p>
                       <p class="flex items-center gap-2 text-sm text-muted-foreground tabular-nums">
                         <span>{e.label}</span>
                         <span class="h-3.5 w-px bg-border" aria-hidden="true" />
-                        <span>{time.format(d)} h</span>
-                        {s?.year === 1 && (
-                          <>
-                            <span class="h-3.5 w-px bg-border" aria-hidden="true" />
-                            <span>Pendiente de 1º</span>
-                          </>
-                        )}
+                        <span>{time.format(d)}–{time.format(new Date(e.end))}</span>
+                        <span class="h-3.5 w-px bg-border max-sm:hidden" aria-hidden="true" />
+                        <span class="max-sm:hidden">{courseLabel(e.course)}</span>
                       </p>
                     </div>
                     <span class="exam-countdown shrink-0 rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs tabular-nums text-muted-foreground" />
@@ -83,7 +88,7 @@ const groups = [...months.values()];
               })}
             </ol>
           </Panel>
-        </>
+        </div>
       ))
     }
   </div>

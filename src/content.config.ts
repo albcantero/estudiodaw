@@ -6,7 +6,6 @@ const subjects = defineCollection({
   loader: glob({ pattern: '*.json', base: './src/content/subjects' }),
   schema: z.object({
     name: z.string(),
-    short: z.string(),
     description: z.string(),
     order: z.number(),
     /** 1 = pendiente de primero, 2 = segundo curso */

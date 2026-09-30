@@ -1,0 +1,144 @@
+---
+// "Mi matrícula": diálogo con los módulos de 1º y 2º para marcar de cuáles se está
+// matriculado. Se guarda en localStorage y filtra todo lo que lleva data-subject
+// (asignaturas, panel lateral, calendario). Sin nada marcado no se filtra nada.
+// El filtro visual lo pinta el script del <head> antes del primer pintado; aquí se
+// marcan además los elementos con data-unenrolled para la rejilla, el buscador y los
+// contadores.
+import { getCollection } from 'astro:content';
+import Icon from './Icon.astro';
+import { courseModules, otherModules } from '../data/modules';
+
+const subjects = new Map((await getCollection('subjects')).map((s) => [s.id, s.data]));
+const moduleOf = (id: string) => subjects.get(id) ?? otherModules[id];
+
+const columns = [
+  { title: 'Primer curso', ids: courseModules[1] },
+  { title: 'Segundo curso', ids: courseModules[2] },
+];
+---
+
+<dialog
+  class="enrollment-dialog m-auto w-[calc(100%-2rem)] max-w-2xl rounded-xl border bg-background p-0 text-foreground shadow-lg backdrop:bg-black/40"
+  aria-labelledby="enrollment-title"
+>
+  <form method="dialog" class="flex max-h-[calc(100dvh-2rem)] flex-col">
+    <header class="border-b px-5 pt-5 pb-4">
+      <h2 id="enrollment-title" class="heading text-2xl">Mi matrícula</h2>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Marca los módulos de los que te has matriculado. Las asignaturas y el calendario mostrarán solo esos; sin ninguno marcado se ve todo.
+      </p>
+    </header>
+
+    <div class="grid min-h-0 gap-5 overflow-y-auto px-5 py-4 sm:grid-cols-2">
+      {
+        columns.map((col) => (
+          <fieldset class="min-w-0">
+            <legend class="mb-2 font-mono text-[0.625rem] tracking-wider text-muted-foreground uppercase">{col.title}</legend>
+            <ul class="flex flex-col gap-0.5">
+              {col.ids.map((id) => {
+                const m = moduleOf(id);
+                return (
+                  <li>
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-[background-color] hover:bg-accent-muted has-checked:bg-muted">
+                      <input type="checkbox" name="module" value={id} class="peer sr-only" />
+                      <span
+                        class="grid size-4 shrink-0 place-items-center rounded-[4px] border border-input text-primary-foreground transition-[background-color,border-color] peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 [&_svg]:opacity-0 peer-checked:[&_svg]:opacity-100"
+                        aria-hidden="true"
+                      >
+                        <Icon name="check" class="size-3" />
+                      </span>
+                      <span class="size-1.5 shrink-0 rounded-full" style={`background:${m?.color}`} aria-hidden="true" />
+                      <span class="min-w-0 truncate">{m?.name ?? id}</span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </fieldset>
+        ))
+      }
+    </div>
+
+    <footer class="flex justify-end gap-2 border-t px-5 py-3">
+      <button
+        type="button"
+        class="enrollment-confirm press inline-flex h-8 items-center rounded-[10px] bg-primary px-3 text-[0.8125rem] font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        Confirmar
+      </button>
+      <button
+        type="button"
+        class="enrollment-cancel press inline-flex h-8 items-center rounded-[10px] border px-3 text-[0.8125rem] font-medium hover:bg-muted"
+      >
+        Cancelar
+      </button>
+    </footer>
+  </form>
+</dialog>
+
+<script>
+  import { ENROLLMENT_KEY } from '../data/modules';
+
+  function readEnrollment(): string[] {
+    try {
+      const ids = JSON.parse(localStorage.getItem(ENROLLMENT_KEY) ?? 'null');
+      return Array.isArray(ids) ? ids : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function applyEnrollment() {
+    const ids = readEnrollment();
+    const enrolled = ids.length ? new Set(ids) : null;
+    document.querySelectorAll<HTMLElement>('[data-subject]').forEach((el) => {
+      el.toggleAttribute('data-unenrolled', !!enrolled && !enrolled.has(el.dataset.subject!));
+    });
+    // Contadores de los paneles que filtran: cuentan solo lo que queda a la vista
+    document.querySelectorAll<HTMLElement>('section').forEach((section) => {
+      const counter = section.querySelector<HTMLElement>('.panel-count');
+      const items = section.querySelectorAll('[data-count-item]');
+      if (!counter || !items.length) return;
+      const visible = [...items].filter((i) => !i.hasAttribute('data-unenrolled')).length;
+      counter.textContent = `(${visible})`;
+    });
+    (window as any).__applyEnrollmentStyle?.();
+    document.querySelectorAll<HTMLElement>('[data-enrollment-open]').forEach((b) => {
+      b.toggleAttribute('data-active', !!enrolled);
+    });
+  }
+
+  const dialog = () => document.querySelector<HTMLDialogElement>('.enrollment-dialog');
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const d = dialog();
+    if (!d) return;
+
+    if (target.closest('[data-enrollment-open]')) {
+      const ids = new Set(readEnrollment());
+      d.querySelectorAll<HTMLInputElement>('input[name="module"]').forEach((input) => {
+        input.checked = ids.has(input.value);
+      });
+      d.showModal();
+      return;
+    }
+
+    if (target.closest('.enrollment-confirm')) {
+      const ids = [...d.querySelectorAll<HTMLInputElement>('input[name="module"]:checked')].map((i) => i.value);
+      try {
+        if (ids.length) localStorage.setItem(ENROLLMENT_KEY, JSON.stringify(ids));
+        else localStorage.removeItem(ENROLLMENT_KEY);
+      } catch {}
+      applyEnrollment();
+      d.close();
+      return;
+    }
+
+    // Cancelar, o clic en el fondo (fuera de la caja del diálogo)
+    if (target.closest('.enrollment-cancel') || target === d) d.close();
+  });
+
+  document.addEventListener('astro:page-load', applyEnrollment);
+</script>

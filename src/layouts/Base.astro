@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TopBar, { type Crumb } from '../components/TopBar.astro';
 import ExamCard from '../components/ExamCard.astro';
+import EnrollmentDialog from '../components/EnrollmentDialog.astro';
 
 interface Props {
   title: string;
@@ -48,6 +49,35 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
           } catch {}
           root.classList.toggle('dark', theme === 'dark');
           root.style.colorScheme = theme;
+          // Vista de las colecciones (rejilla o lista), elegida con <ViewToggle />
+          try {
+            root.dataset.view = localStorage.getItem('collection-view') === 'list' ? 'list' : 'grid';
+          } catch {
+            root.dataset.view = 'grid';
+          }
+          window.__applyEnrollmentStyle();
+        };
+        // Filtro de "Mi matrícula": oculta lo que lleva data-subject de módulos no marcados
+        // (y los grupos que se quedan vacíos). Lo reutiliza <EnrollmentDialog /> al confirmar.
+        window.__applyEnrollmentStyle = () => {
+          let ids = [];
+          try {
+            ids = JSON.parse(localStorage.getItem('enrollment') || '[]');
+          } catch {}
+          let style = document.getElementById('enrollment-style');
+          if (!Array.isArray(ids) || !ids.length) {
+            if (style) style.remove();
+            return;
+          }
+          const match = ids.map((id) => '[data-subject="' + String(id).replace(/[^\w-]/g, '') + '"]').join(',');
+          if (!style) {
+            style = document.createElement('style');
+            style.id = 'enrollment-style';
+            document.head.appendChild(style);
+          }
+          style.textContent =
+            '[data-subject]:not(' + match + '){display:none!important}' +
+            '[data-subject-group]:not(:has(' + match + ')){display:none!important}';
         };
         apply();
         if (!window.__themeSwapHook) {
@@ -89,6 +119,8 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
         </div>
       </div>
     </div>
+
+    <EnrollmentDialog />
 
     <!-- Fundido inferior fijo (chanhdai), limitado a la columna del cuerpo en escritorio -->
     <div class="bottom-fade pointer-events-none fixed bottom-0 z-50" aria-hidden="true">

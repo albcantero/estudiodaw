@@ -1,0 +1,38 @@
+---
+// Conmutador rejilla / lista para <CollectionView />. Cambia html[data-view] y guarda la
+// elección; la misma preferencia vale para asignaturas y temas.
+import Icon from './Icon.astro';
+---
+
+<div class="flex items-center gap-0.5 rounded-[10px] bg-muted p-0.5" role="group" aria-label="Vista">
+  <button type="button" class="view-option press-icon grid size-7 place-items-center rounded-[8px] text-muted-foreground" data-view-option="grid" aria-label="Vista de rejilla">
+    <Icon name="layout-grid" class="size-4" />
+  </button>
+  <button type="button" class="view-option press-icon grid size-7 place-items-center rounded-[8px] text-muted-foreground" data-view-option="list" aria-label="Vista de lista">
+    <Icon name="list" class="size-4" />
+  </button>
+</div>
+
+<script>
+  const current = () => (document.documentElement.dataset.view === 'list' ? 'list' : 'grid');
+
+  function sync() {
+    const view = current();
+    document.querySelectorAll<HTMLButtonElement>('[data-view-option]').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.viewOption === view));
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-view-option]');
+    if (!button) return;
+    const view = button.dataset.viewOption === 'list' ? 'list' : 'grid';
+    document.documentElement.dataset.view = view;
+    try {
+      localStorage.setItem('collection-view', view);
+    } catch {}
+    sync();
+  });
+
+  document.addEventListener('astro:page-load', sync);
+</script>

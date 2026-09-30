@@ -25,10 +25,11 @@ const current = Astro.url.pathname.split('/')[1];
         subjects.map((s) => (
           <a
             href={`/${s.id}`}
+            data-subject={s.id}
             class="text-sm font-medium tracking-wide text-muted-foreground transition-[color] hover:text-foreground aria-[current=page]:text-foreground"
             aria-current={current === s.id ? 'page' : undefined}
           >
-            {s.data.short}
+            {s.data.name}
           </a>
         ))
       }
@@ -36,6 +37,15 @@ const current = Astro.url.pathname.split('/')[1];
 
     <div class="flex items-center">
       <span class="mr-2 h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="press-icon relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
+        data-enrollment-open
+        aria-haspopup="dialog"
+        aria-label="Mi matrícula"
+      >
+        <Icon name="school" class="size-4" />
+      </button>
       <a
         href="https://github.com/albcantero/estudiodaw"
         class="press-icon inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"

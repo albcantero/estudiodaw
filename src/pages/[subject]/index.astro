@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Card from '../../components/Card.astro';
-import ItemGrid from '../../components/ItemGrid.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import CollectionTools from '../../components/CollectionTools.astro';
 import PageHeading from '../../components/PageHeading.astro';
 import Panel from '../../components/Panel.astro';
 import Separator from '../../components/Separator.astro';
@@ -28,7 +28,7 @@ const docsOf = (slug: string) =>
     .map((d) => kindLabel[d.data.kind])
     .join(' · ');
 
-const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${subject.data.short} · ${subject.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}`;
+const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${subject.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}`;
 ---
 
 <Base title={subject.data.name} description={subject.data.description} crumbs={[{ label: 'Inicio', href: '/' }, { label: 'Asignaturas', href: '/#asignaturas' }, { label: subject.data.name }]}>
@@ -38,27 +38,24 @@ const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asi
     <Separator />
 
     <Panel id="temas" title="Temas" count={temas.length}>
+      {temas.length > 0 && <CollectionTools slot="actions" placeholder="Buscar tema…" />}
       {
         temas.length === 0 ? (
           <p class="p-4 text-muted-foreground">
             Todavía no hay temas publicados de esta asignatura. Cada tema entra cuando está estudiado y con los ejercicios hechos.
           </p>
         ) : (
-          <ItemGrid>
-            {temas.map((t) => (
-              <li>
-                <Card
-                  href={`/${subject.id}/${t.data.slug}/teoria`}
-                  number={String(t.data.number).padStart(2, '0')}
-                  label={t.data.unit ?? `Tema ${t.data.number}`}
-                  title={t.data.title}
-                  description={t.data.description}
-                  foot={docsOf(t.data.slug)}
-                  color={subject.data.color}
-                />
-              </li>
-            ))}
-          </ItemGrid>
+          <CollectionView
+            items={temas.map((t) => ({
+              href: `/${subject.id}/${t.data.slug}/teoria`,
+              number: String(t.data.number).padStart(2, '0'),
+              label: t.data.unit ?? `Tema ${t.data.number}`,
+              title: t.data.title,
+              description: t.data.description,
+              foot: docsOf(t.data.slug),
+              color: subject.data.color,
+            }))}
+          />
         )
       }
     </Panel>

@@ -1,0 +1,52 @@
+---
+// Herramientas de una colección, a la derecha del título del panel: buscador y
+// conmutador de vista. El buscador filtra los elementos del mismo panel en las dos
+// vistas (rejilla y lista), sin tildes ni mayúsculas.
+import Icon from './Icon.astro';
+import ViewToggle from './ViewToggle.astro';
+
+interface Props {
+  placeholder?: string;
+}
+
+const { placeholder = 'Buscar…' } = Astro.props;
+---
+
+<div class="collection-tools flex items-center gap-2 max-sm:w-full">
+  <label class="relative block max-sm:flex-1">
+    <span class="sr-only">{placeholder}</span>
+    <Icon name="search" class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+    <input
+      type="search"
+      class="collection-search h-8 w-full rounded-[10px] border border-input bg-transparent pr-2.5 pl-8 text-[0.8125rem] outline-none transition-[color,box-shadow,border-color] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:w-48 dark:bg-input/30"
+      placeholder={placeholder}
+      autocomplete="off"
+      spellcheck="false"
+    />
+  </label>
+  <ViewToggle />
+</div>
+
+<script>
+  // Normaliza para comparar: minúsculas y sin tildes ("Diseño" casa con "diseno")
+  const normalize = (text: string) =>
+    text.toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+  document.addEventListener('input', (event) => {
+    const input = event.target as HTMLInputElement;
+    if (!input.classList?.contains('collection-search')) return;
+    const panel = input.closest('section');
+    if (!panel) return;
+    const words = normalize(input.value).split(/\s+/).filter(Boolean);
+    let visible = 0;
+    panel.querySelectorAll<HTMLElement>('[data-search]').forEach((item) => {
+      const text = item.dataset.search ?? '';
+      const match = words.every((w) => text.includes(w));
+      item.hidden = !match;
+      if (match && !item.hasAttribute('data-unenrolled')) visible += 1;
+    });
+    // Cada elemento está dos veces (rejilla y lista); basta con saber si queda alguno
+    const empty = panel.querySelector<HTMLElement>('.collection-empty');
+    if (empty) empty.hidden = visible > 0;
+  });
+</script>
