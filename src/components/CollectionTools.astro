@@ -28,25 +28,18 @@ const { placeholder = 'Buscar…' } = Astro.props;
 </div>
 
 <script>
-  // Normaliza para comparar: minúsculas y sin tildes ("Diseño" casa con "diseno")
-  const normalize = (text: string) =>
-    text.toLocaleLowerCase('es').normalize('NFD').replace(/[̀-ͯ]/g, '');
+  import { normalizeSearch } from '../scripts/search';
+  import { refreshLists } from '../scripts/visibility';
 
   document.addEventListener('input', (event) => {
     const input = event.target as HTMLInputElement;
     if (!input.classList?.contains('collection-search')) return;
     const panel = input.closest('section');
     if (!panel) return;
-    const words = normalize(input.value).split(/\s+/).filter(Boolean);
-    let visible = 0;
+    const words = normalizeSearch(input.value).split(/\s+/).filter(Boolean);
     panel.querySelectorAll<HTMLElement>('[data-search]').forEach((item) => {
-      const text = item.dataset.search ?? '';
-      const match = words.every((w) => text.includes(w));
-      item.hidden = !match;
-      if (match && !item.hasAttribute('data-unenrolled')) visible += 1;
+      item.hidden = !words.every((w) => item.dataset.search!.includes(w));
     });
-    // Cada elemento está dos veces (rejilla y lista); basta con saber si queda alguno
-    const empty = panel.querySelector<HTMLElement>('.collection-empty');
-    if (empty) empty.hidden = visible > 0;
+    refreshLists();
   });
 </script>

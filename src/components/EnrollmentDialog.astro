@@ -87,6 +87,7 @@ const columns = [
 
 <script>
   import { ENROLLMENT_KEY } from '../data/modules';
+  import { refreshLists } from '../scripts/visibility';
 
   function readEnrollment(): string[] {
     try {
@@ -103,14 +104,7 @@ const columns = [
     document.querySelectorAll<HTMLElement>('[data-subject]').forEach((el) => {
       el.toggleAttribute('data-unenrolled', !!enrolled && !enrolled.has(el.dataset.subject!));
     });
-    // Contadores de los paneles que filtran: cuentan solo lo que queda a la vista
-    document.querySelectorAll<HTMLElement>('section').forEach((section) => {
-      const counter = section.querySelector<HTMLElement>('.panel-count');
-      const items = section.querySelectorAll('[data-count-item]');
-      if (!counter || !items.length) return;
-      const visible = [...items].filter((i) => !i.hasAttribute('data-unenrolled')).length;
-      counter.textContent = `(${visible})`;
-    });
+    refreshLists();
     (window as any).__applyEnrollmentStyle?.();
     document.querySelectorAll<HTMLElement>('[data-enrollment-open]').forEach((b) => {
       b.toggleAttribute('data-active', !!enrolled);

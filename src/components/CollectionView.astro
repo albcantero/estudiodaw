@@ -6,6 +6,7 @@
 import Card from './Card.astro';
 import ItemGrid from './ItemGrid.astro';
 import Icon from './Icon.astro';
+import { normalizeSearch } from '../scripts/search';
 
 export interface CollectionItem {
   href: string;
@@ -25,14 +26,8 @@ interface Props {
 
 const { items } = Astro.props;
 
-// Mismo criterio que el buscador: minúsculas y sin tildes
 const searchText = (i: CollectionItem) =>
-  [i.title, i.description, i.label, i.foot]
-    .filter(Boolean)
-    .join(' ')
-    .toLocaleLowerCase('es')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+  normalizeSearch([i.title, i.description, i.label, i.foot].filter(Boolean).join(' '));
 ---
 
 <div class="view-grid">
@@ -72,4 +67,10 @@ const searchText = (i: CollectionItem) =>
   }
 </ul>
 
-<p class="collection-empty p-4 text-sm text-muted-foreground" hidden>Nada coincide con la búsqueda.</p>
+<p
+  class="collection-empty p-4 text-sm text-muted-foreground"
+  data-empty-search="Nada coincide con la búsqueda."
+  data-empty-enrollment="Nada de tu matrícula en esta lista."
+  hidden
+>
+</p>
