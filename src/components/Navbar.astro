@@ -63,6 +63,8 @@ const links = sectionLinks.filter((l) => l.href !== '/');
 </header>
 
 <script>
+  import { STORAGE_KEYS } from '../data/storage';
+
   // Módulo: se ejecuta una sola vez aunque se navegue con ClientRouter,
   // así que se escucha en el documento y no en cada botón.
   function toggleTheme() {
@@ -70,7 +72,7 @@ const links = sectionLinks.filter((l) => l.href !== '/');
     const dark = root.classList.toggle('dark');
     root.style.colorScheme = dark ? 'dark' : 'light';
     try {
-      localStorage.setItem('site-theme', dark ? 'dark' : 'light');
+      localStorage.setItem(STORAGE_KEYS.theme, dark ? 'dark' : 'light');
     } catch {}
   }
 

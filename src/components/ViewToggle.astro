@@ -14,6 +14,8 @@ import Icon from './Icon.astro';
 </div>
 
 <script>
+  import { STORAGE_KEYS } from '../data/storage';
+
   const current = () => (document.documentElement.dataset.view === 'list' ? 'list' : 'grid');
 
   function sync() {
@@ -29,7 +31,7 @@ import Icon from './Icon.astro';
     const view = button.dataset.viewOption === 'list' ? 'list' : 'grid';
     document.documentElement.dataset.view = view;
     try {
-      localStorage.setItem('collection-view', view);
+      localStorage.setItem(STORAGE_KEYS.view, view);
     } catch {}
     sync();
   });

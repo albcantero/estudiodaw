@@ -86,12 +86,12 @@ const columns = [
 </dialog>
 
 <script>
-  import { ENROLLMENT_KEY } from '../data/modules';
+  import { STORAGE_KEYS } from '../data/storage';
   import { refreshLists } from '../scripts/visibility';
 
   function readEnrollment(): string[] {
     try {
-      const ids = JSON.parse(localStorage.getItem(ENROLLMENT_KEY) ?? 'null');
+      const ids = JSON.parse(localStorage.getItem(STORAGE_KEYS.enrollment) ?? 'null');
       return Array.isArray(ids) ? ids : [];
     } catch {
       return [];
@@ -130,8 +130,8 @@ const columns = [
     if (target.closest('.enrollment-confirm')) {
       const ids = [...d.querySelectorAll<HTMLInputElement>('input[name="module"]:checked')].map((i) => i.value);
       try {
-        if (ids.length) localStorage.setItem(ENROLLMENT_KEY, JSON.stringify(ids));
-        else localStorage.removeItem(ENROLLMENT_KEY);
+        if (ids.length) localStorage.setItem(STORAGE_KEYS.enrollment, JSON.stringify(ids));
+        else localStorage.removeItem(STORAGE_KEYS.enrollment);
       } catch {}
       applyEnrollment();
       d.close();

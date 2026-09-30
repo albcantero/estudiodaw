@@ -1,9 +1,6 @@
 // Módulos de DAW por curso, en el orden del calendario oficial. Los que tienen página
 // salen de la colección `subjects`; los demás solo existen aquí (calendario y matrícula).
 
-/** Clave de localStorage con los ids de los módulos de los que se está matriculado */
-export const ENROLLMENT_KEY = 'enrollment';
-
 export const courseModules: Record<1 | 2, string[]> = {
   1: ['lm', 'si', 'bd', 'prog', 'ed', 'ingles', 'cid1', 'ipe1'],
   2: ['diw', 'dwes', 'dwec', 'dpl', 'ipe', 'cid', 'sasp', 'dasp', 'tfg'],

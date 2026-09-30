@@ -8,6 +8,7 @@ import Sidebar from '../components/Sidebar.astro';
 import TopBar, { type Crumb } from '../components/TopBar.astro';
 import ExamCard from '../components/ExamCard.astro';
 import EnrollmentDialog from '../components/EnrollmentDialog.astro';
+import { STORAGE_KEYS } from '../data/storage';
 
 interface Props {
   title: string;
@@ -37,7 +38,7 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script is:inline>
+    <script is:inline define:vars={{ keys: STORAGE_KEYS }}>
       // Tema antes del primer pintado: claro por defecto; oscuro solo si se eligió.
       // Con ClientRouter el <html> se sustituye en cada navegación: se vuelve a aplicar.
       (() => {
@@ -45,13 +46,13 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
           const root = document.documentElement;
           let theme = 'light';
           try {
-            if (localStorage.getItem('site-theme') === 'dark') theme = 'dark';
+            if (localStorage.getItem(keys.theme) === 'dark') theme = 'dark';
           } catch {}
           root.classList.toggle('dark', theme === 'dark');
           root.style.colorScheme = theme;
           // Vista de las colecciones (rejilla o lista), elegida con <ViewToggle />
           try {
-            root.dataset.view = localStorage.getItem('collection-view') === 'list' ? 'list' : 'grid';
+            root.dataset.view = localStorage.getItem(keys.view) === 'list' ? 'list' : 'grid';
           } catch {
             root.dataset.view = 'grid';
           }
@@ -59,10 +60,12 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
         };
         // Filtro de "Mi matrícula": oculta lo que lleva data-subject de módulos no marcados
         // (y los grupos que se quedan vacíos). Lo reutiliza <EnrollmentDialog /> al confirmar.
+        // También recoloca las líneas de la rejilla (una sí y otra no entre lo visible),
+        // que si no se descuadran hasta que corre el script de la matrícula.
         window.__applyEnrollmentStyle = () => {
           let ids = [];
           try {
-            ids = JSON.parse(localStorage.getItem('enrollment') || '[]');
+            ids = JSON.parse(localStorage.getItem(keys.enrollment) || '[]');
           } catch {}
           let style = document.getElementById('enrollment-style');
           if (!Array.isArray(ids) || !ids.length) {
@@ -77,7 +80,11 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
           }
           style.textContent =
             '[data-subject]:not(' + match + '){display:none!important}' +
-            '[data-subject-group]:not(:has(' + match + ')){display:none!important}';
+            '[data-subject-group]:not(:has(' + match + ')){display:none!important}' +
+            '@media (min-width:40rem){' +
+            '.item-grid>li:is(' + match + ')::before,.item-grid>li:is(' + match + ')::after{content:""!important}' +
+            '.item-grid>li:nth-child(2n of :is(' + match + '):not([hidden]))::before,' +
+            '.item-grid>li:nth-child(2n of :is(' + match + '):not([hidden]))::after{content:none!important}}';
         };
         apply();
         if (!window.__themeSwapHook) {
