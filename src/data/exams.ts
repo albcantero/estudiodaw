@@ -1,7 +1,6 @@
 // Calendario oficial 2026-27 (presentación del CIFP Ponferrada, DAW modalidad virtual).
 // Cada módulo se copia como una fila de las tablas del PDF: 1er parcial, 2º parcial,
-// final de 1ª convocatoria y final de 2ª. Horas peninsulares: de noviembre a marzo
-// CET (+01:00); de abril a junio CEST (+02:00).
+// final de 1ª convocatoria y final de 2ª. Horas peninsulares (Europe/Madrid).
 export type ExamKind = 'parcial' | 'final';
 
 /** 1 y 2 = curso de DAW (plan LFP); 'loe' = finales del plan antiguo */
@@ -21,10 +20,13 @@ type Slot = [date: string, from: string, to: string] | null;
 
 const LABELS = ['1er parcial', '2º parcial', 'Final, 1ª convocatoria', 'Final, 2ª convocatoria'];
 
+// Desfase de Madrid en esa fecha (+01:00 en invierno, +02:00 en verano), según las
+// reglas de horario de verano del propio sistema y no por meses a mano.
+const madridOffset = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid', timeZoneName: 'longOffset' });
+
 const iso = (date: string, hour: string) => {
-  const month = Number(date.slice(5, 7));
-  const offset = month >= 4 && month <= 10 ? '+02:00' : '+01:00';
-  return `${date}T${hour}:00${offset}`;
+  const zone = madridOffset.formatToParts(new Date(`${date}T${hour}:00Z`)).find((p) => p.type === 'timeZoneName')!.value;
+  return `${date}T${hour}:00${zone.replace('GMT', '') || '+00:00'}`;
 };
 
 function row(subject: string, course: ExamCourse, slots: [Slot, Slot, Slot, Slot]): Exam[] {

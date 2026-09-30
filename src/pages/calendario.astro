@@ -59,7 +59,7 @@ const groups = [...months.values()];
                 const s = page ?? otherModules[e.subject];
                 const d = new Date(e.start);
                 return (
-                  <li class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity" data-start={e.start} data-subject={e.course === 'loe' ? `loe-${e.subject}` : e.subject} data-count-item>
+                  <li class="exam-row screen-line-bottom flex items-center gap-4 px-4 py-3 transition-opacity" data-start={e.start} data-end={e.end} data-subject={e.course === 'loe' ? `loe-${e.subject}` : e.subject} data-count-item>
                     <div class="flex w-10 shrink-0 flex-col items-center leading-none">
                       <span class="font-mono text-xl font-medium tabular-nums">{dayNum.format(d)}</span>
                       <span class="mt-1 text-[0.625rem] tracking-wider text-muted-foreground uppercase">{weekday.format(d).replace('.', '')}</span>
@@ -97,23 +97,36 @@ const groups = [...months.values()];
 <script>
   const DAY = 24 * 60 * 60 * 1000;
 
-  function countdown(ms: number) {
-    if (ms < 0) return 'Hecho';
-    const days = Math.floor(ms / DAY);
-    if (days === 0) return 'hoy';
-    if (days === 1) return 'mañana';
+  // Día del calendario en Madrid como número de días desde 1970: la cuenta atrás va por
+  // días naturales ("Mañana" es mañana aunque falten menos de 24 horas).
+  const madridDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const dayNumber = (t: number) => Date.parse(`${madridDate.format(t)}T00:00:00Z`) / DAY;
+
+  function countdown(now: number, start: number, end: number) {
+    if (now >= end) return 'Hecho';
+    if (now >= start) return 'En curso';
+    const days = dayNumber(start) - dayNumber(now);
+    if (days === 0) return 'Hoy';
+    if (days === 1) return 'Mañana';
     return `${days} días`;
   }
 
   function refresh() {
     const now = Date.now();
     document.querySelectorAll<HTMLLIElement>('.exam-row').forEach((row) => {
-      const diff = new Date(row.dataset.start!).getTime() - now;
-      row.classList.toggle('opacity-45', diff < 0);
+      const start = Date.parse(row.dataset.start!);
+      const end = Date.parse(row.dataset.end!);
+      row.classList.toggle('opacity-45', now >= end);
       const badge = row.querySelector<HTMLElement>('.exam-countdown');
-      if (badge) badge.textContent = countdown(diff);
+      if (badge) badge.textContent = countdown(now, start, end);
     });
   }
 
   document.addEventListener('astro:page-load', refresh);
+  // Con la página abierta de un día para otro la cuenta sigue al día. Un solo intervalo
+  // para toda la sesión: el script de módulo se ejecuta una vez aunque se navegue.
+  setInterval(refresh, 60_000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refresh();
+  });
 </script>
