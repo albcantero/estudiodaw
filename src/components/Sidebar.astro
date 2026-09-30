@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 // Panel lateral izquierdo fijo, portado de designeer.xyz: marca, descripción,
 // navegación con contadores y pie con enlaces.
 // Persiste entre páginas (transition:persist): el enlace activo lo actualiza el script.
@@ -30,8 +31,8 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
       <nav aria-label="Navegación">
         <ul class="flex flex-col">
           <li>
-            <a href="/#examenes" class="nav-link">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="size-4 shrink-0"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5" /><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" /></svg>
+            <a href="/calendario" class="nav-link">
+              <Icon name="calendar" class="size-4 shrink-0" />
               <span class="truncate">Fechas de exámenes</span>
             </a>
           </li>
@@ -67,8 +68,8 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
         class="theme-toggle inline-flex size-7 items-center justify-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] hover:bg-muted hover:text-foreground active:scale-[0.96]"
         aria-label="Cambiar tema (tecla D)"
       >
-        <svg class="theme-icon-moon size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-        <svg class="theme-icon-sun size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 3v1M12 20v1M3 12h1M20 12h1M5.6 5.6l.7.7M17.7 17.7l.7.7M5.6 18.4l.7-.7M17.7 6.3l.7-.7" /></svg>
+        <Icon name="moon" class="theme-icon-moon size-4" />
+        <Icon name="sun" class="theme-icon-sun size-4" />
       </button>
     </div>
   </div>

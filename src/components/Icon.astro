@@ -1,0 +1,43 @@
+---
+// Icono de Tabler Icons (@tabler/icons), en línea y sin JavaScript.
+// Se lee el SVG del paquete en el build y se pinta con las props de aquí, así el tamaño
+// y el color salen de las clases (size-4, text-*) como en el resto de la web.
+// Catálogo: https://tabler.io/icons
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+
+interface Props {
+  name: string;
+  variant?: 'outline' | 'filled';
+  class?: string;
+  strokeWidth?: number;
+  label?: string;
+}
+
+const { name, variant = 'outline', class: className, strokeWidth = 2, label } = Astro.props;
+
+const require = createRequire(import.meta.url);
+const file = require.resolve(`@tabler/icons/${variant}/${name}.svg`);
+const source = readFileSync(file, 'utf8');
+
+// Solo el contenido: fuera el rectángulo transparente que Tabler usa de caja.
+const inner = source
+  .slice(source.indexOf('>', source.indexOf('<svg')) + 1, source.lastIndexOf('</svg>'))
+  .replace(/<path stroke="none" d="M0 0h24v24H0z" fill="none"\s*\/>/, '')
+  .trim();
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill={variant === 'filled' ? 'currentColor' : 'none'}
+  stroke={variant === 'filled' ? 'none' : 'currentColor'}
+  stroke-width={strokeWidth}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class:list={['shrink-0', className ?? 'size-4']}
+  aria-hidden={label ? undefined : 'true'}
+  aria-label={label}
+  role={label ? 'img' : undefined}
+  set:html={inner}
+/>

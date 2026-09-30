@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeading from '../components/PageHeading.astro';
+import Panel from '../components/Panel.astro';
+import Separator from '../components/Separator.astro';
+
+const steps = [
+  {
+    title: 'Lee la teoría',
+    text: 'Cada tema empieza por el problema que resuelve, luego compara con las alternativas y al final explica la teoría. Las trampas de examen van destacadas.',
+  },
+  {
+    title: 'Haz los ejercicios sin mirar las soluciones',
+    text: 'Van de muy fácil a muy difícil. El último junta todo el tema, como un examen. Resuélvelos en un fichero real (.xml, .sql…), no en papel.',
+  },
+  {
+    title: 'Compara con las soluciones propuestas',
+    text: 'Cada solución está plegada: ábrela solo cuando hayas terminado. Si la tuya es distinta pero válida, también vale.',
+  },
+  {
+    title: 'Mira cómo se corrigió la mía',
+    text: 'En «Mis soluciones» están mis ficheros con la corrección al final de cada uno. Enseñan los errores típicos mejor que la solución limpia.',
+  },
+];
+---
+
+<Base
+  title="Guía"
+  description="Cómo están organizados los apuntes y cómo sacarles partido."
+  crumbs={[{ label: 'Inicio', href: '/' }, { label: 'Guía' }]}
+  banner={false}
+>
+  <div class="mx-auto md:max-w-3xl">
+    <PageHeading
+      tagline="Cómo usar estos apuntes"
+      title="Guía"
+      description="Los apuntes se escriben mientras se estudia y se comparten con la clase. Cada tema tiene teoría, ejercicios y soluciones; esta es la forma de aprovecharlos."
+    />
+
+    <Separator />
+
+    <Panel id="metodo" title="El método" count={steps.length}>
+      <ol>
+        {
+          steps.map((s, i) => (
+            <li class="screen-line-bottom flex gap-4 px-4 py-4">
+              <span class="grid size-6 shrink-0 place-items-center rounded-lg bg-muted text-[0.8125rem] tabular-nums">{i + 1}</span>
+              <div>
+                <p class="font-medium">{s.title}</p>
+                <p class="mt-1 text-sm text-pretty text-muted-foreground">{s.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </Panel>
+
+    <Separator />
+
+    <Panel id="que-hay" title="Qué hay en cada tema">
+      <dl class="grid grid-cols-1 gap-px bg-line sm:grid-cols-3">
+        <div class="bg-background p-4">
+          <dt class="font-medium">Teoría</dt>
+          <dd class="mt-1 text-sm text-muted-foreground">Para aprender, no un resumen. Con índice y descargable en Markdown.</dd>
+        </div>
+        <div class="bg-background p-4">
+          <dt class="font-medium">Ejercicios</dt>
+          <dd class="mt-1 text-sm text-muted-foreground">Solo enunciados, de menos a más, de tipos variados.</dd>
+        </div>
+        <div class="bg-background p-4">
+          <dt class="font-medium">Soluciones</dt>
+          <dd class="mt-1 text-sm text-muted-foreground">Los mismos enunciados con la solución plegada debajo.</dd>
+        </div>
+      </dl>
+    </Panel>
+
+    <Separator />
+
+    <Panel id="normas" title="Lo que no encontrarás aquí">
+      <p class="p-4 text-sm text-pretty text-muted-foreground">
+        Las soluciones de las tareas evaluables de la plataforma: esas se comentan en el grupo de clase, no se publican.
+        Tampoco el material oficial copiado: los apuntes están escritos con palabras propias a partir de él.
+        Un tema entra en la web cuando está estudiado y con los ejercicios hechos.
+      </p>
+    </Panel>
+  </div>
+</Base>

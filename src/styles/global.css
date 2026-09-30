@@ -31,16 +31,21 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Cuerpo en Funnel Sans (Google Fonts). Geist sigue declarada abajo como alternativa:
+     para volver, poner "Geist" delante y recuperar sus ss en --font-sans--font-feature-settings. */
+  --font-sans: var(--font-funnel-sans), "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
-  --font-heading: "Cardo", Georgia, "Times New Roman", serif;
+  --font-heading: var(--font-cardo), Georgia, "Times New Roman", serif;
   /* Conjuntos estilísticos de albcantero.com. Van colgados de cada familia: son por fuente,
      el ss01 de una no significa lo mismo en otra.
      Geist:      ss01 "a" de un solo piso · ss05 "I" con remates (no se confunde con l ni 1)
      Geist Mono: ss01 la misma "a" de un piso, para que casen cuerpo y código.
      Sin ss11 en mono (ligaduras de código): en apuntes para aprender, "=>" debe verse
      como se teclea. Tampoco "zero" ni "tnum": Geist Mono no los trae. */
-  --font-sans--font-feature-settings: "ss01" 1, "ss05" 1;
+  /* Los ss01 y ss05 eran de Geist; los números de conjunto son por fuente y en Funnel Sans
+     significarían otra cosa, así que con Funnel no se pide ninguno.
+     Geist: --font-sans--font-feature-settings: "ss01" 1, "ss05" 1; */
+  --font-sans--font-feature-settings: normal;
   --font-mono--font-feature-settings: "ss01" 1;
   --default-font-feature-settings: var(--font-sans--font-feature-settings);
   --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
@@ -72,6 +77,8 @@
   --color-surface: var(--surface);
   --color-code: var(--code);
   --color-code-number: var(--code-number);
+  --color-accent-tint: var(--accent-tint);
+  --color-accent-ink: var(--accent-ink);
 }
 
 :root {
@@ -102,6 +109,9 @@
   --selection: oklch(0.141 0.005 285.823);
   --selection-foreground: oklch(0.985 0 0);
   --header-height: 3.5rem;
+  /* De designeer.xyz: cian #0bf al 10 % sobre blanco para el fondo, al 62 % con negro para el trazo */
+  --accent-tint: color-mix(in srgb, #0bf 10%, white);
+  --accent-ink: color-mix(in srgb, #0bf 62%, black);
   --fade-bottom-height: 6rem;
 }
 
@@ -129,6 +139,8 @@
   --code-number: oklch(0.43 0 0);
   --selection: oklch(0.985 0 0);
   --selection-foreground: oklch(0.141 0.005 285.823);
+  --accent-tint: color-mix(in srgb, #0bf 16%, transparent);
+  --accent-ink: #0bf;
 }
 
 @layer base {

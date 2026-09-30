@@ -1,21 +1,30 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import { Font } from 'astro:assets';
 import '../styles/global.css';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Sidebar from '../components/Sidebar.astro';
+import TopBar, { type Crumb } from '../components/TopBar.astro';
+import ExamCard from '../components/ExamCard.astro';
 
 interface Props {
   title: string;
   description?: string;
   /** Con panel lateral (portada y asignaturas). Las páginas de lectura van sin él. */
   sidebar?: boolean;
+  /** Migas de la página (pendiente de decidir dónde se muestran) */
+  crumbs?: Crumb[];
+  /** Aviso azul del calendario bajo la barra superior */
+  banner?: boolean;
 }
 
 const {
   title,
   description = 'Apuntes, ejercicios y soluciones de DAW, tema a tema.',
   sidebar = true,
+  crumbs = [],
+  banner = true,
 } = Astro.props;
 
 const siteName = 'estudiodaw.dev';
@@ -51,11 +60,9 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/GeistPixel-Square.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+    <Font cssVariable="--font-funnel-sans" preload={[{ style: 'normal', subset: 'latin' }]} />
+    <Font cssVariable="--font-cardo" />
     <!-- Navegación sin recarga: el panel lateral persiste entre la portada y las asignaturas -->
     <ClientRouter />
   </head>
@@ -73,6 +80,8 @@ const pageTitle = title === siteName ? title : `${title} · ${siteName}`;
 
         <div class:list={['app-main relative isolate min-w-0 overflow-x-clip', sidebar && 'lg:border-l']}>
           <Navbar class={sidebar ? 'lg:hidden' : undefined} />
+          {sidebar && <TopBar />}
+          {sidebar && banner && <ExamCard />}
           <main class="px-2 lg:px-0">
             <slot />
           </main>

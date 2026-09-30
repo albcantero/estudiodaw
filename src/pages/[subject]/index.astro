@@ -31,7 +31,7 @@ const docsOf = (slug: string) =>
 const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${subject.data.short} · ${subject.data.year === 1 ? 'Pendiente de 1º' : '2º curso'}`;
 ---
 
-<Base title={subject.data.name} description={subject.data.description}>
+<Base title={subject.data.name} description={subject.data.description} crumbs={[{ label: 'Inicio', href: '/' }, { label: 'Asignaturas', href: '/#asignaturas' }, { label: subject.data.name }]}>
   <div class="mx-auto md:max-w-3xl">
     <PageHeading tagline={tagline} title={subject.data.name} description={subject.data.description} />
 

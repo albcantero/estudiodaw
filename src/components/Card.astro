@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 // Elemento de rejilla con la anatomía de PostItem de chanhdai: un bloque con 8 px de
 // margen que se sombrea en el hover y, dentro, la tarjeta con borde (rounded-xl,
 // borde interior al 15 %). Aquí la tarjeta lleva toda la información en vez de una imagen.
@@ -33,9 +34,7 @@ const { href, number, label, title, description, foot, color } = Astro.props;
       foot && (
         <p class="mt-auto flex items-center gap-2 pt-3 text-sm text-muted-foreground">
           {foot}
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100">
-            <path d="M3 8h10M9 4l4 4-4 4" />
-          </svg>
+          <Icon name="arrow-right" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100" />
         </p>
       )
     }

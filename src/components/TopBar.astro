@@ -1,0 +1,61 @@
+---
+// Barra superior de la columna del cuerpo, como la data-catalogue-bar de designeer.xyz:
+// fija arriba al hacer scroll, línea discontinua debajo, navegación a la izquierda y
+// acciones a la derecha. Solo en escritorio y en las páginas con panel lateral.
+import Icon from './Icon.astro';
+
+// Las migas se muestran en otro sitio; el tipo se sigue exportando para Base.
+export interface Crumb {
+  label: string;
+  href?: string;
+}
+
+const links = [
+  { label: 'Inicio', href: '/' },
+  { label: 'Exámenes', href: '/calendario' },
+  { label: 'Guía', href: '/guia' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
+---
+
+<div class="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-dashed bg-background px-[1.125rem] py-2.5 max-lg:hidden">
+  <nav aria-label="Secciones">
+    <ul class="flex items-center gap-1">
+      {
+        links.map((l) => (
+          <li>
+            <a
+              href={l.href}
+              class:list={[
+                'flex h-8 items-center rounded-[10px] px-2 text-[0.8125rem] transition-[color,background-color,scale] duration-150 hover:bg-muted active:scale-[0.98]',
+                isActive(l.href) ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
+              ]}
+              aria-current={isActive(l.href) ? 'page' : undefined}
+            >
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <div class="ml-auto flex items-center gap-1">
+    <a
+      href="https://github.com/albcantero/estudiodaw"
+      class="grid size-8 place-items-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.96]"
+      aria-label="Código en GitHub"
+    >
+      <Icon name="brand-github" class="size-4" />
+    </a>
+    <button
+      type="button"
+      class="theme-toggle grid size-8 place-items-center rounded-[10px] text-muted-foreground transition-[color,background-color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.96]"
+      aria-label="Cambiar tema (tecla D)"
+    >
+      <Icon name="moon" class="theme-icon-moon size-4" />
+      <Icon name="sun" class="theme-icon-sun size-4" />
+    </button>
+  </div>
+</div>
