@@ -1,4 +1,6 @@
 ---
+import { GITHUB_URL } from '../data/site';
+
 // Pie como el cajetín de un plano técnico (SiteFooterCad de chanhdai).
 const buildDate = new Date().toISOString().slice(0, 10);
 const INSPIRED_BY = ['chanhdai.com', '100cosas.dev', 'shadcn/ui', 'alg0.dev'];
@@ -8,7 +10,7 @@ const fields: { label: string; value: string; href?: string; span?: string }[] =
   { label: 'Ciclo', value: 'DAW a distancia' },
   { label: 'Centro', value: 'CIFP Ponferrada' },
   { label: 'Build', value: buildDate },
-  { label: 'Código', value: 'GitHub', href: 'https://github.com/albcantero/estudiodaw' },
+  { label: 'Código', value: 'GitHub', href: GITHUB_URL },
   { label: 'Desplegado en', value: '▲ Vercel' },
   { label: 'Tipografía', value: 'Funnel Sans · Cardo' },
   { label: 'Stack', value: 'Astro · Tailwind CSS' },

@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import { GITHUB_URL } from '../data/site';
 // Panel lateral izquierdo fijo, portado de designeer.xyz: marca, descripción,
 // navegación con contadores y pie con enlaces.
 // Persiste entre páginas (transition:persist): el enlace activo lo actualiza el script.
@@ -60,7 +61,7 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
 
     <div class="rise mt-5 flex shrink-0 items-center justify-between gap-2 border-t border-dashed pt-5" style="--d:400ms">
       <div class="flex items-center gap-3 text-[0.8125rem] text-muted-foreground">
-        <a class="transition-colors hover:text-foreground" href="https://github.com/albcantero/estudiodaw" target="_blank" rel="noopener">GitHub</a>
+        <a class="transition-colors hover:text-foreground" href={GITHUB_URL} target="_blank" rel="noopener">GitHub</a>
         <a class="transition-colors hover:text-foreground" href="/#asignaturas">Índice</a>
       </div>
       <button

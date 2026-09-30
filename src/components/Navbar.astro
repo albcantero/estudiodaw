@@ -1,15 +1,12 @@
 ---
 import Icon from './Icon.astro';
-import { getCollection } from 'astro:content';
+import { GITHUB_URL, isSectionActive, normalizePath, sectionLinks } from '../data/site';
 
-// En la barra solo van las asignaturas con algún tema publicado; el resto, desde la home.
-const temas = await getCollection('temas');
-const published = new Set(temas.map((t) => t.data.subject));
-const subjects = (await getCollection('subjects'))
-  .filter((s) => published.has(s.id))
-  .sort((a, b) => a.data.order - b.data.order);
+// Barra de móvil y de las páginas de lectura: las secciones (sin Inicio, que es la marca)
+// y las acciones. Las asignaturas se eligen desde la portada.
 const { class: className } = Astro.props;
-const current = Astro.url.pathname.split('/')[1];
+const path = normalizePath(Astro.url.pathname);
+const links = sectionLinks.filter((l) => l.href !== '/');
 ---
 
 <header class:list={['sticky top-0 z-50 max-w-screen overflow-x-clip bg-background px-2 lg:px-0', className]}>
@@ -20,23 +17,22 @@ const current = Astro.url.pathname.split('/')[1];
 
     <div class="flex-1"></div>
 
-    <nav class="flex items-center gap-4 max-sm:hidden" aria-label="Asignaturas">
+    <nav class="flex items-center gap-3 sm:gap-4" aria-label="Secciones">
       {
-        subjects.map((s) => (
+        links.map((l) => (
           <a
-            href={`/${s.id}`}
-            data-subject={s.id}
+            href={l.href}
             class="text-sm font-medium tracking-wide text-muted-foreground transition-[color] hover:text-foreground aria-[current=page]:text-foreground"
-            aria-current={current === s.id ? 'page' : undefined}
+            aria-current={isSectionActive(path, l.href) ? 'page' : undefined}
           >
-            {s.data.name}
+            {l.label}
           </a>
         ))
       }
     </nav>
 
     <div class="flex items-center">
-      <span class="mr-2 h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
+      <span class="mr-2 h-5 w-px bg-border" aria-hidden="true"></span>
       <button
         type="button"
         class="press-icon relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground data-active:text-foreground"
@@ -47,13 +43,13 @@ const current = Astro.url.pathname.split('/')[1];
         <Icon name="school" class="size-4" />
       </button>
       <a
-        href="https://github.com/albcantero/estudiodaw"
-        class="press-icon inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+        href={GITHUB_URL}
+        class="press-icon inline-flex max-sm:hidden size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
         aria-label="Código en GitHub"
       >
         <Icon name="brand-github" class="size-4" />
       </a>
-      <span class="mx-2 h-5 w-px bg-border" aria-hidden="true"></span>
+      <span class="mx-2 h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
       <button
         type="button"
         class="theme-toggle press-icon relative inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
