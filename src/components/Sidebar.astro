@@ -45,9 +45,6 @@ const current = Astro.url.pathname.split('/')[1] ?? '';
               return (
                 <li data-subject={s.id}>
                   <a href={`/${s.id}`} class:list={['nav-link press', active && 'is-active']} aria-current={active ? 'page' : undefined} title={s.data.name}>
-                    <span class="grid size-4 shrink-0 place-items-center" aria-hidden="true">
-                      <span class="size-1.5 rounded-full" style={`background:${s.data.color}`} />
-                    </span>
                     <span class="truncate">{s.data.name}</span>
                     <span class:list={['ml-auto font-mono text-[0.625rem] tabular-nums', n === 0 ? 'text-muted-foreground/60' : 'text-muted-foreground']}>{n}</span>
                   </a>

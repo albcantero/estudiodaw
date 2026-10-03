@@ -8,6 +8,9 @@ import Panel from '../../components/Panel.astro';
 import Separator from '../../components/Separator.astro';
 import { DOC_LABELS, docsOfTema, temaNumber } from '../../data/content';
 import { COURSE_LABELS } from '../../data/modules';
+import { PARCIAL_LABELS, syllabus } from '../../data/syllabus';
+import type { CollectionItem } from '../../components/CollectionView.astro';
+import type { BadgeData } from '../../components/Badge.astro';
 
 export async function getStaticPaths() {
   const subjects = await getCollection('subjects');
@@ -31,6 +34,43 @@ const docList = (slug: string) =>
     .map((d) => DOC_LABELS[d.data.kind])
     .join(' · ');
 
+// Cada UD del temario oficial; si ya hay tema publicado de esa UD (por `unit`), enlaza a él.
+// Los temas publicados que no casen con ninguna UD van al final.
+const units = syllabus[subject.id] ?? [];
+const unitLabel = (n: number) => `UD${n}`;
+const published = new Map(temas.map((t) => [t.data.unit, t]));
+// Propiedades de cada tema en la tabla: estado y, si se sabe, parcial
+const PUBLISHED: BadgeData = { text: 'Publicado', variant: 'outline', icon: 'circle-check' };
+const PENDING: BadgeData = { text: 'Próximamente', variant: 'outline', icon: 'circle-dashed' };
+const parcialChip = (parcial?: string): BadgeData[] => (parcial ? [{ text: parcial, variant: 'outline', icon: 'calendar-event' }] : []);
+
+const temaItem = (t: (typeof temas)[number], n: number, parcial?: string): CollectionItem => ({
+  href: `/${subject.id}/${t.data.slug}/${firstDoc(t.data.slug)}`,
+  number: temaNumber(n),
+  label: parcial,
+  title: t.data.title,
+  description: t.data.description,
+  foot: docList(t.data.slug),
+  props: [PUBLISHED, ...parcialChip(parcial)],
+});
+const items: CollectionItem[] = units.map((u, i) => {
+  const n = i + 1;
+  const parcial = u.parcial ? PARCIAL_LABELS[u.parcial] : undefined;
+  const tema = published.get(unitLabel(n));
+  if (tema) return temaItem(tema, n, parcial);
+  return {
+    number: temaNumber(n),
+    label: parcial,
+    title: u.title,
+    foot: 'Próximamente',
+    props: [PENDING, ...parcialChip(parcial)],
+  };
+});
+const unitNames = new Set(units.map((_, i) => unitLabel(i + 1)));
+for (const t of temas) {
+  if (!t.data.unit || !unitNames.has(t.data.unit)) items.push(temaItem(t, t.data.number));
+}
+
 const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asignaturas</a> / ${COURSE_LABELS[subject.data.year]}`;
 ---
 
@@ -40,25 +80,15 @@ const tagline = `<a href="/" class="hover:text-foreground transition-colors">Asi
 
     <Separator />
 
-    <Panel id="temas" title="Temas" count={temas.length}>
-      {temas.length > 0 && <CollectionTools slot="actions" placeholder="Buscar tema…" />}
+    <Panel id="temas" title="Temas" count={items.length}>
+      {items.length > 0 && <CollectionTools slot="toolbar" placeholder="Buscar tema…" />}
       {
-        temas.length === 0 ? (
+        items.length === 0 ? (
           <p class="p-4 text-muted-foreground">
             Todavía no hay temas publicados de esta asignatura. Cada tema entra cuando está estudiado y con los ejercicios hechos.
           </p>
         ) : (
-          <CollectionView
-            items={temas.map((t) => ({
-              href: `/${subject.id}/${t.data.slug}/${firstDoc(t.data.slug)}`,
-              number: temaNumber(t.data.number),
-              label: t.data.unit ?? `Tema ${t.data.number}`,
-              title: t.data.title,
-              description: t.data.description,
-              foot: docList(t.data.slug),
-              color: subject.data.color,
-            }))}
-          />
+          <CollectionView items={items} columns={{ number: 'UD', title: 'Tema', props: 'Propiedades', propsLead: '8.25rem' }} />
         )
       }
     </Panel>

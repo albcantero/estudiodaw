@@ -1,18 +1,34 @@
 ---
 import Base from '../layouts/Base.astro';
-import CollectionView from '../components/CollectionView.astro';
+import CollectionView, { type CollectionItem } from '../components/CollectionView.astro';
+import type { BadgeData } from '../components/Badge.astro';
 import CollectionTools from '../components/CollectionTools.astro';
 import Panel from '../components/Panel.astro';
 import { getSubjects, getTemaCounts } from '../data/content';
-import { COURSE_LABELS } from '../data/modules';
+import { syllabus } from '../data/syllabus';
 
 const subjects = await getSubjects();
 const temaCounts = await getTemaCounts();
 
-const foot = (subjectId: string) => {
+// "2/8 temas publicados": publicados frente a las UD del temario oficial. Sin temario
+// (TFG), "Sin temas todavía" con el círculo discontinuo.
+// Icono de porcentaje de Tabler más cercano al porcentaje publicado (0/8 = 0 %, 2/8 = 25 %,
+// 2/6 ≈ 33 %, 5/8 ≈ 60 %, 8/8 = 100 %)
+const PERCENT_ICONS = [0, 10, 20, 25, 30, 33, 40, 50, 60, 66, 70, 75, 80, 90, 100];
+const progressIcon = (n: number, total: number) => {
+  const pct = (n / total) * 100;
+  const nearest = PERCENT_ICONS.reduce((best, p) => (Math.abs(p - pct) < Math.abs(best - pct) ? p : best));
+  return `percentage-${nearest}`;
+};
+
+const footOf = (subjectId: string): Pick<CollectionItem, 'foot' | 'footBadge'> => {
   const n = temaCounts.get(subjectId) ?? 0;
-  if (n === 0) return 'Sin temas todavía';
-  return `${n} ${n === 1 ? 'tema' : 'temas'}`;
+  const total = syllabus[subjectId]?.length ?? 0;
+  if (total === 0) {
+    const text = n === 0 ? 'Sin temas todavía' : `${n} ${n === 1 ? 'tema' : 'temas'}`;
+    return { footBadge: { text, variant: 'outline', icon: 'circle-dashed' } };
+  }
+  return { footBadge: { text: `${n}/${total} temas publicados`, variant: 'outline', icon: progressIcon(n, total) } };
 };
 
 ---
@@ -20,17 +36,22 @@ const foot = (subjectId: string) => {
 <Base title="estudiodaw.dev" crumbs={[{ label: 'Inicio' }]}>
   <div class="mx-auto md:max-w-3xl">
     <Panel id="asignaturas" title="Asignaturas" count={subjects.length}>
-      <CollectionTools slot="actions" placeholder="Buscar asignatura…" />
+      <CollectionTools slot="toolbar" placeholder="Buscar asignatura…" />
       <CollectionView
-        items={subjects.map((s) => ({
+        columns={{ title: 'Asignatura', props: 'Propiedades' }}
+        items={subjects.map((s) => {
+          const course: BadgeData = { text: s.data.year === 1 ? 'Primero' : 'Segundo', variant: 'outline', dot: s.data.year === 1 ? 'green' : 'purple' };
+          const temas = footOf(s.id);
+          return {
           href: `/${s.id}`,
           subject: s.id,
-          label: COURSE_LABELS[s.data.year],
+          badge: course,
           title: s.data.name,
           description: s.data.description,
-          foot: foot(s.id),
-          color: s.data.color,
-        }))}
+          ...temas,
+          props: [course, temas.footBadge!],
+        };
+        })}
       />
     </Panel>
 

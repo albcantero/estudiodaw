@@ -1,40 +1,51 @@
 ---
 import Icon from './Icon.astro';
+import Badge, { type BadgeData } from './Badge.astro';
 // Elemento de rejilla con la anatomía de PostItem de chanhdai: un bloque con 8 px de
 // margen que se sombrea en el hover y, dentro, la tarjeta con borde (rounded-xl,
 // borde interior al 15 %). Aquí la tarjeta lleva toda la información en vez de una imagen.
 interface Props {
-  href: string;
+  /** Sin href: tema pendiente (del temario, aún sin publicar), sin enlace */
+  href?: string;
   number?: string;
-  label: string;
+  label?: string;
+  /** Badge de shadcn junto a la etiqueta (p. ej. el curso) */
+  badge?: BadgeData;
   title: string;
   description?: string;
   foot?: string;
-  color?: string;
+  /** El pie como badge en lugar de texto */
+  footBadge?: BadgeData;
 }
 
-const { href, number, label, title, description, foot, color } = Astro.props;
+const { href, number, label, badge, title, description, foot, footBadge } = Astro.props;
 ---
 
-<div class="group/item relative flex h-full flex-col p-2 transition-[background-color] ease-out hover:bg-accent-muted">
-  <div class="relative flex h-full flex-col gap-1 rounded-xl bg-background p-4">
+<div class:list={['group/item relative flex h-full flex-col p-2 transition-[background-color] ease-out', href && 'hover:bg-accent-muted']}>
+  <div class:list={['relative flex h-full flex-col gap-1 rounded-xl p-4', href ? 'bg-background' : 'bg-muted/40']}>
     <div class="mb-1 flex items-center gap-2 text-sm text-muted-foreground">
       {number && <span class="font-mono tabular-nums">{number}</span>}
-      {color && <span class="size-1.5 rounded-full" style={`background:${color}`} aria-hidden="true" />}
-      <span>{label}</span>
+      {label && <span>{label}</span>}
+      {badge && <Badge variant={badge.variant} dot={badge.dot} icon={badge.icon}>{badge.text}</Badge>}
     </div>
     <h3 class="heading text-xl leading-snug text-balance">
-      <a href={href} class="outline-none">
-        <span class="absolute inset-0 rounded-xl group-has-[a:focus-visible]/item:ring-2 group-has-[a:focus-visible]/item:ring-ring/50" aria-hidden="true"></span>
-        {title}
-      </a>
+      {
+        href ? (
+          <a href={href} class="outline-none">
+            <span class="absolute inset-0 rounded-xl group-has-[a:focus-visible]/item:ring-2 group-has-[a:focus-visible]/item:ring-ring/50" aria-hidden="true" />
+            {title}
+          </a>
+        ) : (
+          <span class="text-muted-foreground">{title}</span>
+        )
+      }
     </h3>
     {description && <p class="text-sm text-balance text-muted-foreground">{description}</p>}
     {
-      foot && (
+      (foot || footBadge) && (
         <p class="mt-auto flex items-center gap-2 pt-3 text-sm text-muted-foreground">
-          {foot}
-          <Icon name="arrow-right" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100" />
+          {footBadge ? <Badge variant={footBadge.variant} dot={footBadge.dot} icon={footBadge.icon}>{footBadge.text}</Badge> : foot}
+          {href && <Icon name="arrow-right" class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/item:translate-x-0 group-hover/item:opacity-100" />}
         </p>
       )
     }

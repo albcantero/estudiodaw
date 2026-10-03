@@ -1,33 +1,60 @@
 ---
-// Colección de asignaturas o de temas en dos vistas: rejilla de tarjetas (la de siempre) o
-// lista de filas. Se pintan las dos y el CSS muestra la elegida según html[data-view],
-// que fija el script del <head> antes del primer pintado (sin parpadeo). El conmutador
-// es <ViewToggle /> y la preferencia se guarda en el navegador.
+// Colección de asignaturas o de temas en dos vistas: rejilla de tarjetas o tabla. Se pintan
+// las dos y el CSS muestra la elegida según html[data-view], que fija el script del <head>
+// antes del primer pintado (sin parpadeo). El conmutador es <ViewToggle /> y la preferencia
+// se guarda en el navegador.
+//
+// La tabla tiene columnas reales: cabecera y filas comparten la misma rejilla CSS, y solo
+// aparecen las columnas que se nombran en `columns`. En móvil se quedan número y título.
 import Card from './Card.astro';
 import ItemGrid from './ItemGrid.astro';
-import Icon from './Icon.astro';
+import Badge, { type BadgeData } from './Badge.astro';
 import { normalizeSearch } from '../scripts/search';
 
 export interface CollectionItem {
-  href: string;
+  /** Sin href: elemento pendiente, se muestra sin enlace */
+  href?: string;
   number?: string;
-  label: string;
+  label?: string;
+  badge?: BadgeData;
   title: string;
   description?: string;
   foot?: string;
-  color?: string;
+  /** El pie como badge en lugar de texto */
+  footBadge?: BadgeData;
+  /** Chips de la columna "Propiedades" de la tabla (como las propiedades de Linear) */
+  props?: BadgeData[];
   /** Id del módulo: lo filtra "Mi matrícula" */
   subject?: string;
 }
 
-interface Props {
-  items: CollectionItem[];
+/** Cabeceras de la tabla; una columna sin cabecera no se muestra */
+export interface CollectionColumns {
+  number?: string;
+  title: string;
+  props?: string;
+  /** Ancho mínimo del primer chip de Propiedades, para alinear el segundo (por defecto 6rem) */
+  propsLead?: string;
 }
 
-const { items } = Astro.props;
+interface Props {
+  items: CollectionItem[];
+  columns: CollectionColumns;
+}
+
+const { items, columns } = Astro.props;
 
 const searchText = (i: CollectionItem) =>
-  normalizeSearch([i.title, i.description, i.label, i.foot].filter(Boolean).join(' '));
+  normalizeSearch([i.title, i.description, i.label, i.badge?.text, i.foot, i.footBadge?.text, ...(i.props ?? []).map((p) => p.text)].filter(Boolean).join(' '));
+
+// Anchos de cada columna, con el relleno de la celda incluido; el título se lleva el resto.
+// Propiedades tiene ancho fijo para que sus chips caigan en el mismo sitio en todas las filas.
+const widths = { number: '3rem', title: 'minmax(0,1fr)', props: '21rem' };
+const desktop = (['number', 'title', 'props'] as const)
+  .filter((k) => k === 'title' || columns[k])
+  .map((k) => widths[k]);
+const mobile = [columns.number && widths.number, widths.title].filter(Boolean);
+const gridStyle = `--cols:${desktop.join(' ')};--cols-sm:${mobile.join(' ')};--props-lead:${columns.propsLead ?? '6rem'}`;
 ---
 
 <div class="view-grid">
@@ -42,30 +69,48 @@ const searchText = (i: CollectionItem) =>
   </ItemGrid>
 </div>
 
-<ul class="view-list">
-  {
-    items.map((item) => (
-      <li class="screen-line-bottom" data-search={searchText(item)} data-subject={item.subject} data-count-item>
-        <a
-          href={item.href}
-          class="group/row flex items-center gap-4 px-4 py-3 transition-[background-color] ease-out hover:bg-accent-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-        >
-          {item.number && <span class="w-8 shrink-0 font-mono text-sm tabular-nums text-muted-foreground">{item.number}</span>}
-          {item.color && <span class="size-2 shrink-0 rounded-full" style={`background:${item.color}`} aria-hidden="true" />}
-          <span class="min-w-0 flex-1">
-            <span class="heading block truncate text-lg leading-snug">{item.title}</span>
-            {item.description && <span class="block truncate text-sm text-muted-foreground max-sm:hidden">{item.description}</span>}
-          </span>
-          <span class="hidden shrink-0 text-right text-sm text-muted-foreground md:block">
-            <span class="block">{item.label}</span>
-            {item.foot && <span class="block text-xs">{item.foot}</span>}
-          </span>
-          <Icon name="arrow-right" class="size-4 shrink-0 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/row:translate-x-0 group-hover/row:opacity-100" />
-        </a>
-      </li>
-    ))
-  }
-</ul>
+<div class="view-list" style={gridStyle}>
+  <div class="collection-row collection-head screen-line-bottom px-4 text-xs font-medium text-muted-foreground" aria-hidden="true">
+    {columns.number && <span>{columns.number}</span>}
+    <span>{columns.title}</span>
+    {columns.props && <span class="col-wide">{columns.props}</span>}
+  </div>
+  <ul>
+    {
+      items.map((item) => {
+        const Row = item.href ? 'a' : 'div';
+        return (
+          <li class="screen-line-bottom" data-search={searchText(item)} data-subject={item.subject} data-count-item>
+            <Row
+              href={item.href}
+              class:list={[
+                'collection-row group/row px-4',
+                item.href
+                  ? 'transition-[background-color] ease-out hover:bg-accent-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring'
+                  : 'text-muted-foreground',
+              ]}
+            >
+              {columns.number && <span class="font-mono text-sm tabular-nums text-muted-foreground">{item.number}</span>}
+              <span class="min-w-0">
+                <span class="heading block truncate text-lg leading-snug">{item.title}</span>
+                {item.description && <span class="line-clamp-2 text-sm text-muted-foreground max-sm:hidden">{item.description}</span>}
+              </span>
+              {columns.props && (
+                <span class="col-wide col-props">
+                  {(item.props ?? []).map((p) => (
+                    <Badge variant={p.variant} dot={p.dot} icon={p.icon}>
+                      {p.text}
+                    </Badge>
+                  ))}
+                </span>
+              )}
+            </Row>
+          </li>
+        );
+      })
+    }
+  </ul>
+</div>
 
 <p
   class="collection-empty p-4 text-sm text-muted-foreground"
@@ -74,3 +119,65 @@ const searchText = (i: CollectionItem) =>
   hidden
 >
 </p>
+
+<style>
+  /* Tabla con las líneas de la vista de rejilla: horizontales entre filas (screen-line) y
+     verticales entre columnas. Las celdas ocupan toda la altura de la fila y llevan el
+     relleno, así las líneas verticales de una fila continúan en la siguiente. */
+  .view-list :global(.collection-row) {
+    display: grid;
+    grid-template-columns: var(--cols-sm);
+    align-items: stretch;
+  }
+
+  .view-list :global(.collection-row > *) {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0.75rem 1rem 0.75rem 0;
+  }
+
+  /* La última celda ya tiene el margen de la fila */
+  .view-list :global(.collection-row > :last-child) {
+    padding-right: 0;
+  }
+
+  .view-list :global(.collection-head > *) {
+    padding-block: 0.5rem;
+  }
+
+  .view-list :global(.collection-row > * + *) {
+    border-left: 1px solid var(--line);
+    padding-left: 1rem;
+  }
+
+  /* Chips en fila. El primero va en una pista de ancho fijo y el resto detrás, para que
+     el segundo caiga alineado aunque el primero cambie de largo ("Primero" / "Segundo");
+     cada chip conserva su tamaño natural, sin huecos dentro. */
+  .view-list :global(.col-props) {
+    grid-template-columns: var(--props-lead) auto;
+    align-items: center !important;
+    justify-items: start;
+    column-gap: 0.375rem;
+  }
+
+  .view-list :global(.col-wide) {
+    display: none !important;
+  }
+
+  @media (min-width: 48rem) {
+    .view-list :global(.collection-row) {
+      grid-template-columns: var(--cols);
+    }
+
+    .view-list :global(.col-wide) {
+      display: flex !important;
+    }
+
+    .view-list :global(.col-wide.col-props) {
+      display: grid !important;
+    }
+  }
+</style>
