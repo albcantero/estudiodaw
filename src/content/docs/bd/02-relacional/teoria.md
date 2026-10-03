@@ -3,9 +3,6 @@ title: "Teoría"
 kind: teoria
 ---
 
-
----
-
 ## Parte 1: El modelo relacional
 
 ---

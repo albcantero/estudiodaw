@@ -3,9 +3,6 @@ title: "Teoría"
 kind: teoria
 ---
 
-
----
-
 ## 0. El problema que resuelven las bases de datos
 
 Antes de las bases de datos, cada aplicación gestionaba sus propios ficheros. Una empresa de hostelería tendría un fichero de clientes para facturación, otro fichero de clientes para reservas, y otro para fidelización. El mismo cliente aparecía duplicado en tres sitios. Si cambiaba su teléfono y solo se actualizaba en uno, los otros dos quedaban desactualizados: **inconsistencia**.

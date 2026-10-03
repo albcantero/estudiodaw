@@ -3,9 +3,6 @@ title: "Teoría"
 kind: teoria
 ---
 
-
----
-
 ## 1. Qué es XML
 
 **XML** (eXtensible Markup Language) es un lenguaje de etiquetas donde **tú defines las etiquetas**. No representa datos visualmente — solo organiza su estructura.

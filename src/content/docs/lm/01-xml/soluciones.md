@@ -3,9 +3,6 @@ title: "Soluciones propuestas"
 kind: soluciones
 ---
 
-
----
-
 ## Ejercicio 1 — Verdadero o falso (muy fácil)
 
 Indica si cada afirmación es verdadera o falsa. Si es falsa, corrígela.

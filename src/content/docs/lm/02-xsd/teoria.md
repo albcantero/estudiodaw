@@ -3,9 +3,6 @@ title: "Teoría"
 kind: teoria
 ---
 
-
----
-
 ## 1. Por qué existe XSD
 
 Un documento XML puede estar **bien formado** (sintaxis correcta) pero contener datos inválidos. Por ejemplo:

@@ -3,9 +3,6 @@ title: "Ejercicios"
 kind: ejercicios
 ---
 
-
----
-
 ## Ejercicio 1 — Verdadero o falso (muy fácil)
 
 Indica si cada afirmación es verdadera o falsa. Si es falsa, corrígela.

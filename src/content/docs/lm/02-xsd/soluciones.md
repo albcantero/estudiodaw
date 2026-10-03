@@ -3,9 +3,6 @@ title: "Soluciones propuestas"
 kind: soluciones
 ---
 
-
----
-
 ## Ejercicio 1 — Verdadero o falso (muy fácil)
 
 1. Un fichero XSD es un documento XML.
