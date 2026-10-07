@@ -1,0 +1,8 @@
+{
+  "name": "Bases de Datos",
+  "description": "Modelo relacional, diseño E-R, normalización y SQL con Oracle.",
+  "order": 3,
+  "year": 1,
+  "color": "#34d399",
+  "icon": "database"
+}

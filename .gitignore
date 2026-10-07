@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+
+# Variables de entorno: claves de Supabase y demás secretos. Solo se sube el ejemplo, con los
+# nombres de las variables y los valores vacíos.
+.env
+.env.*
+!.env.example
+
+# Supabase CLI: estado local (base de datos de desarrollo, ramas temporales)
+supabase/.temp/
+supabase/.branches/
+# Su configuración local: se copia de config.example.toml. No se sube, para que la integración
+# de GitHub no la aplique al proyecto publicado
+supabase/config.toml
+

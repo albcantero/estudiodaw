@@ -1,0 +1,173 @@
+---
+/**
+ * @file Interruptor: un botón con role="switch" y aria-checked, para que se lea como tal. Pista de
+ * 30 × 20 y bolita de 14 a 3 px del borde. La bolita se estira un poco hacia dentro con el ratón
+ * encima y, al cambiar, viaja al otro lado con un estirón.
+ *
+ * Sale apagado: el estado lo pone y lo cambia quien lo usa (aria-checked, desde su script); el
+ * estirón solo se anima después de tocarlo (data-touched, que pone el script), así que al
+ * aparecer ya en su sitio no se mueve.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { cn } from '../../lib/cn';
+
+type Props = HTMLAttributes<'button'> & {
+  /** Nombre accesible; sin él, el que diga aria-labelledby (el título que se ve al lado) */
+  label?: string;
+};
+
+const { label, class: className, ...rest } = Astro.props;
+---
+
+<button
+  type="button"
+  role="switch"
+  aria-checked="false"
+  aria-label={label}
+  class={cn('switch focus-ring', className)}
+  {...rest}
+>
+  <span class="switch-thumb"></span>
+</button>
+
+<style>
+  /* Tiempos y curvas del interruptor, con nombre: son propios, no los de la interfaz, porque el
+     estirón de la bolita necesita los suyos. */
+  .switch {
+    /* Cambio de color y estirón del hover */
+    --switch-duration: 0.2s;
+    --switch-ease: cubic-bezier(0.45, 0, 0.55, 1);
+    /* Ancho de la bolita al soltar el hover: sale rápido y frena */
+    --switch-ease-width: cubic-bezier(0.22, 1, 0.36, 1);
+    /* El viaje de lado a lado al cambiar */
+    --switch-flip-duration: 0.15s;
+    --switch-ease-flip: cubic-bezier(0.65, 0, 0.35, 1);
+    --switch-ease-stretch: cubic-bezier(0.33, 1, 0.68, 1);
+    position: relative;
+    flex: none;
+    width: 30px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: calc(infinity * 1px);
+    background: var(--switch-off);
+    cursor: pointer;
+    /* El cambio de color, al encender o apagar y en el hover: el tiempo del estirón del hover */
+    transition: background-color var(--switch-duration) var(--switch-ease);
+  }
+
+  .switch[aria-checked='true'] {
+    background: var(--switch-on);
+  }
+
+  .switch[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  /* La bolita. Su ancho (--switch-w) y su lado (--switch-side: 0 izquierda, 1 derecha) son
+     variables, y su posición sale de las dos: left = 3 + lado × (24 − ancho), con 24 el
+     recorrido que deja la pista (30 − 3 − 3). Así, al ensancharse, crece siempre hacia
+     dentro: apagada queda clavado su borde izquierdo y encendida, el derecho. Registradas para
+     que se puedan animar. */
+  @property --switch-w {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 14px;
+  }
+
+  @property --switch-side {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+  }
+
+  .switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: calc(3px + var(--switch-side) * (24px - var(--switch-w)));
+    width: var(--switch-w);
+    height: 14px;
+    border-radius: calc(infinity * 1px);
+    background: var(--switch-thumb);
+    /* Dos sombras: una amplia y difusa y otra corta y nítida justo debajo, escaladas a la bolita
+       de 14 px; así parece que flota sobre la pista */
+    box-shadow:
+      0 1.5px 4px rgb(0 0 0 / 0.15),
+      0 1.5px 0.5px rgb(0 0 0 / 0.06);
+    transition: --switch-w var(--switch-duration) var(--switch-ease-width);
+  }
+
+  .switch[aria-checked='true'] .switch-thumb {
+    --switch-side: 1;
+  }
+
+  /* Hover (solo con ratón): la pista se aclara apagada y se oscurece encendida, y la bolita se
+     estira de 14 a 16 px hacia dentro */
+  @media (hover: hover) {
+    .switch:not([aria-disabled='true']):hover {
+      background: var(--switch-off-hover);
+    }
+
+    .switch[aria-checked='true']:not([aria-disabled='true']):hover {
+      background: var(--switch-on-hover);
+    }
+
+    .switch:not([aria-disabled='true']):hover .switch-thumb {
+      --switch-w: 16px;
+    }
+  }
+
+  /* El estirón al cambiar, en un solo movimiento continuo: dos animaciones a la vez y no una
+     con tramos (cada tramo se pararía al acabar y se notarían pausas).
+     - El lado, de un extremo a otro en 0,15 s, con entrada y salida muy suaves: apenas se
+       mueve al principio (mientras se estira) y al final (mientras se encoge).
+     - El ancho, una joroba: sube a 18 px hasta el 40 % y vuelve al que le toque.
+     Dos juegos de nombres, uno por sentido: al cambiar de nombre, vuelven a empezar. */
+  @keyframes switch-side-on {
+    from {
+      --switch-side: 0;
+    }
+
+    to {
+      --switch-side: 1;
+    }
+  }
+
+  @keyframes switch-side-off {
+    from {
+      --switch-side: 1;
+    }
+
+    to {
+      --switch-side: 0;
+    }
+  }
+
+  @keyframes switch-stretch-on {
+    40% {
+      --switch-w: 18px;
+      animation-timing-function: var(--switch-ease);
+    }
+  }
+
+  @keyframes switch-stretch-off {
+    40% {
+      --switch-w: 18px;
+      animation-timing-function: var(--switch-ease);
+    }
+  }
+
+  .switch[data-touched] .switch-thumb {
+    animation:
+      switch-side-off var(--switch-flip-duration) var(--switch-ease-flip),
+      switch-stretch-off var(--switch-flip-duration) var(--switch-ease-stretch);
+  }
+
+  .switch[data-touched][aria-checked='true'] .switch-thumb {
+    animation-name: switch-side-on, switch-stretch-on;
+  }
+</style>

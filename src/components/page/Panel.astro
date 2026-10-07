@@ -1,0 +1,73 @@
+---
+/**
+ * @file Panel: sección con línea arriba y abajo, título grande con un contador en superíndice y, si
+ * se pasa el slot "toolbar", una franja para las herramientas. El contador lo actualiza
+ * scripts/visibility.ts con lo que queda a la vista (data-panel-count) y se anuncia a los lectores
+ * de pantalla.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Tooltip from '../ui/Tooltip.astro';
+
+interface Props {
+  /** Ancla del panel; con ella, el título enlaza a sí mismo */
+  id?: string;
+  title?: string;
+  /** Número de elementos que muestra */
+  count?: number;
+  /**
+   * Qué se cuenta, en singular y en plural, si la lista se filtra (buscador, matrícula): el
+   * lector de pantalla anuncia "5 asignaturas" cuando cambia (scripts/visibility.ts)
+   */
+  countNoun?: { one: string; other: string };
+}
+
+const { id, title, count, countNoun } = Astro.props;
+---
+
+<section
+  id={id}
+  class="dash-t dash-b"
+  aria-labelledby={id && title ? `${id}-title` : undefined}
+  data-panel
+>
+  {title && (
+    <header class="rise dash-b px-gutter" style="--i: 2">
+      <h2 id={id ? `${id}-title` : undefined} class="heading text-3xl text-balance">
+        {id ? (
+          <Tooltip content="Enlace a esta sección">
+            <a href={`#${id}`} class="focus-ring rounded-sm">
+              {title}
+            </a>
+          </Tooltip>
+        ) : (
+          title
+        )}
+        {count !== undefined && (
+          <sup
+            class="top-[-0.75em] ml-1 text-sm font-medium tracking-normal text-muted-foreground"
+            data-panel-count
+          >
+            ({count})
+          </sup>
+        )}
+      </h2>
+      {countNoun && (
+        <span
+          class="sr-only"
+          role="status"
+          data-panel-status
+          data-noun-one={countNoun.one}
+          data-noun-other={countNoun.other}
+        />
+      )}
+    </header>
+  )}
+  {Astro.slots.has('toolbar') && (
+    <div class="rise dash-b px-gutter py-2" style="--i: 2.5">
+      <slot name="toolbar" />
+    </div>
+  )}
+  <slot />
+</section>

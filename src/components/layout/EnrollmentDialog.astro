@@ -1,0 +1,100 @@
+---
+/**
+ * @file "Mi matrícula": diálogo con las asignaturas de 1º y 2º para marcar de cuáles se está
+ * matriculado. Se guarda en el navegador y filtra todo lo que lleva data-subject (asignaturas,
+ * panel lateral, calendario); sin nada marcado no se filtra nada. El filtro lo pinta inline/boot.js
+ * antes del primer pintado; scripts/enrollment.ts abre el diálogo, guarda la elección y vuelve a
+ * aplicarla (contadores, colocación), sin recargar.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { getSubjectsByCourse } from '../../lib/content';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Tooltip from '../ui/Tooltip.astro';
+
+const courses = await getSubjectsByCourse();
+---
+
+<dialog
+  class="dialog-motion m-auto w-[calc(100%-2rem)] max-w-2xl rounded-xl border border-(--popover-border) bg-popover p-0 text-popover-foreground shadow-(--shadow-popover) backdrop:bg-(--scrim)"
+  aria-labelledby="enrollment-title"
+  data-enrollment-dialog
+>
+  <form class="flex max-h-[calc(100dvh-2rem)] flex-col">
+    <header class="border-b px-5 pt-5 pb-4">
+      <h2 id="enrollment-title" class="heading text-2xl">
+        Mi matrícula
+      </h2>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Marca las asignaturas de las que te has matriculado. La web y el calendario mostrarán solo
+        esos; sin ninguno marcado se ve todo.
+      </p>
+    </header>
+
+    {/* Lista con scroll: degradados arriba y abajo, y barra propia */}
+    <div class="flex min-h-0 flex-col" data-scroll-fade="y">
+      <div
+        class="hover-group grid min-h-0 gap-5 overflow-y-auto px-5 py-4 sm:grid-cols-2"
+        data-scroll-fade-content
+        data-scrollbar
+      >
+        {courses.map((course) => (
+          <fieldset class="min-w-0">
+            <legend class="eyebrow mb-2 text-muted-foreground">{course.name}</legend>
+            <ul class="flex flex-col gap-0.5">
+              {course.subjects.map((subject) => (
+                <li>
+                  <Tooltip>
+                    <label class="flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-sm hover:bg-hover active:bg-pressed has-checked:bg-pressed">
+                      <input
+                        type="checkbox"
+                        name="module"
+                        value={subject.id}
+                        class="peer sr-only"
+                      />
+                      {/* Casilla dibujada; la real (oculta) recibe el foco y su anillo sale aquí */}
+                      <span
+                        class="grid size-4 shrink-0 place-items-center rounded-xs border border-input text-primary-foreground transition-[background-color,border-color] peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:shadow-(--focus-ring) [&_svg]:opacity-0 peer-checked:[&_svg]:opacity-100"
+                        aria-hidden="true"
+                      >
+                        <Icon name="check" class="size-3" />
+                      </span>
+                      <span class="min-w-0 truncate">{subject.data.name}</span>
+                    </label>
+                    {/* Lo que hará: añadirla si no está marcada y quitarla si lo está */}
+                    <span slot="content">
+                      <span class="enroll-tip-remove">Quitar de tu matrícula</span>
+                      <span class="enroll-tip-add">Añadir a tu matrícula</span>
+                    </span>
+                  </Tooltip>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+        ))}
+      </div>
+    </div>
+
+    <footer class="flex justify-end gap-2 border-t px-5 py-3">
+      <Button variant="primary" class="px-3" tooltip="Guardar tu matrícula" data-enrollment-confirm>
+        Confirmar
+      </Button>
+      <Button variant="outline" class="px-3" tooltip="Cerrar sin guardar" data-enrollment-cancel>
+        Cancelar
+      </Button>
+    </footer>
+  </form>
+</dialog>
+
+<style>
+  :global([data-tooltip]:has(> label :checked)) .enroll-tip-add,
+  :global([data-tooltip]:has(> label input:not(:checked))) .enroll-tip-remove {
+    display: none;
+  }
+</style>
+
+<script>
+  import '../../scripts/enrollment';
+</script>

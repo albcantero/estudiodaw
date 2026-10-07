@@ -1,0 +1,143 @@
+---
+/**
+ * @file Control segmentado: opciones juntas en una pastilla, con la elegida resaltada. El fondo de
+ * la elegida se desliza de una a otra (scripts/segmented.ts).
+ *
+ * Dos usos:
+ *  - Botones (sin href): eligen un valor en la página. La elegida lleva aria-pressed; la
+ *    marca el script de quien lo usa (llamando a selectSegment). Hasta entonces no hay ninguna
+ *    marcada: quien lo usa la pinta antes, si la conoce (ViewToggle, desde html[data-view]).
+ *  - Enlaces (con href): navegan. La elegida es la página actual (`current`, aria-current), ya
+ *    desde el servidor.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Icon from './Icon.astro';
+import Tooltip from './Tooltip.astro';
+
+interface Option {
+  /** Valor de la opción (data-segment) */
+  value: string;
+  label: string;
+  /** Icono de Tabler delante del texto */
+  icon?: string;
+  /** Con href, la opción es un enlace */
+  href?: string;
+  /** Texto de su tooltip */
+  tooltip?: string;
+}
+
+interface Props {
+  /** Nombre del grupo para los scripts (data-segmented) */
+  name: string;
+  /** Nombre accesible del grupo */
+  label: string;
+  options: Option[];
+  /** Valor de la opción que es la página actual (solo con enlaces) */
+  current?: string;
+  /** compact: en una barra de herramientas. wide: a lo ancho, como pestañas */
+  size?: 'compact' | 'wide';
+}
+
+const { name, label, options, current, size = 'compact' } = Astro.props;
+---
+
+<div
+  class:list={['segmented', `segmented-${size}`]}
+  role="group"
+  aria-label={label}
+  data-segmented={name}
+>
+  <span class="segmented-indicator" aria-hidden="true"></span>
+  {options.map((option) => {
+    const Tag = option.href ? 'a' : 'button';
+    const isCurrent = option.href !== undefined && option.value === current;
+    return (
+      <Tooltip content={option.tooltip}>
+        <Tag
+          href={option.href}
+          type={option.href ? undefined : 'button'}
+          class="segmented-option focus-ring"
+          aria-current={isCurrent ? 'page' : undefined}
+          data-segment={option.value}
+        >
+          {option.icon && <Icon name={option.icon} class="size-4" />}
+          {option.label}
+        </Tag>
+      </Tooltip>
+    );
+  })}
+</div>
+
+<style>
+  .segmented {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 0.5);
+    /* El borde de los controles (--input), como los botones outline de al lado */
+    border: 1px solid var(--input);
+    border-radius: var(--radius-lg);
+    background: transparent;
+    padding: calc(var(--spacing) * 0.5);
+  }
+
+  .segmented-wide {
+    width: 100%;
+  }
+
+  /* La opción es un elemento dinámico (a o button): Astro no le pone el atributo de ámbito,
+     de ahí el :global, siempre dentro del control */
+  .segmented :global(.segmented-option) {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--spacing) * 1.5);
+    border-radius: var(--radius-md);
+    padding-inline: calc(var(--spacing) * 2.5);
+    color: var(--muted-foreground);
+    font-weight: 500;
+    white-space: nowrap;
+    transition-property: color, background-color, box-shadow;
+    transition-duration: var(--duration-ui);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .segmented-compact :global(.segmented-option) {
+    height: calc(var(--spacing) * 7);
+    font-size: var(--text-ui);
+  }
+
+  .segmented-wide :global(.segmented-option) {
+    flex: 1;
+    height: calc(var(--spacing) * 8);
+    font-size: var(--text-sm);
+  }
+
+  .segmented :global(.segmented-option:hover),
+  .segmented :global(.segmented-option:is([aria-pressed='true'], [aria-current='page'])) {
+    color: var(--foreground);
+  }
+
+  /* La elegida, con el fondo de pulsado, como un botón que se queda pulsado (bg-pressed). Hasta
+     que el script pone el indicador (data-ready), lo lleva la propia opción marcada */
+  .segmented:not([data-ready])
+    :global(.segmented-option:is([aria-pressed='true'], [aria-current='page'])) {
+    background: var(--color-pressed);
+  }
+
+  .segmented-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-pressed);
+    opacity: 0;
+  }
+</style>
+
+<script>
+  import '../../scripts/segmented';
+</script>

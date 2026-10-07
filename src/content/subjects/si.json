@@ -1,0 +1,8 @@
+{
+  "name": "Sistemas Informáticos",
+  "description": "Hardware, sistemas operativos, redes y administración básica de un equipo.",
+  "order": 2,
+  "year": 1,
+  "color": "#94a3b8",
+  "icon": "cpu"
+}

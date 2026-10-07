@@ -1,0 +1,99 @@
+---
+/**
+ * @file Colección (asignaturas de la portada, temas de una asignatura) en sus dos vistas, tablero y
+ * lista. Se pintan las dos y el CSS muestra la elegida según html[data-view], que fija
+ * scripts/inline/boot.js antes del primer pintado; el conmutador es ViewToggle.
+ *
+ * Detrás va en línea la colocación (orden por grupo, cabeceras y líneas del tablero), que
+ * también se ejecuta antes del primer pintado.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import layoutScript from '../../scripts/inline/collection-layout.js?raw';
+import {
+  countByGroup,
+  groupsOf,
+  type CollectionColumns,
+  type CollectionItem,
+} from '../../lib/collection';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import IsoIllustration from '../page/IsoIllustration.astro';
+import CollectionGrid from './CollectionGrid.astro';
+import CollectionList from './CollectionList.astro';
+
+interface Props {
+  items: CollectionItem[];
+  columns: CollectionColumns;
+  /** Orden de los grupos de "Agrupar por curso"; por defecto, el de aparición */
+  groupOrder?: string[];
+}
+
+const { items, columns, groupOrder } = Astro.props;
+const groups = groupsOf(items, groupOrder);
+// Elementos de cada grupo, para las cabeceras de las dos vistas
+const counts = countByGroup(items);
+---
+
+<div class="view-grid">
+  <CollectionGrid items={items} groups={groups} counts={counts} />
+</div>
+
+<div class="view-list">
+  <CollectionList items={items} columns={columns} groups={groups} counts={counts} />
+</div>
+
+{/* Lo que queda oculto: cuántos elementos y por qué (el buscador o la matrícula), con la
+    salida al lado, centrado en una tarjeta solo con borde. Solo si hay algo oculto y algo a la
+    vista (sin nada, sale el estado vacío). La rellena y la enseña scripts/visibility.ts. */}
+<div class="flex justify-center px-gutter pb-gutter" data-collection-hidden hidden>
+  <div class="flex w-fit max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-xl border border-input px-surface py-2 text-center text-ui">
+    <p>
+      <span class="font-medium" data-hidden-count></span>{' '}
+      <span class="text-muted-foreground" data-hidden-reason></span>
+    </p>
+    <Button class="gap-1" data-collection-clear data-hidden-action="search">
+      Limpiar búsqueda
+      {/* Bajada 1 px: centrada con las minúsculas del texto, no con su caja (medido) */}
+      <Icon name="x" class="size-3.5 translate-y-px" />
+    </Button>
+    <Button
+      tooltip="Elegir tus asignaturas"
+      data-enrollment-open
+      data-hidden-action="enrollment"
+      hidden
+    >
+      Cambiar matrícula
+    </Button>
+  </div>
+</div>
+
+{/* Estado vacío, para las dos vistas: la ilustración, "Sin resultados", qué ha pasado y cómo
+    salir (limpiar la búsqueda o cambiar la matrícula). Lo enseña scripts/visibility.ts. El
+    anuncio para el lector de pantalla va aparte y siempre en la página, así se oye fiable. */}
+<div
+  class="collection-empty flex flex-col items-center px-6 pt-7 pb-9 text-center"
+  data-collection-empty
+  data-empty-search="No hemos encontrado nada para «{query}». Prueba con otros términos."
+  data-empty-enrollment="Nada de tu matrícula en esta lista. Prueba a cambiarla."
+  hidden
+>
+  <div class="mb-4.5 w-42" aria-hidden="true">
+    <IsoIllustration name="empty-search" />
+  </div>
+  <h3 class="text-ui-lg font-semibold tracking-tight">Sin resultados</h3>
+  <p class="mt-1.5 mb-4.5 max-w-empty text-sm text-muted-foreground" data-empty-text></p>
+  <Button variant="outline" data-collection-clear data-empty-action="search">
+    Limpiar búsqueda
+  </Button>
+  <Button variant="outline" data-enrollment-open data-empty-action="enrollment" hidden>
+    Cambiar matrícula
+  </Button>
+</div>
+<p class="sr-only" role="status" data-collection-status></p>
+
+<script is:inline set:html={`${layoutScript}\nwindow.layoutCollections();`} />
+<script>
+  import '../../scripts/collections/next-exam';
+</script>

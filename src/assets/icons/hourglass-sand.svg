@@ -1,0 +1,15 @@
+<!--
+  Reloj de arena con la arena rellena: el contorno es el de "hourglass" de Tabler (caja de
+  24 × 24, trazo de 2) y la arena, la de las dos líneas de nivel de ese icono (y = 7 arriba,
+  hasta el cuello; y = 17 abajo, hasta la base), en relleno.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path d="M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1" />
+  <path d="M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1" />
+  <path fill="currentColor" stroke="none" d="M6.08 7a6 6 0 0 0 11.84 0z" />
+  <path
+    fill="currentColor"
+    stroke="none"
+    d="M6.08 17h11.84a6 6 0 0 1 .08 1v2h-12v-2a6 6 0 0 1 .08 -1z"
+  />
+</svg>

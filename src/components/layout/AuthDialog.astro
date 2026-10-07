@@ -1,0 +1,357 @@
+---
+/**
+ * @file Iniciar sesión: diálogo en pasos, con el aspecto de EnrollmentDialog. Empieza con un solo
+ * botón ("Continuar con mi correo de Educa"); 1) el usuario (el dominio va fijo al lado) y "Enviar
+ * código"; 2) el código de 6 cifras, que se comprueba al pulsar "Iniciar sesión". Si la cuenta aún
+ * no tiene nombre, sigue: 3) el nombre (propuesto a partir del correo) y 4) si quiere configurar su
+ * matrícula, ahora o después. Los errores salen bajo el campo. Lo lleva scripts/auth/dialog.ts.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import educaLogo from '../../assets/educa-logo.svg?raw';
+import { CODE_LENGTH, NAME_MAX_LENGTH, SCHOOL_DOMAIN } from '../../scripts/auth/user';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Logo from '../ui/Logo.astro';
+
+/**
+ * Símbolo de Educa (el círculo con la "A"), vectorizado de la ilustración de su página de acceso: un
+ * solo trazado en currentColor, a la altura del texto del botón
+ */
+/** Casillas del código, una por cifra */
+const OTP_SLOTS = Array.from({ length: CODE_LENGTH }, (_, index) => index);
+
+const educaSymbol = educaLogo.replace(
+  '<svg ',
+  '<svg class="size-3.25 shrink-0" aria-hidden="true" ',
+);
+---
+
+<dialog
+  class="dialog-motion m-auto w-[calc(100%-2rem)] max-w-sm rounded-xl border border-(--popover-border) bg-background p-0 text-foreground shadow-(--shadow-popover) backdrop:bg-(--scrim)"
+  aria-labelledby="auth-title"
+  data-auth-dialog
+>
+  {/* Cerrar, en la esquina (la de la card en el inicio): la caja del botón a 4 px del borde, sin
+      fondo al pasar el ratón ni al pulsar. Fuera de los pasos, para que se quede en todos. También
+      se cierra con Esc y con un clic fuera */}
+  <Button
+    size="icon-sm"
+    class="rise absolute top-1 right-1 z-10 hover:bg-transparent active:bg-transparent"
+    style="--i: 0"
+    data-auth-close
+  >
+    <Icon name="x" class="size-4" />
+    <span class="sr-only">Cerrar</span>
+  </Button>
+
+  <!-- Inicio: la card con el logo, la bienvenida y un solo botón, que lleva al paso 1. Al
+       seguir, sale entero hacia la izquierda (scripts/auth/dialog.ts) -->
+  <div data-auth-start>
+    <!-- Card interior, arriba y a 4 px del borde del diálogo (radio 8 px: los 12 del diálogo menos
+         esos 4, para que las esquinas vayan paralelas), con el logo en gris. Decorativa: el diálogo ya
+         tiene su título -->
+    <div
+      class="rise m-1 grid h-32 place-items-center rounded-lg bg-popover text-muted-foreground"
+      style="--i: 0"
+      aria-hidden="true"
+    >
+      <Logo class="h-10 w-auto" />
+    </div>
+
+    <header class="px-5 pt-4 text-center">
+      <h2 id="auth-title" class="rise heading text-2xl" style="--i: 1">
+        ¡Hola, mundo!
+      </h2>
+      <p
+        class="rise mt-1 text-sm text-pretty text-muted-foreground"
+        style="--i: 1.5"
+        data-auth-intro
+      >
+        Guarda tu progreso de estudio, tus resultados en los tests y personaliza las asignaturas
+        según tu matrícula.
+      </p>
+    </header>
+
+    {/* Divisoria discontinua, como las de la portada, al ancho del contenido */}
+    <div
+      class="rise dash-t mx-5 mt-4 h-px [--dash-inset:0px]"
+      style="--i: 1.75"
+      aria-hidden="true"
+    ></div>
+
+    <div class="px-5 pt-4 pb-5">
+      <Button variant="primary" class="rise w-full" style="--i: 2" data-auth-start-button>
+        Continuar con mi correo de
+        <span class="inline-flex items-center gap-0.5">
+          <Fragment set:html={educaSymbol} />
+          Educa
+        </span>
+      </Button>
+      <p class="rise mt-2 text-center text-ui font-medium text-muted-foreground" style="--i: 2.25">
+        No se requiere ninguna contraseña
+      </p>
+      {/* En una línea (prettier-ignore): partida, deja un espacio antes del punto final */}
+      <!-- prettier-ignore -->
+      <p class="rise mt-5 text-center text-xs text-balance text-muted-foreground" style="--i: 2.5">Al iniciar sesión, aceptas el <a href="/aviso-legal" class="link-inline focus-ring rounded-sm whitespace-nowrap">Aviso legal</a><br /> y nuestra <a href="/privacidad" class="link-inline focus-ring rounded-sm whitespace-nowrap">Política de privacidad</a>.</p>
+    </div>
+  </div>
+
+  <!-- Paso 1: el usuario -->
+  <form class="flex flex-col gap-3 px-5 pt-5 pb-5" novalidate hidden data-auth-request>
+    {/* Título en la sans, al tamaño del texto y en el color normal; el texto, en gris */}
+    <header class="mb-1 text-center">
+      <h3 class="text-sm font-medium text-foreground">¿Cuál es tu correo de alumno?</h3>
+      <p class="mt-1 text-sm text-pretty text-muted-foreground">
+        Te enviaremos un código secreto para iniciar sesión.
+      </p>
+    </header>
+    <label for="auth-user" class="sr-only">
+      Tu usuario de {SCHOOL_DOMAIN}
+    </label>
+    {/* El campo y, fuera, a su derecha, el dominio fijo (pulsarlo enfoca el campo) */}
+    <div class="flex items-center gap-2" data-auth-user-box data-auth-shake>
+      <input
+        id="auth-user"
+        name="user"
+        type="text"
+        class="focus-ring h-9 min-w-0 flex-1 rounded-lg border border-input bg-transparent px-3 text-sm [--focus-ring:var(--focus-ring-brand)] placeholder:text-muted-foreground hover:border-input-pressed focus-visible:border-brand aria-invalid:border-(--border-destructive) aria-invalid:shadow-(--focus-ring-destructive) aria-invalid:[--focus-ring:var(--focus-ring-destructive)] aria-invalid:hover:border-(--border-destructive) aria-invalid:focus-visible:border-(--border-destructive)"
+        placeholder="Escribe tu correo de Educa..."
+        autocomplete="username"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-describedby="auth-request-error"
+        required
+      />
+      <span
+        class="shrink-0 cursor-text text-sm text-muted-foreground select-none"
+        aria-hidden="true"
+      >
+        @{SCHOOL_DOMAIN}
+      </span>
+    </div>
+    <p
+      id="auth-request-error"
+      class="auth-error text-xs text-destructive"
+      aria-live="polite"
+      data-auth-error
+    ></p>
+    <Button type="submit" variant="primary" class="w-full" data-auth-send>
+      Enviar código
+    </Button>
+    {/* Vuelve al inicio, deslizándose hacia atrás (ghost, como los botones de la barra). A 4 px de
+        "Enviar código": el hueco de 12 del formulario, menos 8 */}
+    <Button class="-mt-2 w-full" data-auth-back>
+      Volver
+    </Button>
+  </form>
+
+  <!-- Paso 2: el código -->
+  <form class="flex flex-col gap-3 px-5 pt-5 pb-5" novalidate hidden data-auth-verify>
+    {/* Con la misma estructura que el paso del correo: título y texto centrados, las casillas,
+        el botón grande y, debajo, los secundarios */}
+    <header class="mb-1 text-center">
+      <h3 class="text-sm font-medium text-foreground">Revisa tu bandeja de entrada</h3>
+      <p class="mt-1 text-sm text-pretty text-muted-foreground">
+        Hemos enviado un código de seis cifras a <span data-auth-email></span>.
+      </p>
+    </header>
+    <label for="auth-code" class="sr-only">
+      Código de 6 cifras
+    </label>
+    {/* Código en seis casillas: un solo campo real, transparente y encima de todo, recibe lo
+        que se escribe, se pega o rellena el móvil; las casillas solo lo enseñan. Así funcionan
+        pegar el código entero y el autorrellenado del móvil, que con seis campos no irían. La activa (la siguiente por rellenar) lleva
+        el anillo y un cursor que parpadea. Lo pinta scripts/auth/dialog.ts (renderOtp) */}
+    <div
+      class="otp relative mx-auto flex w-fit items-center gap-2 has-disabled:opacity-50"
+      data-otp
+      data-auth-shake
+    >
+      {OTP_SLOTS.map((index) => (
+        <div class="otp-slot" data-otp-slot={index} aria-hidden="true">
+          <span data-otp-char />
+          <span class="otp-caret" />
+        </div>
+      ))}
+      <input
+        id="auth-code"
+        name="code"
+        type="text"
+        class="otp-input"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="16"
+        aria-describedby="auth-verify-error"
+        required
+      />
+    </div>
+    <p
+      id="auth-verify-error"
+      class="auth-error text-center text-xs text-destructive"
+      aria-live="polite"
+      data-auth-error
+    ></p>
+    {/* Iniciar sesión, siempre activo: el código solo se comprueba al pulsarlo (o con Intro), y si
+        faltan cifras lo avisa. Debajo, a 4 px cada uno, "Reenviar código" y "Me he equivocado de
+        correo" */}
+    <Button type="submit" variant="primary" class="w-full" data-auth-verify-button>
+      Iniciar sesión
+    </Button>
+    <Button variant="primary" class="-mt-2 w-full" data-auth-resend>
+      Reenviar código
+    </Button>
+    <Button class="-mt-2 w-full" data-auth-change>
+      Me he equivocado de correo
+    </Button>
+  </form>
+
+  <!-- Paso 3: el nombre, si la cuenta aún no lo tiene -->
+  <form class="flex flex-col gap-3 px-5 pt-5 pb-5" novalidate hidden data-auth-name>
+    <header class="mb-1 text-center">
+      <h3 class="text-sm font-medium text-foreground">¿Cómo te llamas?</h3>
+      <p class="mt-1 text-sm text-pretty text-muted-foreground">
+        Así sabremos cómo dirigirnos a ti.
+      </p>
+    </header>
+    <label for="auth-name" class="sr-only">
+      Tu nombre
+    </label>
+    <div data-auth-shake>
+      <input
+        id="auth-name"
+        name="name"
+        type="text"
+        class="focus-ring h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm [--focus-ring:var(--focus-ring-brand)] placeholder:text-muted-foreground hover:border-input-pressed focus-visible:border-brand aria-invalid:border-(--border-destructive) aria-invalid:shadow-(--focus-ring-destructive) aria-invalid:[--focus-ring:var(--focus-ring-destructive)] aria-invalid:hover:border-(--border-destructive) aria-invalid:focus-visible:border-(--border-destructive)"
+        placeholder="Tu nombre"
+        autocomplete="given-name"
+        maxlength={NAME_MAX_LENGTH}
+        aria-describedby="auth-name-error"
+        required
+      />
+    </div>
+    <p
+      id="auth-name-error"
+      class="auth-error text-xs text-destructive"
+      aria-live="polite"
+      data-auth-error
+    ></p>
+    <Button type="submit" variant="primary" class="w-full" data-auth-name-button>
+      Continuar
+    </Button>
+  </form>
+
+  <!-- Paso 4: la matrícula, ahora o después. Se guarda en este navegador, no en la cuenta: lo dice
+       el texto, para que nadie espere verla en otro dispositivo -->
+  <div class="flex flex-col gap-3 px-5 pt-5 pb-5" hidden data-auth-enrollment>
+    <header class="mb-1 text-center">
+      <h3 class="text-sm font-medium text-foreground">¿Configuramos tu matrícula?</h3>
+      <p class="mt-1 text-sm text-pretty text-muted-foreground">
+        Marca las asignaturas que cursas y la web te enseñará solo las tuyas. Se guarda en este
+        navegador y puedes cambiarla cuando quieras desde tu cuenta.
+      </p>
+    </header>
+    <Button variant="primary" class="w-full" data-auth-enroll-now>
+      Sí, configurarla
+    </Button>
+    <Button class="-mt-2 w-full" data-auth-enroll-later>
+      Después
+    </Button>
+  </div>
+</dialog>
+
+<style>
+  /* Mensaje de error: sin él, plegado (alto 0, transparente y con un margen que cancela el hueco
+     del formulario). Lo despliega y lo pliega scripts/auth/dialog.ts (showError) */
+  .auth-error {
+    height: 0;
+    margin-top: calc(var(--spacing) * -3);
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  /* Casillas del código: seis independientes de 36 × 36, cada una con su borde y sus esquinas
+     redondeadas, separadas 8 px */
+  .otp-slot {
+    position: relative;
+    display: flex;
+    width: calc(var(--spacing) * 9);
+    height: calc(var(--spacing) * 9);
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--input);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    transition-property: border-color, box-shadow;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  /* La siguiente por rellenar (con el campo enfocado), con el anillo */
+  .otp-slot[data-active] {
+    border-color: var(--brand);
+    box-shadow: var(--focus-ring-brand);
+  }
+
+  /* Código que no vale: las casillas en rojo y la activa con el anillo en rojo (el campo lleva
+     aria-invalid, ver showError) */
+  .otp:has(.otp-input[aria-invalid]) .otp-slot {
+    border-color: var(--border-destructive);
+  }
+
+  .otp:has(.otp-input[aria-invalid]) .otp-slot[data-active] {
+    box-shadow: var(--focus-ring-destructive);
+  }
+
+  /* Cursor de mentira en la casilla activa vacía, que parpadea (caret-blink): el real queda
+     oculto en el campo transparente */
+  .otp-caret {
+    position: absolute;
+    display: none;
+    width: 1px;
+    height: calc(var(--spacing) * 4);
+    background: var(--foreground);
+    animation: caret-blink 1.25s ease-out infinite;
+  }
+
+  .otp-slot[data-caret] .otp-caret {
+    display: block;
+  }
+
+  /* El campo real: encima de las casillas (recibe los clics), pero sin que se vea nada suyo */
+  .otp-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    outline: none;
+    letter-spacing: -0.5em;
+  }
+
+  .otp-input::selection {
+    background: transparent;
+  }
+
+  @keyframes caret-blink {
+    0%,
+    70%,
+    100% {
+      opacity: 1;
+    }
+
+    20%,
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/auth/dialog';
+</script>

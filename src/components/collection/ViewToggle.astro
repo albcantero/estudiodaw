@@ -1,0 +1,35 @@
+---
+/**
+ * @file Conmutador Lista / Tablero (la lista es la vista por defecto). Cambia html[data-view] y
+ * guarda la elección, que vale para asignaturas y temas (scripts/collections/view-toggle.ts).
+ *
+ * Hasta que el script marca la opción y pone el indicador, la elegida se pinta desde
+ * html[data-view], que inline/boot.js pone antes del primer pintado: así no hay un instante
+ * sin ninguna marcada.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import SegmentedControl from '../ui/SegmentedControl.astro';
+
+const OPTIONS = [
+  { value: 'list', label: 'Lista', icon: 'list', tooltip: 'Ver como lista' },
+  { value: 'grid', label: 'Tablero', icon: 'layout-grid', tooltip: 'Ver como tablero' },
+];
+---
+
+<SegmentedControl name="view" label="Vista" options={OPTIONS} />
+
+<style>
+  :global(html[data-view='list'])
+    :global([data-segmented='view']:not([data-ready]) [data-segment='list']),
+  :global(html[data-view='grid'])
+    :global([data-segmented='view']:not([data-ready]) [data-segment='grid']) {
+    background: var(--color-pressed);
+    color: var(--foreground);
+  }
+</style>
+
+<script>
+  import '../../scripts/collections/view-toggle';
+</script>

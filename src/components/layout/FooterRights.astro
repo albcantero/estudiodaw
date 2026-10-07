@@ -1,0 +1,34 @@
+---
+/**
+ * @file Derechos del pie: el copyright y la licencia de los apuntes. Van en la columna del panel en
+ * escritorio y, donde esa columna no está (móvil, páginas de lectura), en los créditos: así se ven
+ * siempre, también junto a los apuntes, que es lo que está licenciado.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { CONTENT_LICENSE, COPYRIGHT_YEAR, SITE_NAME } from '../../data/site';
+import ArrowLink from '../ui/ArrowLink.astro';
+
+interface Props {
+  /** Clases de cada línea (la rejilla de filas del pie, o ninguna en los créditos) */
+  lineClass?: string;
+}
+
+const { lineClass } = Astro.props;
+---
+
+<p class={lineClass}>
+  © {COPYRIGHT_YEAR} {SITE_NAME}
+</p>
+<p class={lineClass}>
+  Apuntes con licencia&nbsp;
+  <ArrowLink
+    href={CONTENT_LICENSE.url}
+    external
+    class="text-muted-foreground hover:text-foreground"
+    tooltip={`Ver la licencia ${CONTENT_LICENSE.name}`}
+  >
+    {CONTENT_LICENSE.short}
+  </ArrowLink>
+</p>

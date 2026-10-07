@@ -1,0 +1,269 @@
+/**
+ * @file Piezas de la maquetación que dependen del estado de la página (html[data-*], .dark) o
+ * que comparten varios componentes.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+/* ---------- Marco ---------- */
+
+/* En escritorio, las dos líneas continuas que cierran la web por los lados */
+@media (width >= theme(--breakpoint-lg)) {
+  .frame {
+    border-inline: 1px solid var(--border);
+  }
+}
+
+/* Lo último del cuerpo no lleva línea discontinua debajo: justo después viene la continua del
+   pie, y las dos seguidas se verían como una doble */
+main > .column > :last-child {
+  --dash-bottom: none;
+}
+
+/* Fundido inferior fijo: a lo ancho de la pantalla y, con panel lateral, solo sobre la
+   columna del cuerpo. Arriba, el degradado hacia el fondo con un poco de desenfoque (la máscara
+   lo limita a su parte baja); abajo, el fondo liso que cubre la zona segura del móvil. */
+.bottom-fade {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.bottom-fade-blur {
+  height: var(--fade-bottom-height);
+  background: linear-gradient(to bottom, transparent, var(--background));
+  mask-image: linear-gradient(to top, black 25%, transparent);
+  backdrop-filter: blur(1px);
+}
+
+.bottom-fade-safe {
+  background: var(--background);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  [data-sidebar] .bottom-fade {
+    left: calc(max(0px, (100vw - var(--frame-width)) / 2) + var(--sidebar-width));
+    right: max(0px, (100vw - var(--frame-width)) / 2);
+  }
+}
+
+/* ---------- Entrada escalonada ----------
+   Cada bloque sube 10 px desenfocado, uno detrás de otro: --i es su posición (con decimales, más
+   juntos). El panel lateral (0 a 3) y, a la vez, el cuerpo: barra (0), aviso (1), título del
+   panel (2), herramientas (2,5) y las filas (lib/collection.ts: riseIndex). */
+
+/* Sin reducir movimiento (html[data-reduce-motion], ver inline/boot.js) */
+:root:not([data-reduce-motion]) .rise {
+  animation: rise-in var(--duration-enter) var(--ease-snappy) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Panel ya mostrado: no se repite la entrada al navegar (ver scripts/sidebar/persist.ts). Con
+   :root, el mismo peso que la regla de arriba, a la que gana por ir después */
+:root [data-sidebar-entered] .rise {
+  animation: none;
+}
+
+/* Cuerpo ya entrado: lo que aparece después no vuelve a entrar (ver scripts/enter.ts) */
+:root [data-content-entered] .rise {
+  animation: none;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}
+
+/* ---------- Tema: el icono del tema actual, sol en claro y luna en oscuro ---------- */
+
+.theme-icon-moon,
+.dark .theme-icon-sun {
+  display: none;
+}
+
+.dark .theme-icon-moon {
+  display: block;
+}
+
+/* ---------- Colecciones: vista (html[data-view]) y agrupación (html[data-group]) ---------- */
+
+html[data-view='grid'] .view-list,
+html:not([data-view='grid']) .view-grid {
+  display: none;
+}
+
+/* Entre dos cursos de la lista, sin la línea de cierre: ya separa la caja del siguiente */
+.collection-list > .collection-group:has(~ .collection-group:not([hidden])) {
+  --dash-bottom: none;
+}
+
+/* Y sin el relleno de arriba del siguiente: si no, se suman el de abajo de uno y el de arriba del
+   otro (8 + 8) */
+.collection-list > .collection-group ~ .collection-group .group-row-wrap {
+  padding-top: 0;
+}
+
+html:not([data-group='course']) :is(.collection-group, .board-column) {
+  display: none;
+}
+
+/* "Mostrar" de las colecciones: los datos ocultos (html[data-hide], ver inline/boot.js) */
+:root[data-hide~='course'] [data-field='course'],
+:root[data-hide~='notes'] [data-field='notes'],
+:root[data-hide~='exam'] [data-field='exam'],
+:root[data-hide~='countdown'] [data-field='countdown'] {
+  display: none;
+}
+
+/* Lo que coincide con la búsqueda (scripts/collections/highlight.ts): sin fondo, en el color
+   del texto y medio grueso; en los títulos (Cardo, que solo tiene regular y negrita), en
+   negrita y subrayado */
+mark[data-match] {
+  background: none;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.heading mark[data-match] {
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* La cabecera de una tarjeta que se queda sin nada que enseñar (sin número y sin más insignias
+   que el curso oculto) no deja su hueco */
+:root[data-hide~='course']
+  [data-card-meta]:not(:has([data-card-number], [data-badge]:not([data-field='course']))) {
+  display: none;
+}
+
+/* El icono de agrupar va girado en el tablero, a juego con la vista */
+.group-toggle svg {
+  transition: rotate var(--duration-ui) var(--ease-snappy);
+}
+
+html[data-view='grid'] .group-toggle svg {
+  rotate: 90deg;
+}
+
+/* "Mi matrícula" es solo con la sesión iniciada (inline/boot.js): sin ella, ninguno de sus
+   botones se ve (la barra de móvil, el aviso de asignaturas ocultas, el estado vacío) */
+:root:not([data-signed-in]) [data-enrollment-open] {
+  display: none !important;
+}
+
+/* Diálogos (<dialog> nativo) animados: entran con un fundido y un leve zoom
+   (del 95 % al 100 %) y salen al revés; el fondo, con un fundido y un desenfoque suave. 200 ms,
+   ease-out. @starting-style da el punto de partida al abrirse y allow-discrete deja animar la
+   salida (display y overlay cambian al final, no al principio). */
+.dialog-motion,
+.dialog-motion::backdrop {
+  transition-property: opacity, scale, overlay, display;
+  transition-duration: var(--duration-ui);
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+.dialog-motion {
+  opacity: 0;
+  scale: 0.95;
+}
+
+/* Abierto, sin escala (none, que se anima como 1): con scale: 1 el diálogo se pinta como una
+   capa aparte, a medio píxel por el centrado, y su contenido baila un píxel al repintarse (el
+   hover de un botón lo "elevaba") */
+.dialog-motion[open] {
+  opacity: 1;
+  scale: none;
+}
+
+.dialog-motion::backdrop {
+  opacity: 0;
+  backdrop-filter: blur(4px);
+}
+
+.dialog-motion[open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  .dialog-motion[open] {
+    opacity: 0;
+    scale: 0.95;
+  }
+
+  .dialog-motion[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+/* Reducir movimiento: la regla general (base.css) no llega al fondo (::backdrop) */
+:root[data-reduce-motion] .dialog-motion::backdrop {
+  transition-duration: 1ms;
+}
+
+/* Con un diálogo modal abierto (scripts/modal.ts), la web de detrás en pausa: sin scroll y con
+   sus animaciones paradas; las del propio diálogo siguen */
+:root[data-modal-open] {
+  overflow: hidden;
+}
+
+:root[data-modal-open] body :not(dialog, dialog *) {
+  animation-play-state: paused !important;
+}
+
+/* Dentro de un diálogo abierto, la entrada escalonada (.rise) se repite cada vez que se abre o
+   cambia de paso: lo oculto vuelve a animarse al mostrarse. Gana a data-content-entered (el
+   diálogo vive en el <body>, que ya ha entrado) por más peso */
+:root:not([data-reduce-motion]) dialog[open] .rise {
+  animation: rise-in var(--duration-enter) var(--ease-snappy) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Agitado de error (shake-x): de lado a lado, 6, −6 y 4 px en
+   280 ms, con la misma curva en cada tramo. Lo pone scripts/auth/dialog.ts en lo que ha fallado;
+   con reducir movimiento, la regla general (base.css) lo deja en nada */
+@keyframes shake-x {
+  0% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  28.57% {
+    transform: translateX(6px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  57.14% {
+    transform: translateX(-6px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  78.57% {
+    transform: translateX(4px);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.shake-active {
+  animation: shake-x 280ms linear;
+}

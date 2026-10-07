@@ -1,0 +1,29 @@
+---
+/**
+ * @file "Agrupar por curso": botón de solo icono que se queda pulsado. Cambia html[data-group],
+ * guarda la elección y recoloca las colecciones (scripts/collections/group-toggle.ts).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+
+const LABEL = 'Agrupar por curso';
+---
+
+<Button
+  variant="outline"
+  size="icon"
+  class="group-toggle aria-pressed:text-brand"
+  aria-pressed="false"
+  aria-label={LABEL}
+  tooltip={LABEL}
+  data-group-toggle
+>
+  <Icon name="layout-list" class="size-4" />
+</Button>
+
+<script>
+  import '../../scripts/collections/group-toggle';
+</script>

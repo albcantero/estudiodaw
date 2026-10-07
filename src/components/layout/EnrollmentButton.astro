@@ -1,0 +1,40 @@
+---
+/**
+ * @file Botón de "Mi matrícula": abre EnrollmentDialog (scripts/enrollment.ts). Lo llevan las dos
+ * barras: con texto en la de escritorio y solo con el icono (compact) en la de móvil. Con un filtro
+ * de matrícula activo (data-active, lo pone el script), lleva el punto de marca y el lector de
+ * pantalla lo oye.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  /** Solo el icono */
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<Button
+  size={compact ? 'icon' : 'default'}
+  class:list={['group/enroll data-active:text-foreground', compact ? 'relative' : 'px-2']}
+  aria-haspopup="dialog"
+  tooltip="Elegir tus asignaturas"
+  tooltipSide="bottom"
+  data-enrollment-open
+>
+  <Icon name="school" class="size-4" />
+  <span class:list={[compact && 'sr-only']}>Mi matrícula</span>
+  <span
+    class:list={[
+      'marker-dot hidden group-data-active/enroll:block',
+      compact && 'marker-dot-corner',
+    ]}
+    aria-hidden="true"
+  ></span>
+  <span class="sr-only hidden group-data-active/enroll:inline">(filtro activo)</span>
+</Button>

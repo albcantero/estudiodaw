@@ -1,0 +1,37 @@
+---
+/**
+ * @file Botón de tema claro / oscuro: enseña el tema actual (sol en claro, luna en oscuro).
+ * También con la tecla "D" (scripts/theme.ts), que se anuncia con aria-keyshortcuts y sale
+ * en el tooltip.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { FloatingSide } from '../../scripts/floating';
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** Lado del tooltip */
+  tooltipSide?: FloatingSide;
+}
+
+const { tooltipSide } = Astro.props;
+---
+
+<Button
+  size="icon"
+  aria-label="Cambiar tema"
+  aria-keyshortcuts="d"
+  tooltip="Cambiar tema"
+  {tooltipSide}
+  shortcut="D"
+  data-theme-toggle
+>
+  <Icon name="moon" class="theme-icon-moon size-4" />
+  <Icon name="sun" class="theme-icon-sun size-4" />
+</Button>
+
+<script>
+  import '../../scripts/theme';
+</script>

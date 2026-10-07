@@ -1,0 +1,27 @@
+---
+/**
+ * @file Aviso del calendario de exámenes, bajo la barra superior de las páginas con panel lateral:
+ * fondo de marca suave, título con icono y enlace que se subraya al pasar.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import ArrowLink from '../ui/ArrowLink.astro';
+import Icon from '../ui/Icon.astro';
+---
+
+<aside class="rise px-page py-4 lg:px-bar" style="--i: 1" aria-labelledby="exam-banner-title">
+  <div class="rounded-xl bg-brand-tint px-4 py-3.5 sm:px-5 sm:py-4">
+    <h2 id="exam-banner-title" class="flex items-center gap-1.5 text-ui font-medium">
+      <Icon name="calendar-event" class="size-4 text-brand" strokeWidth={1.5} />
+      Planifica tus próximos exámenes
+    </h2>
+    <p class="mt-1.5 max-w-notice text-ui leading-relaxed text-pretty text-muted-foreground">
+      Ya están disponibles las fechas de los parciales y finales del primero y segundo curso.
+      Consulta cuánto falta para cada uno.
+    </p>
+    <ArrowLink href="/calendario" class="mt-2.5 text-ui" tooltip="Ir a Exámenes">
+      Ver el calendario
+    </ArrowLink>
+  </div>
+</aside>

@@ -1,0 +1,8 @@
+{
+  "name": "Lenguaje de Marcas",
+  "description": "XML, XSD, XSLT y XQuery. Lenguajes de marcas y sistemas de gestión de información.",
+  "order": 1,
+  "year": 1,
+  "color": "#4cc3ff",
+  "icon": "code"
+}

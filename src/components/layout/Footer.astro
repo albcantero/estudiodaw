@@ -1,0 +1,176 @@
+---
+/**
+ * @file Pie de la web, cerrado por una línea continua. Bajo el cuerpo, dos filas: dos columnas de
+ * enlaces (secciones y páginas legales) con, a la derecha, la versión publicada (commit y fecha) y
+ * los ficheros para máquinas; y quién la desarrolla y dónde está el código.
+ *
+ * Va debajo del panel y del cuerpo, con sus mismas dos columnas (shell-grid), en dos filas:
+ * la franja a rayas y el contenido. Bajo el panel, el logo y los derechos; bajo el
+ * cuerpo, lo demás. Cada fila lleva su línea entre columnas, así sale seguida.
+ *
+ * Recorta lo que se sale por los lados (overflow-x-clip) porque las líneas continuas y la
+ * franja a rayas cruzan la pantalla entera (ver utilities.css).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { Image } from 'astro:assets';
+import {
+  AUTHOR,
+  AUTHOR_AVATAR,
+  AUTHOR_URL,
+  CENTRE_NAME,
+  CENTRE_URL,
+  GITHUB_URL,
+  LEGAL_LINKS,
+  MACHINE_LINKS,
+  SECTION_LINKS,
+} from '../../data/site';
+import { getBuildInfo } from '../../lib/build-info';
+import Icon from '../ui/Icon.astro';
+import NewTabHint from '../ui/NewTabHint.astro';
+import Tooltip from '../ui/Tooltip.astro';
+import Separator from '../page/Separator.astro';
+import FooterRights from './FooterRights.astro';
+import HomeLink from './HomeLink.astro';
+
+interface Props {
+  /** La página lleva panel lateral: el pie repite sus dos columnas */
+  sidebar?: boolean;
+}
+
+const { sidebar = false } = Astro.props;
+/** Celda de la columna del cuerpo, en las dos filas */
+const bodyCell = ['page-gutter min-w-0', sidebar && 'lg:border-l'];
+const build = getBuildInfo();
+
+/** Columnas de enlaces del pie, cada una con su título: las secciones y las páginas legales */
+const linkColumns = [
+  { title: 'Secciones', links: SECTION_LINKS },
+  { title: 'Legal', links: LEGAL_LINKS },
+];
+
+/**
+ * Línea del pie: todas miden lo mismo (32 px), en las dos columnas, así lo de la izquierda y lo de
+ * la derecha cae en la misma rejilla horizontal (el copyright a la altura del primer enlace).
+ */
+const line = 'flex h-8 items-center';
+
+/** Enlaces dentro de una frase (utilidad link-inline) */
+const textLink = 'link-inline focus-ring rounded-sm';
+---
+
+<footer class:list={['overflow-x-clip text-ui', sidebar && 'shell-grid']} data-scrollbar-footer>
+  {sidebar && <div class="max-lg:hidden" aria-hidden="true"></div>}
+  <div class:list={bodyCell}>
+    <div class="column">
+      <Separator />
+    </div>
+  </div>
+
+  {sidebar && (
+    <div class="px-sidebar py-3 text-muted-foreground max-lg:hidden">
+      {/* El logo ocupa las filas 1 y 2; el copyright y la licencia, la 3 y la 4 */}
+      <div class="flex h-16 items-center">
+        <HomeLink class="rounded-md hover:text-foreground" logoClass="h-8 w-auto" />
+      </div>
+      <FooterRights lineClass={line} />
+    </div>
+  )}
+  <div class:list={bodyCell}>
+    <div class="column rule-b h-full">
+      <div class="dash-b flex items-start justify-between gap-4 px-gutter py-3 text-muted-foreground">
+        {/* Un solo landmark para el pie, con otro nombre que el de la barra ("Secciones") */}
+        <nav class="flex gap-12" aria-label="Mapa del sitio">
+          {linkColumns.map((column) => (
+            <div>
+              <p class:list={[line, 'eyebrow']}>{column.title}</p>
+              <ul>
+                {column.links.map((link) => (
+                  <li class={line}>
+                    <a href={link.href} class="focus-ring rounded-sm hover:text-foreground">
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        {/* Versión publicada: el commit y su fecha, en texto plano; debajo, los ficheros para máquinas */}
+        {/* Las cuatro filas del pie, iguales: la 1 es la de los títulos de al lado; en la 2, el
+            commit y la fecha, en dos líneas dentro de la misma fila; en la 4, los ficheros */}
+        <div class="grid grid-rows-4 justify-items-end">
+          <p class="row-start-2 flex h-8 flex-col items-end justify-center gap-1 leading-none">
+            {build.shortSha && (
+              <span class="flex items-center gap-0.5 font-mono">
+                <Icon name="git-branch" class="size-3.25 shrink-0" />
+                {build.shortSha}
+              </span>
+            )}
+            <time datetime={build.date.toISOString()}>{build.dateLabel}</time>
+          </p>
+          <nav class="row-start-4" aria-label="Ficheros para máquinas">
+            <ul class:list={[line, 'gap-2.5 font-mono text-2xs']}>
+              {MACHINE_LINKS.map((link) => (
+                <li>
+                  <a href={link.href} class="focus-ring rounded-sm hover:text-foreground">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div class="px-gutter py-3 text-center text-muted-foreground">
+        <p>
+          Hecho por{' '}
+          <Tooltip content={`Ver a ${AUTHOR} en X`}>
+            <a
+              class:list={[textLink, 'inline-flex items-center gap-1 align-bottom']}
+              href={AUTHOR_URL}
+              target="_blank"
+              rel="noopener"
+            >
+              {/* Se descarga al compilar y se sirve desde la web: las visitas no llaman a GitHub */}
+              <Image
+                class="size-4 rounded-full"
+                src={AUTHOR_AVATAR}
+                alt=""
+                width={32}
+                height={32}
+              />
+              {AUTHOR}
+              <NewTabHint />
+            </a>
+          </Tooltip>{' '}
+          para sus compañeros de DAW del{' '}
+          <Tooltip content={`Ir a la web del ${CENTRE_NAME}`}>
+            <a class={textLink} href={CENTRE_URL} target="_blank" rel="noopener">
+              {CENTRE_NAME}
+              <NewTabHint />
+            </a>
+          </Tooltip>
+          .
+        </p>
+        <p>
+          El código fuente está disponible en{' '}
+          <Tooltip content="Ver el código en GitHub">
+            <a class={textLink} href={GITHUB_URL} target="_blank" rel="noopener">
+              GitHub
+              <NewTabHint />
+            </a>
+          </Tooltip>
+          .
+        </p>
+        {/* Sin la columna del panel (móvil, páginas de lectura), los derechos van aquí */}
+        <div class:list={['mt-3 flex flex-wrap justify-center gap-x-3', sidebar && 'lg:hidden']}>
+          <FooterRights />
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

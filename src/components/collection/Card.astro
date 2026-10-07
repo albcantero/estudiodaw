@@ -1,0 +1,88 @@
+---
+/**
+ * @file Tarjeta del tablero: superficie redondeada con borde que se sombrea al pasar. Arriba, el
+ * número y las propiedades de cabecera; abajo, las de pie y la nota. Sin href, pendiente.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { CollectionItem } from '../../lib/collection';
+import Badge from '../ui/Badge.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  item: CollectionItem;
+}
+
+const { item } = Astro.props;
+const headerProperties = item.properties.filter(({ place }) => place === 'header');
+const footerProperties = item.properties.filter(({ place }) => place === 'footer');
+---
+
+<div
+  data-card
+  class:list={[
+    'group/card relative flex h-full flex-col gap-1 rounded-xl p-surface',
+    item.href ? 'surface-interactive bg-background' : 'bg-muted-subtle',
+  ]}
+>
+  {/* Sin número y con sus insignias ocultas ("Mostrar propiedades"), el CSS la quita (layout.css) */}
+  <div class="mb-1 flex items-center gap-2 text-sm text-muted-foreground" data-card-meta>
+    {item.number && (
+      <span class="font-mono tabular-nums" data-card-number>
+        {item.number}
+      </span>
+    )}
+    {headerProperties.map((property) => (
+      <Badge {...property} />
+    ))}
+  </div>
+
+  <h3 class="heading text-xl leading-snug text-balance">
+    {item.href ? (
+      <a
+        href={item.href}
+        class="outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent"
+      >
+        {/* Toda la tarjeta es clicable: la capa del enlace la cubre entera */}
+        <span
+          class="absolute inset-0 rounded-xl group-has-[a:focus-visible]/card:shadow-(--focus-ring)"
+          aria-hidden="true"
+        />
+        <span data-highlight>{item.title}</span>
+      </a>
+    ) : (
+      <span class="text-muted-foreground" data-highlight>
+        {item.title}
+      </span>
+    )}
+  </h3>
+
+  {item.description && (
+    <p class="text-sm text-balance text-muted-foreground" data-highlight>
+      {item.description}
+    </p>
+  )}
+
+  <p class="mt-auto flex flex-wrap items-center gap-2 pt-3 text-sm text-muted-foreground">
+    {footerProperties.map((property) => (
+      <Badge {...property} />
+    ))}
+    {item.note && <span>{item.note}</span>}
+    {item.href && (
+      <Icon
+        name="arrow-right"
+        class="ml-auto size-4 -translate-x-1 text-foreground opacity-0 transition-[opacity,translate] group-hover/card:translate-x-0 group-hover/card:opacity-100"
+      />
+    )}
+  </p>
+
+  <div
+    class="pointer-events-none absolute inset-0 rounded-xl inset-ring-1 inset-ring-input"
+    aria-hidden="true"
+  ></div>
+</div>
+
+<script>
+  import '../../scripts/collections/card-badges';
+</script>

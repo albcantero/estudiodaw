@@ -1,0 +1,54 @@
+---
+/**
+ * @file Badge: etiqueta pequeña con borde y el fondo de la página (también sobre una tarjeta) y,
+ * delante, un punto de color (el curso) o un icono. Es neutra: el color lo pone solo el punto.
+ *
+ * Con tooltip, lo lleva (ui/Tooltip) y queda por encima del enlace que cubre una tarjeta
+ * (relative z-1), para que el ratón llegue a ella.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { BadgeData } from '../../lib/badge';
+import Icon from './Icon.astro';
+import Tooltip from './Tooltip.astro';
+
+type Props = BadgeData;
+
+const { text, dot, icon, iconTone, field, tooltip, nextExam } = Astro.props;
+
+/** Color del icono de cada tono */
+const ICON_TONES = {
+  brand: 'text-brand',
+  attention: 'text-attention',
+};
+
+/** Color del punto de cada curso */
+const DOT_COLORS = {
+  first: 'bg-course-first',
+  second: 'bg-course-second',
+};
+---
+
+<Tooltip content={tooltip}>
+  <span
+    class:list={[
+      'pill h-5 w-fit shrink-0 justify-center gap-1.5 overflow-hidden bg-background px-2 text-xs leading-none font-medium whitespace-nowrap text-muted-foreground',
+      tooltip && 'relative z-1',
+    ]}
+    data-badge
+    data-field={field}
+    data-next-exam={nextExam?.show}
+    data-exams={nextExam && JSON.stringify(nextExam.exams)}
+    hidden={Boolean(nextExam)}
+  >
+    {icon && <Icon name={icon} class:list={['size-3', iconTone && ICON_TONES[iconTone]]} />}
+    {dot && (
+      <span class:list={['size-1.5 shrink-0 rounded-full', DOT_COLORS[dot]]} aria-hidden="true" />
+    )}
+    {/* La del próximo examen llega vacía y escondida: la escribe y la enseña el navegador */}
+    {nextExam ? <span data-badge-text>{text}</span> : text}
+    {/* Lo que dice el tooltip, para quien no usa ratón (el tooltip es solo visual) */}
+    {tooltip && <span class="sr-only"> ({tooltip})</span>}
+  </span>
+</Tooltip>

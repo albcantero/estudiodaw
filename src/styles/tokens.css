@@ -1,0 +1,285 @@
+/**
+ * @file Tokens del sistema visual: tipografía, paleta, medidas, capas y movimiento. Los
+ * componentes no llevan valores sueltos: todo lo que se repite o tiene un porqué sale de aquí,
+ * con nombre.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+@theme {
+  /*
+   * Medidas de la maquetación. Generan utilidades de Tailwind (px-gutter, p-inset…).
+   *   gutter:  margen interior de una caja; ahí empiezan el texto, las líneas discontinuas y
+   *            las superficies (tarjetas y filas).
+   *   inset:   aire entre una línea y la superficie que tiene al lado.
+   *   surface: relleno interior de una superficie.
+   *   page:    margen de la página contra el borde de la pantalla, en móvil.
+   *   bar:     margen lateral de la barra superior y del aviso que va debajo.
+   *   sidebar: margen interior del panel lateral.
+   */
+  --spacing-gutter: 1rem;
+  --spacing-inset: 0.5rem;
+  --spacing-surface: 1rem;
+  --spacing-page: 0.5rem;
+  --spacing-bar: 1.125rem;
+  --spacing-sidebar: 1.25rem;
+
+  /* Interlineados con nombre (leading-*): compacto, para avisos de una o dos líneas cortas; el
+     de los enlaces de la Navegación */
+  --leading-compact: 1.2;
+  --leading-nav: 1.4;
+
+  /* Anchos de lectura (max-w-*): la presentación del panel lateral, el texto de un aviso y el
+     de un estado vacío */
+  --container-tagline: 34ch;
+  --container-notice: 52ch;
+  --container-empty: 30ch;
+}
+
+@theme inline {
+  --font-sans: var(--font-funnel-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-heading: var(--font-cardo), Georgia, 'Times New Roman', serif;
+  /* Geist Mono, ss01: la "a" de un solo piso (Funnel Sans no lleva ninguno). Sin ligaduras de
+     código: en apuntes para aprender, "=>" debe verse como se teclea. */
+  --font-mono--font-feature-settings: 'ss01' 1;
+  --default-mono-font-feature-settings: var(--font-mono--font-feature-settings);
+
+  /* Texto de los controles (barras, botones, buscador, panel lateral) y, un punto más, el de
+     los títulos pequeños de la interfaz (un estado vacío) */
+  --text-ui: 0.8125rem;
+  --text-ui-lg: 0.9375rem;
+  /* Etiquetas en mayúsculas (utilidad eyebrow) */
+  --text-2xs: 0.625rem;
+
+  /* Curvas. hover: los cambios de estado al pasar el ratón, que entran y salen suaves por
+     igual (ease-in-out). snappy: movimientos y entradas, que arrancan rápido y frenan suave. */
+  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Lo que usan las utilidades transition-* de Tailwind cuando no se les dice otra cosa */
+  --default-transition-duration: var(--duration-hover);
+  --default-transition-timing-function: var(--ease-hover);
+
+  --radius-xs: calc(var(--radius) * 0.4);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  /* Fondo apagado de lo que no responde (una tarjeta pendiente, la cabecera de un grupo) */
+  --color-muted-subtle: color-mix(in oklab, var(--muted) 40%, transparent);
+  /* Texto un punto por debajo del normal: los enlaces dentro de una frase del pie */
+  --color-foreground-soft: color-mix(in oklab, var(--foreground) 80%, transparent);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-pressed: var(--input-pressed);
+  --color-ring: var(--ring);
+  /* Estados de controles y superficies, siempre en este orden: página < hover < pulsado. El
+     hover es el pulsado a medias, así nunca queda por encima de él. Solo existen aquí: en CSS
+     propio se usan con su nombre de tema (--color-hover, --color-pressed). */
+  --color-hover: color-mix(in oklab, var(--pressed) var(--hover-step), transparent);
+  /* Texto en hover, con el mismo paso: del gris de reposo al color del texto (lo pulsado va
+     con el texto entero) */
+  --color-hover-foreground: color-mix(
+    in oklab,
+    var(--foreground) var(--hover-step),
+    var(--muted-foreground)
+  );
+  --color-pressed: var(--pressed);
+  --color-pressed-hover: var(--pressed-hover);
+  --color-brand: var(--brand);
+  --color-brand-tint: var(--brand-tint);
+  --color-attention: var(--attention);
+  --color-destructive: var(--destructive);
+  --color-course-first: var(--course-first);
+  --color-course-second: var(--course-second);
+}
+
+:root {
+  /* Claro por defecto (a propósito, no según el sistema); oscuro si se elige (clase .dark) */
+  color-scheme: light;
+
+  /* Paleta neutra: grises puros (croma 0) de oklch */
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --accent: oklch(0.97 0 0);
+  /* Fondo de lo pulsado, abierto o elegido (botones, segmentado, casillas marcadas) */
+  --pressed: var(--accent);
+  /* Cuánto del camino de reposo a pulsado recorre el hover (fondo y texto) */
+  --hover-step: 55%;
+  /* Dos bordes, cada uno con su papel:
+     --border: las líneas de la estructura (marco, reglas, discontinuas, separadores). Sólido.
+     --input: el contorno de lo que se toca o flota (botones, segmentado, buscador,
+     desplegables, tooltips, pastillas). El color del texto en translúcido, en los dos temas:
+     se ve igual de marcado sobre la página que sobre una tarjeta. Las piezas con fondo propio
+     lo llevan con background-clip: padding-box, para que su fondo no se pinte debajo. */
+  --border: oklch(0.922 0 0);
+  /* Cuánto color del texto lleva el contorno de los controles */
+  --input-strength: 14%;
+  --input: color-mix(in oklab, var(--foreground) var(--input-strength), transparent);
+  /* El contorno sobre el fondo de pulsado: un paso más marcado, o se funde con él */
+  --input-pressed: color-mix(in oklab, var(--foreground) 25%, transparent);
+  /* El contorno de las tarjetas flotantes (desplegables, tooltips): el de --input, pero ya
+     mezclado con su fondo. Sólido: flotan sobre cualquier cosa y un borde translúcido la
+     dejaría ver */
+  --popover-border: color-mix(in oklab, var(--foreground) var(--input-strength), var(--popover));
+  --ring: oklch(0.708 0 0);
+  /* El anillo, a medias: el del foco de teclado y el outline de serie */
+  --ring-soft: color-mix(in oklab, var(--ring) 50%, transparent);
+
+  /* Anillo de foco de teclado (utilidad focus-ring; las tarjetas lo pintan en su capa) */
+  --focus-ring: 0 0 0 3px var(--ring-soft);
+  /* El mismo anillo en el azul de marca: los campos donde se escribe (el buscador) */
+  --focus-ring-brand: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
+  /* Campo con error (aria-invalid): borde rojo y anillo rojo al 20 %, en los dos temas */
+  --focus-ring-destructive: 0 0 0 3px color-mix(in oklab, var(--destructive) 20%, transparent);
+  --border-destructive: var(--destructive);
+
+  /* Marca: --brand para texto y trazos, --brand-tint para fondos suaves (sólido, sobre la
+     página). Salen todas del mismo azul; se mezclan en srgb, el espacio en el que se ajustaron
+     (en oklab cambiaría el tono). */
+  --brand-base: #0bf;
+  --brand: color-mix(in srgb, var(--brand-base) 62%, black);
+  --brand-tint: color-mix(in srgb, var(--brand-base) 4%, white);
+  /* Interruptor (ui/Switch.astro): pista encendida en el azul de marca y apagada en gris, con
+     su hover. --brand ya cambia con el tema; el gris, aquí y en .dark */
+  --switch-on: var(--brand);
+  --switch-on-hover: color-mix(in oklab, var(--brand) 82%, var(--background));
+  --switch-off: color-mix(in oklab, var(--foreground) 14%, var(--background));
+  --switch-off-hover: color-mix(in oklab, var(--foreground) 22%, var(--background));
+  /* La bolita, blanca en los dos temas */
+  --switch-thumb: oklch(1 0 0);
+  /* Sombra de las tarjetas flotantes (desplegables, diálogos) */
+  --shadow-popover: 0 10px 30px -10px rgb(0 0 0 / 0.35);
+  /* Velo detrás de un diálogo modal */
+  --scrim: rgb(0 0 0 / 0.5);
+  /* Raíl de la Navegación que sigue al ratón: tenue, por debajo del de la activa */
+  --rail-hover: color-mix(in oklab, var(--foreground) 30%, transparent);
+
+  /* Barra de scroll propia: ancho de la franja que recoge el ratón y color del thumb, en reposo
+     y al pasar o arrastrar */
+  --scrollbar-track: 8px;
+  --scrollbar-thumb: color-mix(in oklab, var(--foreground) 22%, transparent);
+  --scrollbar-thumb-active: color-mix(in oklab, var(--foreground) 38%, transparent);
+
+  /* Aviso: amarillo, para lo que pide atención (el próximo examen). Más oscuro en claro, para
+     que se lea sobre blanco */
+  --attention: oklch(0.681 0.162 75.834);
+  /* Errores (mensajes de formularios) */
+  --destructive: oklch(0.577 0.215 27.325);
+
+  /* Hover de lo que ya lleva el fondo de pulsado (como una pestaña activa): un 6 % hacia el texto,
+     más claro en oscuro y algo más oscuro en claro. Opaco: con transparencia, en un
+     diálogo a medio píxel la caja del botón bailaba al pasar el ratón */
+  --pressed-hover: color-mix(in oklab, var(--pressed), var(--foreground) 6%);
+
+  /* Curso de cada asignatura (punto de su badge) */
+  --course-first: oklch(0.723 0.219 149.579);
+  --course-second: oklch(0.627 0.265 303.9);
+
+  /* Marco: ancho total, columna del panel lateral, barra fija y fundido inferior */
+  --frame-width: 66rem;
+  --sidebar-width: 18rem;
+  --sidebar-top: clamp(2rem, 6vh, 3.25rem);
+  --header-height: 3.5rem;
+  --fade-bottom-height: 6rem;
+
+  /* Capas: de abajo arriba. Las barras, en topbar; el fundido inferior, en overlay; la barra
+     de scroll propia, encima de todo (también del fundido). Los tooltips y los desplegables no
+     usan ninguna: van en la capa superior del navegador (popover). */
+  --z-sidebar: 20;
+  --z-topbar: 30;
+  --z-overlay: 50;
+  --z-scrollbar: 60;
+  /* Dentro de una zona con scroll: los degradados, por encima de lo que se levanta en ella
+     (los enlaces de la Navegación van en 1) */
+  --z-scroll-fade: 2;
+
+  /* Movimiento: transiciones de la interfaz, entradas y escalonado entre elementos */
+  --duration-ui: 200ms;
+  /* Transiciones de hover: las mismas, salvo dentro de un hover-group (utilities.css) */
+  --duration-hover: var(--duration-ui);
+  /* Cambio de un icono por otro en el mismo sitio (icon swap): más corto que un hover */
+  --duration-swap: 150ms;
+  /* Entrada y salida de un desplegable: rápida, para que no estorbe al usarlo */
+  --duration-menu: 150ms;
+  --duration-enter: 600ms;
+  /* Espera del tooltip con el ratón antes de aparecer: así no salta al pasar de camino a otra
+     cosa. Con el teclado, sin espera */
+  --delay-tooltip: 700ms;
+  /* Con un tooltip ya visto, el siguiente sale sin espera si se llega antes de esto: se salta
+     de uno a otro. Ver scripts/tooltip.ts */
+  --delay-tooltip-skip: 300ms;
+  --stagger: 130ms;
+
+  /* Líneas discontinuas: degradado repetido (nunca border-dashed, que cada navegador pinta a
+     su manera). --dash-inset: hasta dónde se meten las horizontales en su caja. */
+  --dash: 3px;
+  --dash-h: repeating-linear-gradient(
+    to right,
+    var(--border) 0 var(--dash),
+    transparent var(--dash) calc(2 * var(--dash))
+  );
+  --dash-v: repeating-linear-gradient(
+    to bottom,
+    var(--border) 0 var(--dash),
+    transparent var(--dash) calc(2 * var(--dash))
+  );
+  --dash-inset: var(--spacing-gutter);
+
+  /* Hueco entre lo que flota (tooltips, desplegables) y su elemento (scripts/floating.ts) */
+  --floating-gap: 6px;
+
+  /* Lo que se sale a cada lado lo que va a sangre (rule-*, stripe-divider): la pantalla entera */
+  --bleed: 100vw;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  /* Tarjetas flotantes (desplegables, tooltips) un paso más claras que la página: en oscuro,
+     la elevación se ve en la luz, no en la sombra */
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.269 0 0);
+  /* Blanco al 14 % (como --input-strength) ya mezclado con el fondo: sólido, no transparente. Se
+     ve igual sobre el fondo, pero donde una línea se cruza con otra (o con las rayas de
+     stripe-divider) no se suman las dos transparencias y el cruce no sale más claro */
+  --border: color-mix(in oklab, oklch(1 0 0) 14%, var(--background));
+  --ring: oklch(0.556 0 0);
+  --brand: var(--brand-base);
+  --brand-tint: color-mix(in srgb, var(--brand-base) 6.4%, var(--background));
+  --switch-off: color-mix(in oklab, var(--foreground) 18%, var(--background));
+  --switch-off-hover: color-mix(in oklab, var(--foreground) 26%, var(--background));
+  --attention: oklch(0.852 0.199 91.936);
+  --destructive: oklch(0.704 0.191 22.216);
+  --course-first: oklch(0.792 0.209 151.711);
+  --course-second: oklch(0.714 0.203 305.504);
+}

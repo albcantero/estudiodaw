@@ -1,0 +1,59 @@
+---
+/**
+ * @file Barra superior de escritorio de las páginas con panel lateral: fija al hacer scroll, con
+ * las secciones a la izquierda y las acciones a la derecha. Mide --header-height, la misma altura
+ * que la barra de móvil, así las anclas quedan siempre justo debajo.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { SECTION_LINKS } from '../../data/site';
+import { isSectionActive, normalizePath } from '../../lib/routes';
+import Button from '../ui/Button.astro';
+import SettingsMenu from '../ui/SettingsMenu.astro';
+import ThemeToggle from '../ui/ThemeToggle.astro';
+import AccountButton from './AccountButton.astro';
+import GitHubButton from './GitHubButton.astro';
+
+interface Props {
+  /** Clases de visibilidad que pone la plantilla */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const path = normalizePath(Astro.url.pathname);
+---
+
+<header
+  data-scrollbar-header
+  class:list={[
+    'rise sticky top-0 z-(--z-topbar) flex h-(--header-height) items-center justify-between gap-3 border-b bg-background px-bar',
+    className,
+  ]}
+  style="--i: 0"
+>
+  <nav aria-label="Secciones">
+    <ul class="flex items-center gap-1">
+      {SECTION_LINKS.map((link) => (
+        <li>
+          <Button
+            href={link.href}
+            class="px-2 aria-[current=page]:font-medium aria-[current=page]:text-foreground"
+            aria-current={isSectionActive(path, link.href) ? 'page' : undefined}
+            tooltip={`Ir a ${link.label}`}
+            tooltipSide="bottom"
+          >
+            {link.label}
+          </Button>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  <div class="ml-auto flex items-center gap-1">
+    <AccountButton />
+    <GitHubButton />
+    <ThemeToggle tooltipSide="bottom" />
+    <SettingsMenu id="settings-topbar" tooltipSide="bottom" />
+  </div>
+</header>

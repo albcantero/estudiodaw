@@ -1,0 +1,299 @@
+---
+/**
+ * @file Grupo desplegable de la Navegación, en un <details> (se abre y se cierra también sin
+ * JavaScript). Como el panel persiste entre páginas, cada grupo se queda como se deje.
+ *
+ * Todos llevan dos raíles con gancho: uno marca la asignatura activa y otro sigue al ratón
+ * (scripts/sidebar/hook-rails.ts). Dos tipos:
+ *  - Un curso con sus asignaturas.
+ *  - Fijado (`pinned`): trae todas las asignaturas ocultas y enseña las que se han fijado, en
+ *    el orden en que se fijaron (scripts/inline/pins.js); sin ninguna, un mensaje.
+ *
+ * El contador de cada grupo cuenta lo que se ve (también con "Mi matrícula"): lo pone
+ * scripts/inline/pins.js.
+ *
+ * Cada asignatura lleva a la derecha una chincheta para fijarla o soltarla
+ * (scripts/sidebar/pins.ts).
+ *
+ * El enlace y la chincheta llevan tooltip a la derecha (ui/Tooltip); la cabecera del grupo, no.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { Subject } from '../../lib/content';
+import { firstSegment } from '../../lib/routes';
+import Icon from '../ui/Icon.astro';
+import Tooltip from '../ui/Tooltip.astro';
+
+interface Props {
+  label: string;
+  subjects: Subject[];
+  /** Abierto de inicio */
+  open?: boolean;
+  /** Grupo de asignaturas fijadas */
+  pinned?: boolean;
+}
+
+const { label, subjects, open = false, pinned = false } = Astro.props;
+const current = firstSegment(Astro.url.pathname);
+---
+
+<details class="nav-group" open={open} data-nav-group>
+  <summary class="nav-link press focus-ring">
+    <span class="truncate font-medium">{label}</span>
+    <span class="nav-group-arrow" aria-hidden="true">
+      <Icon name="player-play" variant="filled" class="size-1.75" />
+    </span>
+    <span class="ml-auto font-mono text-2xs text-muted-foreground tabular-nums" data-nav-count>
+      {pinned ? 0 : subjects.length}
+    </span>
+  </summary>
+
+  <div class="relative mt-0.5 ml-4" data-collapse-body data-hook-list>
+    {['hover', 'active'].map((rail) => (
+      <span class="hook-rail" data-rail={rail} aria-hidden="true">
+        <span class="hook-rail-line" />
+        {/* La curva baja 6 px (CORNER de scripts/sidebar/hook-rails.ts); el SVG mide 7 para
+            que quepa el trazo */}
+        <svg class="hook-rail-corner" width="12" height="7" viewBox="0 0 12 7" fill="none">
+          <path
+            d="M0.5 0a6 6 0 0 0 6 6H12"
+            stroke="currentColor"
+            stroke-dasharray="2 2"
+            shape-rendering="crispEdges"
+          />
+        </svg>
+      </span>
+    ))}
+    <ul class="flex flex-col gap-0.5 pl-4" data-pin-list={pinned ? '' : undefined}>
+      {subjects.map((subject) => (
+        <li
+          class="nav-item"
+          data-subject={subject.id}
+          data-pin-item={pinned ? subject.id : undefined}
+          hidden={pinned}
+        >
+          <Tooltip content={`Ir a ${subject.data.name}`} side="right">
+            <a
+              href={`/${subject.id}`}
+              class="nav-link press focus-ring min-w-0 flex-1"
+              aria-current={current === subject.id ? 'page' : undefined}
+            >
+              <Icon name={subject.data.icon} class="size-4 shrink-0" />
+              <span class="truncate">{subject.data.name}</span>
+            </a>
+          </Tooltip>
+          <Tooltip side="right">
+            <button
+              type="button"
+              class="pin-button press-icon focus-ring"
+              aria-label={`Fijar ${subject.data.name}`}
+              aria-pressed="false"
+              data-pin={subject.id}
+            >
+              <Icon name="pin" class="pin-icon size-3.5" />
+              <Icon name="pin" variant="filled" class="pinned-icon size-3.5" />
+              <Icon name="x" class="unpin-icon size-3.5" />
+            </button>
+            {/* El texto, según esté fijada o no (lo cambia el CSS de abajo) */}
+            <span slot="content">
+              <span class="pin-tip-pin">Fijar {subject.data.name}</span>
+              <span class="pin-tip-unpin">Quitar de Fijado</span>
+            </span>
+          </Tooltip>
+        </li>
+      ))}
+    </ul>
+    {pinned && (
+      <p
+        class="pt-1 pr-6 pb-2 pl-2 text-ui leading-compact text-pretty text-muted-foreground/60"
+        data-pins-empty
+      >
+        Marca las asignaturas que más estés estudiando para acceder a ellas rápidamente.
+      </p>
+    )}
+  </div>
+</details>
+
+<style>
+  .nav-group > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .nav-group > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Triángulo del grupo, detrás del nombre. Cerrado (o cerrándose), apunta a la derecha y se
+     ve siempre, para que el grupo no quede huérfano. Abierto, apunta abajo y solo aparece al
+     pasar el ratón o con el foco: la cabecera queda limpia en reposo. Toma el color del nombre
+     (currentColor): gris en reposo y claro al pasar el ratón, a la vez que él. */
+  .nav-group-arrow {
+    /* Bajado 1 px: centrado con la altura de las minúsculas, que es donde el ojo ve el centro
+       del texto (la caja de la línea lo dejaba 1 px alto) */
+    position: relative;
+    top: 1px;
+    display: inline-flex;
+    flex-shrink: 0;
+    transition-property: opacity, rotate;
+    transition-duration: var(--duration-ui);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .nav-group[open]:not([data-state='closing']) .nav-group-arrow {
+    rotate: 90deg;
+    opacity: 0;
+  }
+
+  .nav-group[open]:not([data-state='closing'])
+    > summary:is(:hover, :focus-visible)
+    .nav-group-arrow {
+    opacity: 1;
+  }
+
+  /* Fila de una asignatura: el enlace y, a la derecha, la chincheta */
+  .nav-item {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Los enlaces quedan por encima de los raíles */
+  .nav-link {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    border-radius: var(--radius-sm);
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    color: var(--muted-foreground);
+    font-size: var(--text-ui);
+    line-height: var(--leading-nav);
+  }
+
+  /* Sin fondos: hover y pulsación solo aclaran el texto (también al pasar por la chincheta,
+     que es parte de la fila). El azul de marca es solo para la asignatura en la que se está, a
+     juego con el raíl, y el hover no se lo quita: si no, al llegar a la página con el ratón
+     encima, el enlace pasaría de azul a blanco */
+  .nav-link:not([aria-current='page']):is(:hover, :active),
+  .nav-item:hover .nav-link:not([aria-current='page']) {
+    color: var(--foreground);
+  }
+
+  .nav-link[aria-current='page'] {
+    color: var(--brand);
+    font-weight: 500;
+  }
+
+  /* En pantallas táctiles, más alto para acertar con el dedo */
+  @media (pointer: coarse) {
+    .nav-link {
+      padding-block: calc(var(--spacing) * 2.5);
+    }
+  }
+
+  /* Chincheta, en gris como el resto de la fila: invisible hasta pasar por la fila (o llegar
+     con el teclado). Sin fijar, "pin" de trazo; fijada, "pin" relleno y siempre visible; al
+     pasar por una fijada, una "x" para quitarla. Solo se oscurece al pasar por la propia
+     chincheta. Justo después de pulsarla (data-just-toggled) se queda el icono de fijada hasta
+     que el ratón sale, para que no cambie bajo el puntero. */
+  .pin-button {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: calc(var(--spacing) * 6);
+    height: calc(var(--spacing) * 6);
+    border-radius: var(--radius-sm);
+    color: var(--muted-foreground);
+    opacity: 0;
+  }
+
+  .nav-item:hover .pin-button,
+  .pin-button:focus-visible,
+  .pin-button[aria-pressed='true'] {
+    opacity: 1;
+  }
+
+  .pin-button:hover {
+    color: var(--foreground);
+  }
+
+  /* Cambio de icono con fundido (icon swap): los tres en la misma celda de la rejilla; el que
+     toca, a tamaño completo, nítido y opaco; los otros, encogidos, desenfocados y
+     transparentes. Duración propia y fija: no sigue a --duration-hover, para que dentro de un
+     hover-group el cambio también se vea.
+     Los iconos los pinta el componente Icon, que no lleva el atributo de ámbito de este: de ahí
+     el :global, siempre dentro de la chincheta. */
+  .pin-button :global(svg) {
+    grid-area: 1 / 1;
+    opacity: 0;
+    filter: blur(2px);
+    scale: 0.25;
+    transition-property: opacity, filter, scale;
+    transition-duration: var(--duration-swap);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  .pin-button[aria-pressed='false'] :global(.pin-icon),
+  .pin-button[aria-pressed='true'] :global(.pinned-icon),
+  .pin-button[aria-pressed='true']:hover:not([data-just-toggled]) :global(.unpin-icon) {
+    opacity: 1;
+    filter: blur(0);
+    scale: 1;
+  }
+
+  .pin-button[aria-pressed='true']:hover:not([data-just-toggled]) :global(.pinned-icon) {
+    opacity: 0;
+    filter: blur(2px);
+    scale: 0.25;
+  }
+
+  /* Texto del tooltip de la chincheta: "Fijar…" sin fijar y "Quitar de Fijado" fijada */
+  :global([data-tooltip]:has(> .pin-button[aria-pressed='true'])) .pin-tip-pin,
+  :global([data-tooltip]:has(> .pin-button[aria-pressed='false'])) .pin-tip-unpin {
+    display: none;
+  }
+
+  /* Raíl: una línea discontinua que baja desde arriba de la lista y un gancho que gira hacia
+     el centro del enlace. Posición y opacidad las anima el script. */
+  .hook-rail {
+    /* Separación de la línea y el gancho con el borde de la lista */
+    --rail-x: 2px;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .hook-rail[data-rail='active'] {
+    color: var(--brand);
+  }
+
+  .hook-rail[data-rail='hover'] {
+    color: var(--rail-hover);
+  }
+
+  .hook-rail-line {
+    position: absolute;
+    top: 0;
+    left: var(--rail-x);
+    width: 1px;
+    height: 0;
+    /* 2 px de hueco y 2 px de línea, de abajo arriba: casa con el discontinuo del gancho */
+    background-image: repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px);
+  }
+
+  .hook-rail-corner {
+    position: absolute;
+    top: 0;
+    left: var(--rail-x);
+    will-change: transform;
+  }
+</style>
+
+<script>
+  import '../../scripts/sidebar/nav-group';
+</script>

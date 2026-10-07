@@ -1,0 +1,101 @@
+---
+/**
+ * @file Botón con variantes y tamaños fijos para toda la web. Con href es un enlace; si no, un
+ * <button type="button">. Las clases que se pasen pisan a las de serie (cn) y el resto de atributos
+ * pasan tal cual. Con tooltip, lo lleva (ui/Tooltip).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { cn } from '../../lib/cn';
+import type { FloatingSide } from '../../scripts/floating';
+import Tooltip from './Tooltip.astro';
+
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type Size = 'default' | 'icon' | 'icon-sm';
+
+interface CommonProps {
+  /**
+   * primary: la acción principal, en gris: el fondo de pulsado, como la pestaña activa de un
+   * control segmentado, y algo más claro al pasar el ratón. secondary: relleno suave. outline: solo el borde de los
+   * controles (--input), fondo transparente. ghost: sin fondo hasta pasar el ratón (barras y
+   * botones de icono).
+   */
+  variant?: Variant;
+  /** default: con texto. icon y icon-sm: cuadrados, solo icono (2rem y 1.75rem). */
+  size?: Size;
+  /** Texto del tooltip */
+  tooltip?: string;
+  /** Lado del tooltip (arriba por defecto; abajo en las barras) */
+  tooltipSide?: FloatingSide;
+  /** Atajo de teclado, en el tooltip */
+  shortcut?: string;
+}
+
+/** Con href, un enlace (sus atributos); sin él, un botón (los suyos) */
+type Props =
+  | (CommonProps & HTMLAttributes<'a'> & { href: string })
+  | (CommonProps & HTMLAttributes<'button'> & { href?: undefined });
+
+const {
+  variant = 'ghost',
+  size = 'default',
+  href,
+  class: className,
+  tooltip,
+  tooltipSide,
+  shortcut,
+  ...rest
+} = Astro.props;
+
+const VARIANTS: Record<Variant, string> = {
+  primary: 'bg-pressed font-medium text-foreground hover:bg-pressed-hover',
+  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+  // Pulsado (bg-pressed) mientras se pulsa (active), con su menú abierto (aria-expanded) y, en
+  // los conmutadores, encendido (aria-pressed). En outline, sobre ese fondo el
+  // contorno sube a --input-pressed: con el de serie se fundiría con él.
+  outline:
+    'border border-input bg-transparent font-medium hover:bg-hover active:border-input-pressed active:bg-pressed aria-expanded:border-input-pressed aria-expanded:bg-pressed aria-pressed:border-input-pressed aria-pressed:bg-pressed',
+  ghost:
+    'text-muted-foreground hover:bg-hover hover:text-foreground active:bg-pressed aria-expanded:bg-pressed aria-expanded:text-foreground',
+};
+
+/**
+ * Solo icono y con borde: el icono en gris, como en los ghost, y claro al pasar el ratón o con
+ * su menú abierto. Con texto, el texto va en el color normal.
+ */
+const OUTLINE_ICON_TONE =
+  'text-muted-foreground hover:text-foreground aria-expanded:text-foreground';
+
+const SIZES: Record<Size, string> = {
+  default: 'h-8 gap-1.5 px-2.5',
+  icon: 'size-8',
+  'icon-sm': 'size-7',
+};
+
+const Tag = href ? 'a' : 'button';
+// Con la etiqueta dinámica, Astro pide los atributos de las dos a la vez; quien usa el botón
+// recibe solo los de la suya (Props)
+const attributes = rest as HTMLAttributes<'a'> & HTMLAttributes<'button'>;
+/** Lo que distingue a cada etiqueta: el destino del enlace, o el tipo del botón (no envía formularios) */
+const tagAttributes: Record<string, string> = href ? { href } : { type: 'button' };
+---
+
+<Tooltip content={tooltip} side={tooltipSide} {shortcut}>
+  <Tag
+    {...tagAttributes}
+    class={cn(
+      // Desactivado: atenuado y sin reaccionar al ratón
+      'focus-ring inline-flex shrink-0 items-center justify-center rounded-lg text-ui whitespace-nowrap disabled:pointer-events-none disabled:opacity-50',
+      size === 'default' ? 'press' : 'press-icon',
+      VARIANTS[variant],
+      variant === 'outline' && size !== 'default' && OUTLINE_ICON_TONE,
+      SIZES[size],
+      className,
+    )}
+    {...attributes}
+  >
+    <slot />
+  </Tag>
+</Tooltip>

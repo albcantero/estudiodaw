@@ -1,0 +1,82 @@
+---
+/**
+ * @file Aviso legal: quién está detrás de la web, para qué es, que no es oficial, de quién son los
+ * apuntes y las condiciones de uso.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import {
+  AUTHOR,
+  CENTRE_NAME,
+  CONTACT_EMAIL,
+  CONTENT_LICENSE,
+  GITHUB_URL,
+  SITE_NAME,
+} from '../data/site';
+import LegalLayout from '../layouts/LegalLayout.astro';
+---
+
+<LegalLayout
+  title="Aviso legal"
+  description={`Quién está detrás de ${SITE_NAME}, para qué sirve y en qué condiciones se puede usar.`}
+>
+  <h2>Titular</h2>
+  <p>
+    {SITE_NAME} es una web personal de {AUTHOR}, alumno del ciclo de Desarrollo de Aplicaciones Web.
+    Puedes escribirle a <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+  </p>
+  <p>
+    Es un proyecto sin ánimo de lucro: no vende nada, no tiene publicidad y no pide registrarse.
+  </p>
+
+  <h2>Para qué es</h2>
+  <p>
+    Reúne los apuntes, ejercicios y soluciones del ciclo, escritos mientras se estudia, para
+    compartirlos con la clase, y un calendario con las fechas de los exámenes.
+  </p>
+
+  <h2>No es una web oficial</h2>
+  <p>
+    {SITE_NAME} no pertenece al {CENTRE_NAME}, ni a la Junta de Castilla y León, ni a ningún otro
+    organismo, y no habla en su nombre. Los apuntes son una forma personal de explicar la materia y
+    pueden contener errores: no sustituyen al material oficial del ciclo.
+  </p>
+  <p>
+    Las fechas del calendario se copian de las que publica el centro, pero{' '}
+    <strong>la referencia es siempre la plataforma oficial</strong>: comprueba allí cualquier fecha
+    antes de organizarte. El titular no responde de los perjuicios que pueda causar un error en esta
+    web.
+  </p>
+
+  <h2>Propiedad intelectual</h2>
+  <p>
+    Los apuntes están escritos con palabras propias a partir del material del ciclo. Se pueden
+    copiar, compartir y adaptar con la licencia{' '}
+    <a href={CONTENT_LICENSE.url} rel="noopener">
+      Creative Commons {CONTENT_LICENSE.name}
+    </a>
+    : citando al autor, sin uso comercial y compartiendo lo que se haga con la misma licencia.
+  </p>
+  <p>
+    El código de la web está en{' '}
+    <a href={GITHUB_URL} rel="noopener">
+      GitHub
+    </a>
+    . Las marcas y logotipos que aparecen (las del stack, por ejemplo) son de sus dueños.
+  </p>
+
+  <h2>Condiciones de uso</h2>
+  <p>
+    Usar la web no exige nada más que hacerlo de buena fe. Los enlaces a otras webs se ofrecen por
+    comodidad: su contenido es responsabilidad de quien las publica.
+  </p>
+  <p>
+    ¿Has visto un error en los apuntes o en una fecha? Escribe a{' '}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> o abre un issue en{' '}
+    <a href={GITHUB_URL} rel="noopener">
+      GitHub
+    </a>
+    .
+  </p>
+</LegalLayout>

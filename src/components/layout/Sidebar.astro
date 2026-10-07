@@ -1,0 +1,128 @@
+---
+/**
+ * @file Panel lateral fijo de escritorio: logo, descripción, Navegación por cursos y el stack de la
+ * web. La Navegación lleva arriba las asignaturas fijadas. Persiste entre páginas
+ * (transition:persist) y entra escalonado la primera vez (.rise, con --i como posición). Sus líneas
+ * discontinuas van al ras del texto (--dash-inset: 0), no dentro de un gutter.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { SITE_TAGLINE, STACK } from '../../data/site';
+import { STORAGE_KEYS } from '../../data/storage';
+import { getSubjects, getSubjectsByCourse } from '../../lib/content';
+import pinsScript from '../../scripts/inline/pins.js?raw';
+import BrandIcon from '../ui/BrandIcon.astro';
+import Tooltip from '../ui/Tooltip.astro';
+import HomeLink from './HomeLink.astro';
+import NavGroup from './NavGroup.astro';
+
+interface Props {
+  /** Clases de visibilidad que pone la plantilla */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const subjects = await getSubjects();
+const courses = await getSubjectsByCourse();
+---
+
+<aside
+  class:list={[
+    'flex flex-col [--dash-inset:0px] lg:sticky lg:top-0 lg:z-(--z-sidebar) lg:h-dvh lg:min-h-0',
+    className,
+  ]}
+  transition:persist="sidebar"
+  transition:name="sidebar"
+  transition:animate="none"
+  data-sidebar-panel
+>
+  <div class="flex min-h-0 flex-col px-sidebar pt-(--sidebar-top) pb-sidebar lg:h-full">
+    <div class="shrink-0">
+      <HomeLink
+        class="rise block w-full rounded-md"
+        style="--i: 0"
+        logoClass="block h-auto w-full text-foreground"
+      />
+      <p class="rise mt-5 max-w-tagline text-ui leading-relaxed text-pretty" style="--i: 1">
+        {SITE_TAGLINE}
+      </p>
+    </div>
+
+    <div class="rise dash-t mt-7 flex min-h-0 flex-1 flex-col pt-5" style="--i: 2">
+      <p id="sidebar-nav-title" class="eyebrow mb-2 text-muted-foreground">
+        Navegación
+      </p>
+      <div class="sidebar-scroll" data-scroll-fade="y">
+        <div class="sidebar-scroll-content" data-scroll-fade-content data-scrollbar>
+          <nav class="hover-group" aria-labelledby="sidebar-nav-title">
+            <NavGroup label="Fijado" subjects={subjects} open pinned />
+            {courses.map((course) => (
+              <NavGroup label={course.name} subjects={course.subjects} />
+            ))}
+          </nav>
+          {/* Asignaturas fijadas en su sitio antes del primer pintado */}
+          <script
+            is:inline
+            set:html={`${pinsScript}\nsetupPins(${JSON.stringify(STORAGE_KEYS.pinned)});`}
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="rise dash-t mt-5 shrink-0 pt-5" style="--i: 3">
+      <p id="sidebar-stack-title" class="eyebrow mb-2 text-muted-foreground">
+        Stack
+      </p>
+      <ul
+        class="hover-group flex flex-wrap items-center gap-1.5"
+        aria-labelledby="sidebar-stack-title"
+      >
+        {STACK.map((item) => (
+          <li>
+            {/* No responde a nada: no se enfoca (no estorba al tabular). Su texto lo lee el lector
+                de pantalla (aria-label) y, con el ratón, sale en el tooltip */}
+            <Tooltip content={item.label} instant>
+              <span
+                class="pill h-7 gap-1.5 bg-background px-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                role="img"
+                aria-label={item.label}
+              >
+                {item.icons.map((icon) => (
+                  <BrandIcon name={icon} />
+                ))}
+              </span>
+            </Tooltip>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</aside>
+
+<style>
+  /* Zona con scroll de la Navegación: degradados arriba y abajo (scripts/scroll-fade.ts) y
+     barra propia (scripts/scrollbars.ts), sacada al margen derecho del panel, pegada a su
+     borde, donde no pisa los enlaces. */
+  .sidebar-scroll {
+    --scroll-fade-start-size: 28px;
+    --scroll-fade-end-size: 40px;
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .sidebar-scroll-content {
+    /* La franja, centrada en el margen derecho del panel */
+    --scrollbar-offset: calc(var(--spacing-sidebar) - var(--scrollbar-track) / 2);
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+  }
+</style>
+
+<script>
+  import '../../scripts/sidebar/persist';
+  import '../../scripts/sidebar/pins';
+</script>

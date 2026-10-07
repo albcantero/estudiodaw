@@ -1,0 +1,34 @@
+---
+/**
+ * @file Botón con el icono de GitHub, al repositorio de la web, en las dos barras. Lleva a otra
+ * web: se abre en otra pestaña, como el enlace del pie.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { GITHUB_URL } from '../../data/site';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import NewTabHint from '../ui/NewTabHint.astro';
+
+interface Props {
+  /** Clases de visibilidad de la barra que lo usa */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<Button
+  href={GITHUB_URL}
+  target="_blank"
+  rel="noopener"
+  size="icon"
+  class={className}
+  tooltip="Ver el código en GitHub"
+  tooltipSide="bottom"
+>
+  <Icon name="brand-github" class="size-4" />
+  <span class="sr-only">Código en GitHub</span>
+  <NewTabHint />
+</Button>

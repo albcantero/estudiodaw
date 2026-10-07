@@ -1,0 +1,56 @@
+---
+/**
+ * @file Portada: lo que hay en la web (Features: apuntes, calendario y ejercicios) y las
+ * asignaturas del ciclo, en lista o tablero, con buscador y "Agrupar por curso".
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import CollectionTools from '../components/collection/CollectionTools.astro';
+import CollectionView from '../components/collection/CollectionView.astro';
+import FeatureCard from '../components/page/FeatureCard.astro';
+import Features from '../components/page/Features.astro';
+import IsoIllustration from '../components/page/IsoIllustration.astro';
+import Panel from '../components/page/Panel.astro';
+import Separator from '../components/page/Separator.astro';
+import { SITE_DESCRIPTION, SITE_NAME } from '../data/site';
+import Base from '../layouts/Base.astro';
+import { subjectGroupOrder, subjectItems } from '../lib/collection-items';
+import { getSubjects, getTemaCounts } from '../lib/content';
+
+const items = subjectItems(await getSubjects(), await getTemaCounts());
+---
+
+<Base title={SITE_NAME} heading={`${SITE_NAME}: ${SITE_DESCRIPTION}`}>
+  <Features label="Qué hay en la web">
+    <FeatureCard
+      figure="Fig 0.1"
+      title="Apuntes"
+      text="Cada unidad del temario oficial, reescrita y mejorada"
+    >
+      <IsoIllustration slot="illustration" name="notes" />
+    </FeatureCard>
+    <FeatureCard figure="Fig 0.2" title="Calendario" text="Todas las fechas en un solo calendario">
+      <IsoIllustration slot="illustration" name="calendar" />
+    </FeatureCard>
+    <FeatureCard
+      figure="Fig 0.3"
+      title="Ejercicios"
+      text="Código para practicar, ejercicios resueltos y tests"
+    >
+      <IsoIllustration slot="illustration" name="code" />
+    </FeatureCard>
+  </Features>
+
+  <Separator />
+
+  <Panel
+    id="asignaturas"
+    title="Asignaturas"
+    count={items.length}
+    countNoun={{ one: 'asignatura', other: 'asignaturas' }}
+  >
+    <CollectionTools slot="toolbar" placeholder="Buscar asignatura…" grouping properties />
+    <CollectionView items={items} columns={{ properties: true }} groupOrder={subjectGroupOrder()} />
+  </Panel>
+</Base>

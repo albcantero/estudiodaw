@@ -1,0 +1,139 @@
+---
+/**
+ * @file Calendario de exámenes: todos los parciales y finales del curso, por meses, con cuenta
+ * atrás, filtro por curso y descarga en .ics (scripts/calendar.ts).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { getCollection } from 'astro:content';
+import PageHeading from '../components/page/PageHeading.astro';
+import Panel from '../components/page/Panel.astro';
+import Separator from '../components/page/Separator.astro';
+import Button from '../components/ui/Button.astro';
+import Tooltip from '../components/ui/Tooltip.astro';
+import Icon from '../components/ui/Icon.astro';
+import SegmentedControl from '../components/ui/SegmentedControl.astro';
+import { COURSES, COURSE_YEARS } from '../data/courses';
+import { exams } from '../data/exams';
+import { ACADEMIC_YEAR } from '../data/site';
+import Base from '../layouts/Base.astro';
+import { examDate, groupExamsByMonth } from '../lib/exams';
+
+const subjects = new Map(
+  (await getCollection('subjects')).map((subject) => [subject.id, subject.data]),
+);
+
+// Cada examen tiene que ser de una asignatura con página: si no, se para la build
+const orphan = exams.find((exam) => !subjects.has(exam.subject));
+if (orphan) throw new Error(`Examen de "${orphan.subject}", que no está en src/content/subjects`);
+
+const months = groupExamsByMonth(exams);
+const courseFilters = [
+  { value: 'all', label: 'Todos', tooltip: 'Ver los exámenes de los dos cursos' },
+  ...COURSE_YEARS.map((year) => ({
+    value: String(year),
+    label: COURSES[year].short,
+    tooltip: `Ver solo los exámenes del ${COURSES[year].title.toLowerCase()}`,
+  })),
+];
+---
+
+<Base
+  title="Calendario de exámenes"
+  description={`Parciales y finales de DAW a distancia, curso ${ACADEMIC_YEAR}.`}
+  banner={false}
+>
+  <PageHeading
+    breadcrumbs={[{ label: `Curso ${ACADEMIC_YEAR} · Presenciales` }]}
+    title="Calendario de exámenes"
+    description="Parciales y finales de 1º y 2º de DAW, con las dos convocatorias. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
+  >
+    <div class="dash-b flex flex-wrap items-center justify-between gap-2 px-gutter py-3">
+      <SegmentedControl name="exam-course" label="Curso" options={courseFilters} />
+      <Button
+        variant="outline"
+        tooltip="Descargar los exámenes en un .ics para tu calendario"
+        data-exam-ics
+      >
+        <Icon name="calendar-plus" class="size-4" />
+        Añadir a mi calendario
+      </Button>
+    </div>
+  </PageHeading>
+
+  {months.map((month, index) => (
+    <div data-subject-group>
+      <Separator />
+      <Panel
+        id={`mes-${index + 1}`}
+        title={month.title}
+        count={month.exams.length}
+        countNoun={{ one: 'examen', other: 'exámenes' }}
+      >
+        <ol>
+          {month.exams.map((exam) => {
+            const subject = subjects.get(exam.subject);
+            const date = examDate(exam);
+            return (
+              <li
+                class="dash-b flex items-center gap-4 px-gutter py-3 transition-opacity data-past:opacity-45"
+                data-exam
+                data-start={exam.start}
+                data-end={exam.end}
+                data-course={exam.course}
+                data-title={subject?.name}
+                data-label={exam.label}
+                data-subject={exam.subject}
+                data-count-item
+              >
+                <div class="flex w-10 shrink-0 flex-col items-center leading-none">
+                  <span class="font-mono text-xl font-medium tabular-nums">{date.day}</span>
+                  <span class="eyebrow mt-1 text-muted-foreground">{date.weekday}</span>
+                </div>
+                <span class="h-8 w-px shrink-0 bg-border" aria-hidden="true" />
+                <div class="min-w-0 flex-1">
+                  <p class="flex items-center gap-2 font-medium">
+                    {/* Color propio de la asignatura (campo color de su ficha) */}
+                    <span
+                      class="size-2 shrink-0 rounded-full"
+                      style={`background: ${subject?.color}`}
+                      aria-hidden="true"
+                    />
+                    <Tooltip content={`Ir a ${subject?.name}`}>
+                      <a
+                        href={`/${exam.subject}`}
+                        class="focus-ring truncate rounded-sm link-underline decoration-transparent"
+                      >
+                        {subject?.name}
+                      </a>
+                    </Tooltip>
+                  </p>
+                  <p class="flex items-center gap-2 text-sm text-muted-foreground tabular-nums">
+                    <span>{exam.label}</span>
+                    <span class="h-3.5 w-px bg-border" aria-hidden="true" />
+                    <span>{date.time}</span>
+                    <span class="h-3.5 w-px bg-border max-sm:hidden" aria-hidden="true" />
+                    <span class="max-sm:hidden">{COURSES[exam.course].label}</span>
+                  </p>
+                </div>
+                <span
+                  class="shrink-0 rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
+                  data-exam-countdown
+                />
+              </li>
+            );
+          })}
+        </ol>
+      </Panel>
+    </div>
+  ))}
+
+  <p class="p-gutter text-sm text-muted-foreground" role="status" data-groups-empty hidden>
+    Ningún examen con este filtro y tu matrícula.
+  </p>
+</Base>
+
+<script>
+  import '../scripts/calendar';
+</script>

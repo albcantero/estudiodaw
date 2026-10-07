@@ -1,0 +1,91 @@
+---
+/**
+ * @file Política de privacidad: qué datos trata la web hoy (los registros del alojamiento y las
+ * cuentas), qué guarda solo en el navegador y cómo ejercer los derechos.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { AUTHOR, CONTACT_EMAIL, SITE_NAME } from '../data/site';
+import LegalLayout from '../layouts/LegalLayout.astro';
+---
+
+<LegalLayout
+  title="Privacidad"
+  description={`Qué datos trata ${SITE_NAME}, para qué y cómo ejercer tus derechos.`}
+>
+  <h2>En resumen</h2>
+  <p>
+    {SITE_NAME} no tiene analítica ni publicidad, y no usa cookies. Puedes crear una cuenta con tu
+    correo de educa.jcyl.es, pero no hace falta para usar la web. Lo que se trata se explica abajo.
+  </p>
+
+  <h2>Responsable</h2>
+  <p>
+    {AUTHOR}, titular de la web (ver el <a href="/aviso-legal">aviso legal</a>). Contacto:{' '}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+  </p>
+
+  <h2>Qué datos se tratan</h2>
+  <p>
+    <strong>Registros del alojamiento.</strong> La web está alojada en Vercel. Como cualquier
+    servidor, al servir una página registra datos técnicos de la visita: la dirección IP, el
+    navegador y la página pedida. Sirven para que la web funcione y para protegerla de abusos; los
+    conserva Vercel durante el tiempo que fija su política.
+  </p>
+  <p>
+    La base legal es el interés legítimo en que la web funcione y sea segura (artículo 6.1.f del
+    RGPD). Vercel es una empresa de Estados Unidos adherida al Marco de Privacidad de Datos entre la
+    UE y EE. UU., que ampara esa transferencia.
+  </p>
+  <p>
+    Todo lo demás (fuentes tipográficas, imágenes, scripts) se sirve desde la propia web: tu
+    navegador no llama a Google, a GitHub ni a ningún otro servicio al visitarla. Solo habla con
+    Supabase si entras con tu cuenta o ya la tienes iniciada.
+  </p>
+
+  <p>
+    <strong>Cuentas.</strong> Si entras con tu correo de educa.jcyl.es, se guarda ese correo, el
+    nombre con el que quieres que te llamemos (lo escribes tú al entrar la primera vez), la fecha en
+    que creaste la cuenta y la de tu último acceso y, de cada acceso, la dirección IP y el navegador
+    (para mantener la sesión y protegerla de abusos). Solo sirve para iniciar sesión y para
+    dirigirnos a ti por tu nombre. La base legal es darte el servicio que pides al crear la cuenta
+    (artículo 6.1.b del RGPD). Se guarda hasta que pidas borrarla, escribiendo a{' '}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+  </p>
+  <p>
+    Las cuentas están en Supabase, en servidores de la Unión Europea, y el código de acceso te lo
+    envía Resend. Las dos son empresas de Estados Unidos y tratan los datos por encargo de esta web;
+    la transferencia a Estados Unidos se ampara en las cláusulas contractuales tipo de la Comisión
+    Europea, y en el caso de Resend también en el Marco de Privacidad de Datos entre la UE y EE. UU.
+    Resend guarda los correos enviados en Estados Unidos.
+  </p>
+
+  <h2>Lo que se guarda en tu navegador</h2>
+  <p>
+    Tus preferencias (tema claro u oscuro, vista de lista o tablero, agrupación, asignaturas
+    fijadas, módulos de «Mi matrícula» y el filtro del calendario), y tu sesión si has entrado con
+    tu cuenta, se guardan en el almacenamiento local de tu navegador. Las preferencias no salen de
+    tu ordenador ni las ve nadie; la sesión solo se usa para hablar con Supabase. Puedes borrarlas
+    cuando quieras desde los ajustes del navegador. No son cookies ni sirven para rastrearte, así
+    que no necesitan tu consentimiento.
+  </p>
+
+  <h2>Tus derechos</h2>
+  <p>
+    Puedes pedir el acceso, la rectificación o la supresión de tus datos, oponerte a su tratamiento
+    o pedir su limitación o portabilidad escribiendo a{' '}
+    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Si crees que no se han respetado,
+    puedes reclamar ante la{' '}
+    <a href="https://www.aepd.es" rel="noopener">
+      Agencia Española de Protección de Datos
+    </a>
+    .
+  </p>
+
+  <h2>Cambios</h2>
+  <p>
+    Si la web empieza a tratar otros datos (por ejemplo, un formulario o un registro), esta página
+    se actualizará antes.
+  </p>
+</LegalLayout>

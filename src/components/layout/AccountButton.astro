@@ -1,0 +1,127 @@
+---
+/**
+ * @file Cuenta, en la barra superior: "Iniciar sesión" sin sesión (abre AuthDialog) y, con ella, el
+ * nombre de usuario, que abre un desplegable con el correo, "Mi matrícula" (EnrollmentDialog) y
+ * "Cerrar sesión". La matrícula solo se elige con la sesión iniciada.
+ *
+ * Lo pinta scripts/auth/account.ts según data-state: loading (hueco reservado, sin nada
+ * visible, para que no salte de "Iniciar sesión" al usuario), signed-out, signed-in u off (sin
+ * Supabase configurado: no se ve).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Button from '../ui/Button.astro';
+import Dropdown from '../ui/Dropdown.astro';
+import Icon from '../ui/Icon.astro';
+---
+
+<div class="account" data-account data-state="loading">
+  <Button
+    class="account-sign-in px-2"
+    aria-haspopup="dialog"
+    tooltip="Entrar con tu correo de educa.jcyl.es"
+    tooltipSide="bottom"
+    data-auth-open
+  >
+    <Icon name="login-2" class="size-4" />
+    Iniciar sesión
+  </Button>
+
+  <div class="account-menu">
+    <Dropdown
+      id="account-menu"
+      label="Tu cuenta"
+      icon="user"
+      size="default"
+      width="w-64"
+      tooltip={false}
+      flush
+    >
+      <span slot="trigger" class="flex items-center gap-1.5">
+        <Icon name="user-circle" class="size-4" />
+        <span class="max-w-40 truncate" data-account-username></span>
+        <Icon name="chevron-down" class="size-3.5" />
+      </span>
+      <div class="account-panel">
+        <p class="account-name" data-account-name></p>
+        <p class="account-email" data-account-email></p>
+      </div>
+      <div class="account-actions">
+        {/* Con un filtro de matrícula activo (data-active, de scripts/enrollment.ts), su punto */}
+        <Button
+          class="group/enroll w-full justify-start px-2 data-active:text-foreground"
+          aria-haspopup="dialog"
+          data-enrollment-open
+        >
+          <Icon name="school" class="size-4" />
+          Mi matrícula
+          <span
+            class="marker-dot ml-auto hidden group-data-active/enroll:block"
+            aria-hidden="true"
+          ></span>
+          <span class="sr-only hidden group-data-active/enroll:inline">(filtro activo)</span>
+        </Button>
+        <Button class="w-full justify-start px-2" data-auth-sign-out>
+          <Icon name="logout" class="size-4" />
+          Cerrar sesión
+        </Button>
+      </div>
+    </Dropdown>
+  </div>
+
+  {/* Separa la cuenta del resto de acciones; con ella se va si no hay login (off) */}
+  <span class="mx-2 h-5 w-px bg-border" aria-hidden="true"></span>
+</div>
+
+<style>
+  .account {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Mientras carga, el hueco del botón "Iniciar sesión" sin pintar nada */
+  .account[data-state='loading'] {
+    visibility: hidden;
+  }
+
+  .account[data-state='off'],
+  .account:not([data-state='signed-in']) .account-menu,
+  .account[data-state='signed-in'] :global(.account-sign-in) {
+    display: none;
+  }
+
+  .account-panel {
+    padding: calc(var(--spacing) * 2.5);
+  }
+
+  /* Arriba el nombre y, debajo, el correo en gris */
+  .account-name {
+    overflow: hidden;
+    font-size: var(--text-ui);
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-email {
+    overflow: hidden;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--muted-foreground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-actions {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 0.5);
+    padding: calc(var(--spacing) * 1);
+    border-top: 1px solid var(--border);
+  }
+</style>
+
+<script>
+  import '../../scripts/auth/account';
+</script>

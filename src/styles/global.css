@@ -1,0 +1,22 @@
+/**
+ * @file Hoja de estilos de la web: carga Tailwind y su plugin de tipografía y reúne el resto de
+ * hojas. Cada fichero, una responsabilidad:
+ *   tokens:    variables del sistema (paleta, medidas, capas, movimiento)
+ *   base:      valores por defecto del documento
+ *   utilities: utilidades propias (líneas, superficies, foco…)
+ *   layout:    piezas que dependen del estado de la página
+ *   prose:     texto de los apuntes y bloques de código
+ *   scroll:    barra de scroll propia y degradados en los bordes
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@import './tokens.css';
+@import './base.css';
+@import './utilities.css';
+@import './layout.css';
+@import './prose.css';
+@import './scroll.css';

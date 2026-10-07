@@ -1,0 +1,88 @@
+---
+/**
+ * @file Herramientas de una colección, en la franja de su panel: buscador, vista (Lista / Tablero)
+ * y, si se piden, "Agrupar por curso" y "Mostrar propiedades". El buscador filtra los elementos del
+ * mismo panel en las dos vistas, sin tildes ni mayúsculas (scripts/collections/search.ts).
+ *
+ * Sin JavaScript no se ve la franja: nada de ella funcionaría, y la colección se lee igual.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Icon from '../ui/Icon.astro';
+import Tooltip from '../ui/Tooltip.astro';
+import CollectionSettings from './CollectionSettings.astro';
+import GroupToggle from './GroupToggle.astro';
+import ViewToggle from './ViewToggle.astro';
+
+interface Props {
+  /** Qué se busca: es también el nombre accesible del campo */
+  placeholder?: string;
+  /** "Agrupar por curso" (los elementos traen `group`) */
+  grouping?: boolean;
+  /** "Mostrar propiedades" (los elementos traen propiedades que se pueden ocultar) */
+  properties?: boolean;
+}
+
+const { placeholder = 'Buscar…', grouping = false, properties = false } = Astro.props;
+---
+
+<div class="collection-tools flex w-full items-center gap-2">
+  {/* Un div y no un label: el botón de borrar no puede ir dentro del label del campo; el
+      nombre del campo va en su aria-label */}
+  <div class="collection-search relative flex-1 sm:max-w-64">
+    <Icon
+      name="search"
+      class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+    />
+    <input
+      type="search"
+      name="q"
+      class="focus-ring h-8 w-full rounded-lg border border-input bg-transparent pr-8 pl-8 text-ui [--focus-ring:var(--focus-ring-brand)] placeholder:text-muted-foreground hover:border-input-pressed focus-visible:border-brand"
+      placeholder={placeholder}
+      aria-label={placeholder}
+      autocomplete="off"
+      spellcheck="false"
+      data-collection-search
+    />
+    {/* Borrar la búsqueda: la "x" de Tabler (la de las fijadas), solo con algo escrito */}
+    <Tooltip content="Borrar búsqueda">
+      <button
+        type="button"
+        class="search-clear press-icon focus-ring absolute top-1/2 right-1.5 grid size-5 -translate-y-1/2 place-items-center rounded-sm text-muted-foreground hover:text-foreground"
+        aria-label="Borrar búsqueda"
+        data-collection-clear
+      >
+        <Icon name="x" class="size-3.5" />
+      </button>
+    </Tooltip>
+  </div>
+  <div class="ml-auto flex items-center gap-1">
+    <ViewToggle />
+    {grouping && <GroupToggle />}
+    {properties && <CollectionSettings />}
+  </div>
+</div>
+
+<style>
+  /* La "x" nativa del campo de búsqueda, fuera: se usa el botón propio de limpiar */
+  .collection-search input::-webkit-search-cancel-button {
+    display: none;
+    appearance: none;
+  }
+
+  /* Sin nada escrito (se ve el placeholder), no hay nada que borrar */
+  .collection-search:has(input:placeholder-shown) .search-clear {
+    display: none;
+  }
+
+  @media (scripting: none) {
+    .collection-tools {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/collections/search';
+</script>

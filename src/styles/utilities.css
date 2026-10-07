@@ -1,0 +1,290 @@
+/**
+ * @file Utilidades propias. Se usan como cualquier clase de Tailwind, también con variantes
+ * (md:dash-r, odd:dash-r…).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+/* ---------- Maquetación ---------- */
+
+/* Margen lateral de la página en móvil; en escritorio lo pone el marco */
+@utility page-gutter {
+  padding-inline: var(--spacing-page);
+
+  @media (width >= theme(--breakpoint-lg)) {
+    padding-inline: 0;
+  }
+}
+
+/* Columna de contenido: centrada, de 3xl, con sus dos bordes discontinuos. En escritorio los
+   bordes los pone el marco (.frame), continuos. */
+@utility column {
+  @apply dash-lines;
+  width: 100%;
+  margin-inline: auto;
+
+  @media (width >= theme(--breakpoint-md)) {
+    max-width: var(--container-3xl);
+  }
+
+  @media (width < theme(--breakpoint-lg)) {
+    --dash-left: var(--dash-v);
+    --dash-right: var(--dash-v);
+  }
+}
+
+/* Rejilla de la web con panel lateral: el panel a la izquierda y el resto para el cuerpo. La
+   usan la plantilla (panel y cuerpo) y el pie (hueco y contenido), para que sus columnas
+   coincidan. Solo en escritorio: en móvil no hay panel. */
+@utility shell-grid {
+  @media (width >= theme(--breakpoint-lg)) {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  }
+}
+
+/* ---------- Líneas ----------
+   Discontinuas (dash-*): fondos de 1 px en los lados del propio elemento. Las horizontales
+   se meten --dash-inset en su caja (el gutter, salvo donde se cambie); las verticales van al
+   borde. Cada lado es una variable que no se hereda, así la línea de un elemento no aparece
+   también en sus hijos.
+   A sangre (rule-*, stripe-divider): cruzan la pantalla entera con un pseudoelemento de
+   200vw. Por eso los contenedores que las llevan recortan lo que se sale (overflow-x: clip):
+   si no, la página tendría scroll horizontal. */
+
+@property --dash-top {
+  syntax: '*';
+  inherits: false;
+}
+
+@property --dash-bottom {
+  syntax: '*';
+  inherits: false;
+}
+
+@property --dash-left {
+  syntax: '*';
+  inherits: false;
+}
+
+@property --dash-right {
+  syntax: '*';
+  inherits: false;
+}
+
+@utility dash-lines {
+  background-image:
+    var(--dash-top, none), var(--dash-bottom, none), var(--dash-left, none), var(--dash-right, none);
+  background-size:
+    calc(100% - 2 * var(--dash-inset)) 1px,
+    calc(100% - 2 * var(--dash-inset)) 1px,
+    1px 100%,
+    1px 100%;
+  background-position:
+    var(--dash-inset) top,
+    var(--dash-inset) bottom,
+    left top,
+    right top;
+  background-repeat: no-repeat;
+}
+
+@utility dash-t {
+  @apply dash-lines;
+  --dash-top: var(--dash-h);
+}
+
+@utility dash-b {
+  @apply dash-lines;
+  --dash-bottom: var(--dash-h);
+}
+
+@utility dash-l {
+  @apply dash-lines;
+  --dash-left: var(--dash-v);
+}
+
+@utility dash-r {
+  @apply dash-lines;
+  --dash-right: var(--dash-v);
+}
+
+/* Línea continua a sangre arriba: las pocas que cierran la estructura */
+@utility rule-t {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(-1 * var(--bleed));
+    width: calc(2 * var(--bleed));
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+/* Línea continua a sangre abajo */
+@utility rule-b {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: calc(-1 * var(--bleed));
+    width: calc(2 * var(--bleed));
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+/* Franja a rayas diagonales de 10 px, a sangre, entre bloques */
+@utility stripe-divider {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--bleed));
+    z-index: -1;
+    width: calc(2 * var(--bleed));
+    height: 100%;
+    --stripe: color-mix(in oklab, var(--border) 56%, transparent);
+    background-image: repeating-linear-gradient(315deg, var(--stripe) 0 1px, transparent 0 50%);
+    background-size: 10px 10px;
+  }
+}
+
+/* ---------- Superficies ---------- */
+
+/* Caja gris con borde interior (código, soluciones plegadas, índice del documento) */
+@utility inset-surface {
+  border-radius: var(--radius-xl);
+  background: var(--muted);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 64%, transparent);
+  padding: 0.25rem;
+}
+
+/* Pastilla: las insignias, el stack y las propiedades de "Mostrar". El contorno de los
+   controles (--input, translúcido) sin pintar el fondo debajo: se ve igual de marcado sobre la
+   página que sobre una tarjeta. El fondo, el tamaño y el texto los pone cada una. */
+@utility pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--input);
+  border-radius: calc(infinity* 1px);
+  background-clip: padding-box;
+}
+
+/* Grupo de opciones pegadas con hover (lista, menú): pasar de una opción a la de al lado es
+   instantáneo, sin el fundido cruzado de los dos fondos que se nota como un parpadeo. Solo se
+   anima al salir del grupo: la última opción se desvanece suave. Funciona porque todas las
+   transiciones de hover usan --duration-hover (también las utilidades transition-* de
+   Tailwind, que la reciben por --default-transition-duration), y aquí vale 0 para lo de dentro. */
+@utility hover-group {
+  &:hover {
+    --duration-hover: 0s;
+  }
+}
+
+/* Superficie clicable (tarjeta, fila): se sombrea al pasar y algo más al pulsar */
+@utility surface-interactive {
+  transition: background-color var(--duration-hover) var(--ease-hover);
+
+  &:hover {
+    background-color: var(--color-hover);
+  }
+
+  &:active {
+    background-color: var(--color-pressed);
+  }
+}
+
+/* Punto de marca: algo está activo o cambiado (el filtro de matrícula, propiedades ocultas) */
+@utility marker-dot {
+  width: calc(var(--spacing) * 1.75);
+  height: calc(var(--spacing) * 1.75);
+  border-radius: calc(infinity* 1px);
+  background: var(--brand);
+}
+
+/* El punto de marca en la esquina de un botón de icono, como en una notificación: medio fuera
+   (no pisa el icono) y con un aro del color del fondo que lo separa del borde */
+@utility marker-dot-corner {
+  position: absolute;
+  top: calc(var(--spacing) * -0.5);
+  right: calc(var(--spacing) * -0.5);
+  box-shadow: 0 0 0 3px var(--background);
+}
+
+/* ---------- Texto ---------- */
+
+/* Etiqueta pequeña en mayúsculas (NAVEGACIÓN, PRIMERO, cabeceras del pie…) */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+}
+
+/* Subrayado tenue que se intensifica al pasar */
+@utility link-underline {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--duration-hover) var(--ease-hover);
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+/* Enlace dentro de una frase: subrayado siempre y separado del texto, un punto
+   por debajo del color del texto y entero al pasar (los créditos del pie) */
+@utility link-inline {
+  color: var(--color-foreground-soft);
+  text-decoration-line: underline;
+  text-underline-offset: 4px;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+/* ---------- Interacción ---------- */
+
+/* Foco de teclado: el mismo anillo en toda la web. Solo con teclado (:focus-visible), no al
+   hacer clic. El anillo es una sombra; debajo, un outline transparente: en alto contraste
+   (forced-colors) las sombras se borran y el navegador pinta ese outline con color, así el
+   foco no desaparece. */
+@utility focus-ring {
+  outline: none;
+
+  &:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* Pulsación de botones: los de texto encogen a 0,98 y los cuadrados de solo icono a 0,96 (en
+   un botón pequeño se nota menos). Los enlaces de texto no llevan ninguna. */
+@utility press {
+  /* Los colores siguen al hover (y a hover-group); la escala, siempre animada */
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration:
+    var(--duration-hover), var(--duration-hover), var(--duration-hover), var(--duration-hover),
+    var(--duration-hover), var(--duration-ui);
+  transition-timing-function: var(--ease-hover);
+
+  &:active {
+    scale: var(--press-scale, 0.98);
+  }
+}
+
+@utility press-icon {
+  @apply press;
+  --press-scale: 0.96;
+}

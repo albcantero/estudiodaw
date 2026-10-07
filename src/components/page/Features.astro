@@ -1,0 +1,46 @@
+---
+/**
+ * @file Características de la web, en la portada entre el aviso y las asignaturas: tres columnas
+ * en paralelo (FeatureCard), separadas por las líneas discontinuas de la web; una sola columna en móvil, con la línea entre una y otra debajo. Entra
+ * con el resto del cuerpo (.rise), justo después del aviso. Como un panel, lleva su línea arriba y
+ * abajo; quien la pone la separa del siguiente con la franja a rayas (Separator).
+ *
+ * Sus columnas van en el slot: quien la usa decide cuáles y con qué ilustración.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+interface Props {
+  /** Nombre de la sección para lectores de pantalla (no lleva título visible) */
+  label: string;
+}
+
+const { label } = Astro.props;
+---
+
+<section class="rise dash-t dash-b" style="--i: 1.5" aria-label={label}>
+  <div class="features grid md:grid-cols-3">
+    <slot />
+  </div>
+</section>
+
+<style>
+  @reference '../../styles/global.css';
+
+  /* Líneas entre columnas: en escritorio, una vertical a la izquierda de cada una salvo la
+     primera; en móvil, una horizontal debajo de cada una salvo la última */
+  .features > :global(* + *) {
+    background-image: var(--dash-h);
+    background-position: var(--dash-inset) top;
+    background-size: calc(100% - 2 * var(--dash-inset)) 1px;
+    background-repeat: no-repeat;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .features > :global(* + *) {
+      background-image: var(--dash-v);
+      background-position: left top;
+      background-size: 1px 100%;
+    }
+  }
+</style>

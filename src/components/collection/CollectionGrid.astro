@@ -1,0 +1,146 @@
+---
+/**
+ * @file Vista de tablero: tarjetas en dos columnas (una en móvil) con guías verticales discontinuas
+ * por detrás y una línea arriba y abajo de cada fila.
+ *
+ * Las líneas de una fila las dibuja uno solo de sus elementos, de lado a lado (data-row).
+ * Aquí se marca el reparto sin agrupar, para que el tablero salga ya bien dibujado; la
+ * colocación (scripts/inline/collection-layout.js) lo recalcula antes del primer pintado según
+ * el buscador y la matrícula.
+ *
+ * Agrupado, cada curso es una columna tipo kanban (BoardColumn) con sus tarjetas dentro; sin
+ * líneas de fila, solo las dos guías verticales del centro.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { itemAttributes, type CollectionItem } from '../../lib/collection';
+import BoardColumn from './BoardColumn.astro';
+import Card from './Card.astro';
+
+interface Props {
+  items: CollectionItem[];
+  /** Grupos, en el orden de sus columnas (a lo sumo dos) */
+  groups: string[];
+  /** Elementos de cada grupo */
+  counts: Map<string, number>;
+}
+
+const { items, groups, counts } = Astro.props;
+
+// Agrupado, cada grupo ocupa una columna del tablero, y tiene dos: se para la build si no caben
+if (groups.length > 2) {
+  throw new Error(
+    `El tablero agrupa en dos columnas y esta colección tiene ${groups.length} grupos`,
+  );
+}
+---
+
+<div class="collection-grid relative py-4">
+  <div class="grid-guides" aria-hidden="true">
+    <div class="dash-r"></div>
+    <div class="dash-l"></div>
+  </div>
+
+  <ul class="grid-cells" data-collection-part="grid">
+    {groups.map((group) => (
+      <BoardColumn group={group} count={counts.get(group) ?? 0} />
+    ))}
+    {items.map((item, index) => (
+      <li
+        class="rise p-inset"
+        {...itemAttributes(item, index)}
+        data-row={index % 2 === 0 ? 'first' : undefined}
+      >
+        <Card item={item} />
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  @reference '../../styles/global.css';
+
+  /* Geometría: las tarjetas quedan a un gutter del borde (padding de la rejilla + inset de cada
+     celda) y las líneas horizontales empiezan y acaban ahí mismo. */
+  .collection-grid {
+    --grid-pad: calc(var(--spacing-gutter) - var(--spacing-inset));
+  }
+
+  .grid-cells,
+  .grid-guides {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-gutter);
+    padding-inline: var(--grid-pad);
+  }
+
+  .grid-cells {
+    display: grid;
+  }
+
+  /* Guías verticales: la misma rejilla, por detrás; solo con dos columnas */
+  .grid-guides {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: none;
+    pointer-events: none;
+  }
+
+  .grid-cells > :global(li) {
+    position: relative;
+  }
+
+  /* Las líneas de fila, solo de las tarjetas sueltas (sin agrupar): ni las columnas de los
+     cursos ni lo que va dentro de ellas las llevan */
+  .grid-cells > :global(li:not(.board-column))::before,
+  .grid-cells > :global(li:not(.board-column))::after {
+    position: absolute;
+    left: var(--spacing-inset);
+    right: var(--spacing-inset);
+    z-index: -1;
+    height: 1px;
+    background: var(--dash-h);
+  }
+
+  .grid-cells > :global(li:not(.board-column))::before {
+    top: 0;
+  }
+
+  .grid-cells > :global(li:not(.board-column))::after {
+    bottom: 0;
+  }
+
+  /* Una columna: cada elemento visible, su línea arriba y abajo */
+  @media (width < theme(--breakpoint-sm)) {
+    .grid-cells > :global(li:not(.board-column))::before,
+    .grid-cells > :global(li:not(.board-column))::after {
+      content: '';
+    }
+  }
+
+  /* Dos columnas: las líneas las dibuja un elemento por fila y cruzan las dos columnas */
+  @media (width >= theme(--breakpoint-sm)) {
+    .grid-cells,
+    .grid-guides {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-guides {
+      display: grid;
+    }
+
+    /* Ancho: dos columnas más el hueco, menos el inset de cada lado */
+    .grid-cells > :global(li[data-row])::before,
+    .grid-cells > :global(li[data-row])::after {
+      content: '';
+      right: auto;
+      width: calc(200% + var(--spacing-gutter) - 2 * var(--spacing-inset));
+    }
+  }
+
+  /* Agrupado, cada columna de curso alinea sus tarjetas arriba, a su altura */
+  .grid-cells > :global(.board-column) {
+    align-self: start;
+  }
+</style>

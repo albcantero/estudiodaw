@@ -1,0 +1,250 @@
+---
+/**
+ * @file Documento de un tema (teoría, ejercicios o soluciones): cabecera con el tema y sus
+ * pestañas, el contenido con su índice, el lector paginado (una página por <h2>) y las descargas.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { getCollection, getEntry, render } from 'astro:content';
+import Button from '../../../components/ui/Button.astro';
+import Tooltip from '../../../components/ui/Tooltip.astro';
+import Icon from '../../../components/ui/Icon.astro';
+import SegmentedControl from '../../../components/ui/SegmentedControl.astro';
+import { DOC_LABELS } from '../../../data/doc-kinds';
+import Base from '../../../layouts/Base.astro';
+import docPagesScript from '../../../scripts/inline/doc-pages.js?raw';
+import { docsOfTema, temaNumber } from '../../../lib/content';
+
+/**
+ * Una página por documento: /<asignatura>/<tema>/<tipo>
+ *
+ * @returns Las rutas, con el tema, sus documentos y el documento de cada página.
+ */
+export async function getStaticPaths() {
+  const docs = await getCollection('docs');
+  return docs.map((doc) => {
+    const [subject, tema, kind] = doc.id.split('/');
+    return { params: { subject, tema, doc: kind }, props: { doc } };
+  });
+}
+
+const { doc } = Astro.props;
+const { subject: subjectId = '', tema: temaSlug = '' } = Astro.params;
+
+const subject = await getEntry('subjects', subjectId);
+const tema = (await getCollection('temas')).find(
+  (entry) => entry.data.subject === subjectId && entry.data.slug === temaSlug,
+);
+if (!subject || !tema) throw new Error(`El documento ${doc.id} no tiene asignatura o tema`);
+
+const siblings = docsOfTema(await getCollection('docs'), subjectId, temaSlug);
+const { Content, headings } = await render(doc);
+const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+
+const number = temaNumber(tema.data.number);
+const position = siblings.findIndex((sibling) => sibling.id === doc.id);
+const prev = siblings[position - 1];
+const next = siblings[position + 1];
+
+/**
+ * URL de un documento de este tema.
+ *
+ * @param kind Tipo de documento.
+ * @returns La URL del documento.
+ */
+const docUrl = (kind: string) => `/${subjectId}/${temaSlug}/${kind}`;
+
+const tabs = siblings.map((sibling) => ({
+  value: sibling.data.kind,
+  label: DOC_LABELS[sibling.data.kind],
+  href: docUrl(sibling.data.kind),
+  tooltip: `Ir a ${DOC_LABELS[sibling.data.kind]}`,
+}));
+---
+
+<Base
+  title={`${tema.data.title} · ${doc.data.title}`}
+  description={tema.data.description}
+  sidebar={false}
+>
+  <div class="dash-b h-px"></div>
+
+  <div class="flex items-center justify-between py-inset pr-inset pl-gutter">
+    <Tooltip content={`Ir a ${subject.data.name}`}>
+      <a
+        href={`/${subjectId}`}
+        class="press focus-ring inline-flex h-7 items-center gap-2 rounded-md text-sm tracking-wider text-muted-foreground hover:text-foreground"
+      >
+        <Icon name="arrow-left" class="size-4" />
+        {subject.data.name} · Tema {number}
+      </a>
+    </Tooltip>
+    <div class="flex items-center gap-2">
+      {prev && (
+        <Button
+          href={docUrl(prev.data.kind)}
+          variant="secondary"
+          size="icon-sm"
+          aria-label={`Anterior: ${DOC_LABELS[prev.data.kind]}`}
+          tooltip={`Anterior: ${DOC_LABELS[prev.data.kind]}`}
+        >
+          <Icon name="arrow-left" class="size-4" />
+        </Button>
+      )}
+      {next && (
+        <Button
+          href={docUrl(next.data.kind)}
+          variant="secondary"
+          size="icon-sm"
+          aria-label={`Siguiente: ${DOC_LABELS[next.data.kind]}`}
+          tooltip={`Siguiente: ${DOC_LABELS[next.data.kind]}`}
+        >
+          <Icon name="arrow-right" class="size-4" />
+        </Button>
+      )}
+    </div>
+  </div>
+
+  <div class="dash-t dash-b h-4"></div>
+  <h1 class="heading dash-b px-gutter text-4xl text-balance">{tema.data.title}</h1>
+
+  <div class="dash-b p-inset">
+    <SegmentedControl
+      name="doc-tabs"
+      label="Documentos del tema"
+      options={tabs}
+      current={doc.data.kind}
+      size="wide"
+    />
+  </div>
+
+  <div class="prose prose-notes min-w-0 px-gutter py-8">
+    <p class="lead mt-0! text-muted-foreground">{tema.data.description}</p>
+
+    {toc.length > 0 && (
+      <details class="toc not-prose inset-surface mt-5">
+        <summary>En este documento · {toc.length} secciones</summary>
+        <ol class="mt-1 mb-2 flex flex-col gap-1 px-3 text-sm">
+          {toc.map((heading) => (
+            <li class:list={[heading.depth === 3 && 'pl-3']}>
+              <Tooltip content={`Ir a ${heading.text}`}>
+                <a
+                  href={`#${heading.slug}`}
+                  class="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {heading.text}
+                </a>
+              </Tooltip>
+            </li>
+          ))}
+        </ol>
+      </details>
+    )}
+
+    <div id="doc-content">
+      <Content />
+    </div>
+  </div>
+
+  <!-- Lector paginado: lo prepara scripts/inline/doc-pages.js. Sin JavaScript no se muestra y
+       el documento se lee entero. Al llegar al final, enlaza con el documento anterior o
+       siguiente del tema. -->
+  <nav id="doc-pager" class="dash-t" aria-label="Páginas del documento" hidden>
+    <div class="flex items-center gap-3 px-gutter pt-3 pb-2 text-xs text-muted-foreground tabular-nums">
+      <span class="shrink-0">
+        Página <span data-pager-index>1</span> de <span data-pager-count>1</span>
+      </span>
+      <span class="h-1 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+        <span
+          class="block h-full rounded-full bg-foreground/70 transition-[width] duration-300"
+          data-pager-progress
+        ></span>
+      </span>
+    </div>
+    <div class="hover-group grid grid-cols-2">
+      <Tooltip content="Ir a la página anterior">
+        <button
+          type="button"
+          class="press focus-ring flex min-w-0 flex-col items-start gap-1 p-gutter text-left hover:bg-hover active:bg-pressed"
+          data-pager="prev"
+        >
+          <span class="flex items-center gap-1 text-xs text-muted-foreground">
+            <Icon name="arrow-left" class="size-3.5" /> Anterior
+          </span>
+          <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
+        </button>
+      </Tooltip>
+      <Tooltip content="Ir a la página siguiente">
+        <button
+          type="button"
+          class="press focus-ring flex min-w-0 flex-col items-end gap-1 border-l p-gutter text-right hover:bg-hover active:bg-pressed"
+          data-pager="next"
+        >
+          <span class="flex items-center gap-1 text-xs text-muted-foreground">
+            Siguiente <Icon name="arrow-right" class="size-3.5" />
+          </span>
+          <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
+        </button>
+      </Tooltip>
+    </div>
+  </nav>
+  <script
+    is:inline
+    data-prev-doc={prev ? docUrl(prev.data.kind) : undefined}
+    data-prev-doc-label={prev ? DOC_LABELS[prev.data.kind] : undefined}
+    data-next-doc={next ? docUrl(next.data.kind) : undefined}
+    data-next-doc-label={next ? DOC_LABELS[next.data.kind] : undefined}
+    set:html={docPagesScript}
+  />
+  <div class="dash-t dash-b p-gutter">
+    <p class="mb-3 text-sm font-medium tracking-wider text-muted-foreground">Descargas</p>
+    <div class="flex flex-wrap gap-2">
+      <Button
+        href={`${docUrl(doc.data.kind)}.md`}
+        variant="primary"
+        download={`${subjectId}-tema${number}-${doc.data.kind}.md`}
+        tooltip={`Descargar ${doc.data.title}.md`}
+      >
+        <Icon name="download" class="size-4" />
+        {doc.data.title}.md
+      </Button>
+      {tema.data.downloads.map((download) => (
+        <Button
+          href={download.file}
+          variant="outline"
+          class="font-mono"
+          download
+          tooltip={`Descargar ${download.label}`}
+        >
+          {download.label}
+        </Button>
+      ))}
+    </div>
+    {tema.data.downloads.length > 0 && (
+      <p class="mt-3 text-sm text-muted-foreground">
+        Mis soluciones: resueltas por mí y corregidas al final de cada fichero.
+      </p>
+    )}
+  </div>
+  <div class="h-4"></div>
+</Base>
+
+<script>
+  import '../../../scripts/doc-pager';
+</script>
+
+<style>
+  /* Si solo queda el botón de "siguiente", que no se quede a medias en la columna derecha */
+  [data-pager='prev'][hidden] + [data-pager='next'] {
+    grid-column: 2;
+  }
+
+  .toc > summary {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    color: var(--muted-foreground);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+</style>

@@ -1,0 +1,33 @@
+---
+/**
+ * @file URL de un tema (/<asignatura>/<tema>): redirige a su primer documento, normalmente la
+ * teoría. Los temas sin documentos no tienen URL.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { getCollection } from 'astro:content';
+import { docsOfTema } from '../../../lib/content';
+
+/**
+ * Una redirección por tema con documentos
+ *
+ * @returns Las rutas, con la URL del primer documento de cada tema.
+ */
+export async function getStaticPaths() {
+  const temas = await getCollection('temas');
+  const docs = await getCollection('docs');
+  return temas.flatMap((tema) => {
+    const first = docsOfTema(docs, tema.data.subject, tema.data.slug)[0];
+    if (!first) return [];
+    return [
+      {
+        params: { subject: tema.data.subject, tema: tema.data.slug },
+        props: { kind: first.data.kind },
+      },
+    ];
+  });
+}
+
+return Astro.redirect(`/${Astro.params.subject}/${Astro.params.tema}/${Astro.props.kind}`);
+---

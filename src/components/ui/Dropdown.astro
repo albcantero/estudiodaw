@@ -1,0 +1,153 @@
+---
+/**
+ * @file Desplegable: un botón de solo icono que abre una tarjeta flotante con lo que se le pase
+ * (slot). Lo usan los ajustes de la web y los de las colecciones.
+ *
+ * Es un popover nativo (atributo popover y popovertarget en el botón): va por encima de todo,
+ * se cierra con un clic fuera o con Esc y lo anuncia a los lectores de pantalla sin librerías.
+ * scripts/dropdown.ts lo coloca debajo del botón y deja el botón pulsado mientras está abierto.
+ *
+ * Con indicator, el botón lleva un punto de marca arriba a la derecha cuando lo de dentro está
+ * cambiado respecto a lo de serie (data-changed, lo pone quien lo usa).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { FloatingSide } from '../../scripts/floating';
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** Id de la tarjeta: único en la página */
+  id: string;
+  /** Nombre accesible del botón y de la tarjeta */
+  label: string;
+  /** Icono de Tabler del botón (si no se le pasa un slot trigger con su contenido) */
+  icon: string;
+  /** Estilo del botón (ui/Button): ghost en las barras, outline junto a otros con borde */
+  variant?: 'ghost' | 'outline';
+  /** Tamaño del botón: de icono (de serie) o con texto, para un slot trigger con texto */
+  size?: 'icon' | 'default';
+  /** Ancho de la tarjeta (clase de Tailwind) */
+  width?: string;
+  /** Lado del tooltip del botón (su texto es label); se esconde con la tarjeta abierta */
+  tooltipSide?: FloatingSide;
+  /** Con tooltip (de serie, sí); sin él cuando el botón ya dice lo que es (p. ej. el usuario) */
+  tooltip?: boolean;
+  /**
+   * Punto de marca en el botón cuando algo está cambiado. Su texto es lo que oye el lector de
+   * pantalla en lugar del punto (p. ej. "hay propiedades ocultas")
+   */
+  indicator?: string;
+  /** Sin relleno: lo de dentro pone el suyo (p. ej. una franja de lado a lado al pie) */
+  flush?: boolean;
+}
+
+const {
+  id,
+  label,
+  icon,
+  variant = 'ghost',
+  size = 'icon',
+  width = 'w-72',
+  tooltipSide,
+  tooltip = true,
+  indicator,
+  flush = false,
+} = Astro.props;
+---
+
+<Button
+  {variant}
+  {size}
+  class:list={['relative', size === 'default' && 'px-2']}
+  tooltip={tooltip ? label : undefined}
+  {tooltipSide}
+  popovertarget={id}
+  data-dropdown-trigger
+>
+  {Astro.slots.has('trigger') ? <slot name="trigger" /> : <Icon name={icon} class="size-4" />}
+  {/* El nombre del botón; con algo cambiado, también el aviso del punto */}
+  <span class="sr-only">{label}</span>
+  {indicator && (
+    <>
+      <span class="dropdown-dot marker-dot marker-dot-corner" aria-hidden="true" />
+      <span class="dropdown-changed sr-only">({indicator})</span>
+    </>
+  )}
+</Button>
+
+<div
+  {id}
+  popover
+  class:list={['dropdown-panel', width, flush && 'dropdown-flush']}
+  role="group"
+  aria-label={label}
+  data-dropdown
+>
+  <slot />
+</div>
+
+<style>
+  /* Tarjeta flotante. La posición (top y right) la escribe el script, debajo del botón y
+     alineada con su borde derecho. Aparece y se va con un fundido y un ligero zoom.
+     Superficie de tarjeta flotante: --popover, su borde y su sombra. */
+  .dropdown-panel {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: calc(var(--spacing) * 1.5);
+    border: 1px solid var(--popover-border);
+    border-radius: var(--radius-xl);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: var(--shadow-popover);
+    opacity: 0;
+    scale: 0.96;
+    transform-origin: top right;
+    transition-property: opacity, scale, overlay, display;
+    transition-duration: var(--duration-menu);
+    transition-timing-function: var(--ease-hover);
+    transition-behavior: allow-discrete;
+  }
+
+  .dropdown-flush {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .dropdown-panel:popover-open {
+    opacity: 1;
+    scale: 1;
+  }
+
+  @starting-style {
+    .dropdown-panel:popover-open {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+
+  /* Punto de marca (marker-dot) en la esquina: solo con algo cambiado (data-changed en el
+     botón) */
+  .dropdown-dot {
+    opacity: 0;
+    transition: opacity var(--duration-ui) var(--ease-hover);
+  }
+
+  :global([data-changed]) > .dropdown-dot {
+    opacity: 1;
+  }
+
+  .dropdown-changed {
+    display: none;
+  }
+
+  :global([data-changed]) > .dropdown-changed {
+    display: inline;
+  }
+</style>
+
+<script>
+  import '../../scripts/dropdown';
+</script>

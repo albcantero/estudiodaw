@@ -1,0 +1,58 @@
+---
+/**
+ * @file Columna de una sección de características (Features): arriba una ilustración lineal;
+ * debajo, su etiqueta de figura ("Fig 0.1", en mono), el título y una frase.
+ * Sin superficie ni enlace: cuenta, no lleva a ningún sitio. Las líneas entre columnas las pone
+ * Features.
+ *
+ * La ilustración va en el slot "illustration" (un SVG en línea, para que conserve su animación);
+ * sin ella, un hueco marcado de su mismo tamaño.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+interface Props {
+  /** Etiqueta de figura: "Fig 0.1" */
+  figure: string;
+  title: string;
+  /** Una frase: qué es y para qué sirve */
+  text: string;
+}
+
+const { figure, title, text } = Astro.props;
+---
+
+<article class="flex flex-col p-gutter">
+  <div class="feature-illustration" aria-hidden="true">
+    <slot name="illustration">
+      <div class="feature-placeholder"></div>
+    </slot>
+  </div>
+  <p class="eyebrow mt-6 text-muted-foreground">{figure}</p>
+  <h3 class="heading mt-2 text-xl leading-snug text-balance">{title}</h3>
+  <p class="mt-1 text-sm text-pretty text-muted-foreground">{text}</p>
+</article>
+
+<style>
+  /* Zona de la ilustración: el mismo alto en las tres, para que las etiquetas se alineen. Las
+     ilustraciones van a lo ancho de la columna; el alto es el de la más alta (el dock de
+     Código), así ninguna se sale */
+  .feature-illustration {
+    display: grid;
+    height: calc(var(--spacing) * 52.5);
+    place-items: center;
+  }
+
+  .feature-illustration :global(svg) {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* Hueco hasta que llegue la ilustración */
+  .feature-placeholder {
+    width: 100%;
+    height: 100%;
+    border: 1px dashed var(--input);
+    border-radius: var(--radius-lg);
+  }
+</style>

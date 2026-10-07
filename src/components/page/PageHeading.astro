@@ -1,0 +1,57 @@
+---
+/**
+ * @file Cabecera de página: migas pequeñas, título entre líneas y descripción. El slot va debajo
+ * (p. ej. los filtros del calendario).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Tooltip from '../ui/Tooltip.astro';
+
+interface Crumb {
+  label: string;
+  /** Sin href, la miga es solo texto */
+  href?: string;
+}
+
+interface Props {
+  /** Migas sobre el título: de dónde cuelga la página */
+  breadcrumbs?: Crumb[];
+  title: string;
+  description?: string;
+}
+
+const { breadcrumbs = [], title, description } = Astro.props;
+---
+
+<div class="pt-12">
+  {breadcrumbs.length > 0 && (
+    <nav
+      aria-label="Migas"
+      class="px-gutter pb-2 text-sm leading-none font-medium tracking-wider text-muted-foreground"
+    >
+      {breadcrumbs.map((crumb, index) => (
+        <>
+          {index > 0 && <span aria-hidden="true"> / </span>}
+          {crumb.href ? (
+            <Tooltip content={`Ir a ${crumb.label}`}>
+              <a
+                href={crumb.href}
+                class="focus-ring rounded-sm transition-colors hover:text-foreground"
+              >
+                {crumb.label}
+              </a>
+            </Tooltip>
+          ) : (
+            <span>{crumb.label}</span>
+          )}
+        </>
+      ))}
+    </nav>
+  )}
+  <h1 class="heading dash-t dash-b px-gutter text-4xl text-balance">{title}</h1>
+  {description && (
+    <p class="dash-b p-gutter text-base text-balance text-muted-foreground">{description}</p>
+  )}
+  <slot />
+</div>

@@ -1,0 +1,8 @@
+{
+  "name": "Despliegue de Aplicaciones Web",
+  "description": "Servidores web y de aplicaciones, control de versiones, contenedores, documentación y monitorización.",
+  "order": 12,
+  "year": 2,
+  "color": "#fb923c",
+  "icon": "cloud-upload"
+}

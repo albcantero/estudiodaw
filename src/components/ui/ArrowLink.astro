@@ -1,0 +1,49 @@
+---
+/**
+ * @file Enlace con flecha: texto en el azul de marca, que se subraya al pasar el ratón, y detrás la
+ * flecha "arrow-up-right" de Tabler, que se mueve 2 px hacia donde apunta. Es el de "Ver el
+ * calendario" del aviso de exámenes, y el de la licencia del pie.
+ *
+ * Con external, el enlace lleva a otra web y se abre en otra pestaña (avisado al lector de
+ * pantalla).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { HTMLAttributes } from 'astro/types';
+import { cn } from '../../lib/cn';
+import Icon from './Icon.astro';
+import NewTabHint from './NewTabHint.astro';
+import Tooltip from './Tooltip.astro';
+
+type Props = HTMLAttributes<'a'> & {
+  href: string;
+  /** Lleva a otra web: se abre en otra pestaña */
+  external?: boolean;
+  /** Texto del tooltip */
+  tooltip?: string;
+};
+
+const { href, external = false, tooltip, class: className, ...rest } = Astro.props;
+---
+
+<Tooltip content={tooltip}>
+  <a
+    {href}
+    class={cn(
+      'group focus-ring inline-flex w-fit items-center gap-1 rounded-sm font-medium text-brand underline decoration-transparent decoration-from-font underline-offset-4 transition-[text-decoration-color] hover:decoration-current',
+      className,
+    )}
+    target={external ? '_blank' : undefined}
+    rel={external ? 'noopener' : undefined}
+    {...rest}
+  >
+    <slot />
+    {external && <NewTabHint />}
+    <Icon
+      name="arrow-up-right"
+      class="size-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+      strokeWidth={1.5}
+    />
+  </a>
+</Tooltip>

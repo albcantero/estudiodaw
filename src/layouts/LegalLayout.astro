@@ -1,0 +1,43 @@
+---
+/**
+ * @file Plantilla de las páginas legales (aviso legal, privacidad): cabecera, separador y el texto
+ * con el mismo estilo que los apuntes (prose-notes), con la fecha de la última revisión.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import PageHeading from '../components/page/PageHeading.astro';
+import Separator from '../components/page/Separator.astro';
+import { LEGAL_UPDATED } from '../data/site';
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+
+/** "4 de octubre de 2026" */
+const updatedLabel = new Intl.DateTimeFormat('es-ES', {
+  dateStyle: 'long',
+  timeZone: 'Europe/Madrid',
+}).format(new Date(`${LEGAL_UPDATED}T12:00:00`));
+---
+
+<Base title={title} description={description} banner={false}>
+  <PageHeading
+    breadcrumbs={[{ label: 'Información legal' }]}
+    title={title}
+    description={description}
+  />
+
+  <Separator />
+
+  <article class="prose prose-notes min-w-0 px-gutter py-8">
+    <slot />
+    <p class="text-sm text-muted-foreground">
+      Última revisión: <time datetime={LEGAL_UPDATED}>{updatedLabel}</time>.
+    </p>
+  </article>
+</Base>

@@ -1,0 +1,59 @@
+---
+/**
+ * @file Un curso del tablero con "Agrupar por curso": una columna tipo kanban, una caja de solo
+ * borde (como la fila del curso de la lista) con su cabecera ("● Primero 8") y, debajo, sus
+ * tarjetas una sobre otra.
+ *
+ * El cuerpo llega vacío: la colocación (scripts/inline/collection-layout.js) mete en él las
+ * tarjetas de su curso al agrupar y las devuelve al tablero al desagrupar, antes del primer
+ * pintado. El número cuenta lo que se ve (buscador y matrícula); sin nada, el curso no se ve.
+ * Sin agrupar, la columna entera se oculta (layout.css).
+ *
+ * Va en la misma lista que las tarjetas: el <li> no cuenta como elemento (role="presentation")
+ * y la cabecera es un encabezado, para saltar de curso en curso con el lector de pantalla.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { riseIndex } from '../../lib/collection';
+import { COURSES } from '../../data/courses';
+
+interface Props {
+  group: string;
+  /** Elementos del curso */
+  count: number;
+}
+
+const { group, count } = Astro.props;
+
+/** Color del punto del curso: el de sus pastillas (Badge) y el de la fila del curso de la lista */
+const DOT_COLORS = { first: 'bg-course-first', second: 'bg-course-second' };
+const dot = Object.values(COURSES).find((course) => course.name === group)?.dot;
+---
+
+<li
+  class="board-column rise p-inset"
+  style={`--i: ${riseIndex(0)}`}
+  role="presentation"
+  data-board-column={group}
+>
+  <div class="board-column-box border border-input">
+    <h3 class="flex min-w-0 items-center gap-2 px-surface pt-3 pb-1">
+      {dot && (
+        <span class:list={['size-2 shrink-0 rounded-full', DOT_COLORS[dot]]} aria-hidden="true" />
+      )}
+      <span class="heading truncate text-lg leading-snug">{group}</span>
+      <span class="font-mono text-sm text-muted-foreground tabular-nums" data-group-count>
+        {count}
+      </span>
+    </h3>
+    <ul data-group-body />
+  </div>
+</li>
+
+<style>
+  /* Esquinas concéntricas con las de las tarjetas: las suyas más el hueco hasta ellas (inset) */
+  .board-column-box {
+    border-radius: calc(var(--radius-xl) + var(--spacing-inset));
+  }
+</style>

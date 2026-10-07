@@ -1,0 +1,2 @@
+-- Datos de prueba para la base de datos local (supabase db reset los carga después de las
+-- migraciones). Solo datos inventados: nunca datos reales de usuarios.

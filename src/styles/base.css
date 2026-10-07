@@ -1,0 +1,89 @@
+/**
+ * @file Estilos de base: la fuente monoespaciada propia, los valores por defecto del documento y
+ * los títulos.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop {
+    border-color: var(--border);
+    outline-color: var(--ring-soft);
+  }
+
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  /* Hovers suaves en toda la web: los elementos interactivos cambian de color, fondo, borde,
+     opacidad o sombra con transición, al entrar y al salir. Especificidad cero (:where): una
+     utilidad transition-* o un componente con su propia transición la sustituyen. */
+  :where(a, button, summary, label, input, select, textarea, [role='button'], [tabindex]) {
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill, stroke, opacity,
+      box-shadow;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-hover);
+  }
+
+  /* Al saltar a un ancla, que no quede debajo de la barra fija */
+  [id] {
+    scroll-margin-top: calc(var(--header-height) + var(--spacing-gutter));
+  }
+}
+
+/* Títulos en Cardo: solo tiene Regular y Bold, así que 400 fijo para que el navegador no
+   sintetice un 500, y sin conjuntos estilísticos ni espaciado heredados. Fuera de capa a
+   propósito: tiene que ganar al peso que pone a los títulos el plugin de tipografía. */
+.heading,
+.prose-notes :where(h1, h2, h3, h4) {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: normal;
+  font-feature-settings: normal;
+}
+
+/* Reducir movimiento (del sistema o de la web: html[data-reduce-motion], ver inline/boot.js).
+   Sin JavaScript no hay atributo: ahí manda directamente el ajuste del sistema. */
+@media (scripting: none) and (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+:root[data-reduce-motion] *,
+:root[data-reduce-motion] *::before,
+:root[data-reduce-motion] *::after {
+  transition-duration: 1ms !important;
+  animation-duration: 1ms !important;
+}

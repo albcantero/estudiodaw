@@ -1,0 +1,72 @@
+---
+/**
+ * @file Barra de móvil, y de escritorio en las páginas de lectura (sin panel lateral): logo,
+ * secciones y acciones. Las asignaturas se eligen desde la portada.
+ *
+ * Recorta lo que se sale por los lados (overflow-x-clip) porque su línea continua de abajo
+ * cruza la pantalla entera (ver utilities.css).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { SECTION_LINKS } from '../../data/site';
+import { isSectionActive, normalizePath } from '../../lib/routes';
+import SettingsMenu from '../ui/SettingsMenu.astro';
+import ThemeToggle from '../ui/ThemeToggle.astro';
+import Tooltip from '../ui/Tooltip.astro';
+import EnrollmentButton from './EnrollmentButton.astro';
+import GitHubButton from './GitHubButton.astro';
+import HomeLink from './HomeLink.astro';
+
+interface Props {
+  /** Clases de visibilidad que pone la plantilla */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+const path = normalizePath(Astro.url.pathname);
+// Inicio ya es el logo
+const links = SECTION_LINKS.filter((link) => link.href !== '/');
+/** Separador vertical entre grupos de acciones */
+const separator = 'h-5 w-px bg-border';
+---
+
+<header
+  data-scrollbar-header
+  class:list={[
+    'rise page-gutter sticky top-0 z-(--z-topbar) overflow-x-clip bg-background',
+    className,
+  ]}
+  style="--i: 0"
+>
+  <div class="column dash-t rule-b flex h-(--header-height) items-center gap-2 pr-2 pl-gutter sm:gap-4">
+    <HomeLink class="flex items-center rounded-md text-foreground" logoClass="h-6 w-auto" />
+
+    <nav class="ml-auto" aria-label="Secciones">
+      <ul class="flex items-center gap-3 sm:gap-4">
+        {links.map((link) => (
+          <li>
+            <Tooltip content={`Ir a ${link.label}`} side="bottom">
+              <a
+                href={link.href}
+                class="focus-ring rounded-md text-sm font-medium tracking-wide text-muted-foreground hover:text-foreground aria-[current=page]:text-foreground"
+                aria-current={isSectionActive(path, link.href) ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </Tooltip>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center">
+      <span class:list={[separator, 'mr-2']} aria-hidden="true"></span>
+      <EnrollmentButton compact />
+      <GitHubButton class="max-sm:hidden" />
+      <span class:list={[separator, 'mx-2 max-sm:hidden']} aria-hidden="true"></span>
+      <ThemeToggle tooltipSide="bottom" />
+      <SettingsMenu id="settings-navbar" tooltipSide="bottom" />
+    </div>
+  </div>
+</header>

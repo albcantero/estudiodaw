@@ -1,0 +1,216 @@
+---
+/**
+ * @file Aviso de que la web está en desarrollo: una tarjeta en la esquina de abajo a la derecha,
+ * con una ilustración arriba y el texto debajo. Usa las variables de la web: la superficie de los
+ * menús (--popover, su borde, --radius-xl y --shadow-popover), los márgenes (gutter, surface,
+ * inset), el texto en text-ui, los iconos a size-4 y el movimiento de las entradas
+ * (--duration-enter, --ease-snappy). Mide 24rem de ancho, para que el texto quepa en dos líneas y
+ * la X quede apartada de la ilustración (en móvil, todo el ancho). Entra desde fuera de la pantalla
+ * (un 150 % por abajo) con un fundido y desenfocada, y sale por donde vino; dentro, cada parte
+ * entra escalonada (.rise). La X es la misma que la del diálogo de entrar (AuthDialog): a 4 px de
+ * la esquina y sin fondo al pasar el ratón ni al pulsar.
+ *
+ * Una línea dentro, abajo, se llena en 12 s y, al llegar al final, la cierra; con el ratón
+ * encima, se para. Sale en cada carga de la página, sin guardar nada; al navegar dentro de la
+ * web no se repite, porque persiste entre páginas y, una vez ida, se queda ida.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import IsoIllustration from '../page/IsoIllustration.astro';
+---
+
+<section
+  class="dev-notice pointer-events-none fixed inset-x-gutter bottom-gutter mx-auto w-auto max-w-sm sm:right-gutter sm:left-auto sm:mx-0 sm:w-full"
+  aria-label="Notificaciones"
+  transition:persist="dev-notice"
+  data-dev-notice
+  hidden
+>
+  <div
+    class="dev-notice-card pointer-events-auto relative w-full overflow-hidden bg-popover text-popover-foreground"
+    role="status"
+    data-dev-notice-card
+  >
+    {/* La obra: una web a medio montar con su grúa, ya montada y con la carga meciéndose. Debajo,
+        la discontinua del panel lateral (dash), al ras del texto: no llega a los bordes */}
+    <div
+      class="dev-notice-media rise dash-b p-surface [--dash-inset:var(--spacing-surface)]"
+      style="--i: 1"
+      aria-hidden="true"
+    >
+      {/* El mismo alto que las ilustraciones de la portada (FeatureCard): 210 px */}
+      <div class="h-52.5">
+        <IsoIllustration name="construction" still />
+      </div>
+    </div>
+    <div class="rise flex flex-col gap-1 p-surface pb-5" style="--i: 2">
+      <p class="text-ui font-medium">Versión preliminar</p>
+      <p class="text-ui text-muted-foreground">
+        Esta web todavía está en desarrollo. Algunas funciones y secciones pueden no estar
+        disponibles todavía.
+      </p>
+    </div>
+    <Button
+      size="icon-sm"
+      style="--i: 0"
+      class="rise absolute top-1 right-1 text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:bg-transparent hover:text-foreground active:bg-transparent"
+      aria-label="Cerrar el aviso"
+      data-dev-notice-close
+    >
+      <Icon name="x" class="size-4" />
+    </Button>
+    <span class="dev-notice-track" aria-hidden="true">
+      <span class="dev-notice-progress" data-dev-notice-progress></span>
+    </span>
+  </div>
+</section>
+
+<style>
+  /* Por encima de todo lo fijo, también de la barra de scroll propia (--z-scrollbar) */
+  .dev-notice {
+    z-index: calc(var(--z-scrollbar) + 1);
+  }
+
+  .dev-notice[hidden] {
+    display: none;
+  }
+
+  /* La ilustración mezcla sus colores con el fondo de la página (page/IsoIllustration); aquí su
+     fondo es el de la tarjeta, así sus caras no salen como agujeros */
+  .dev-notice-media {
+    --background: var(--popover);
+    /* La discontinua del panel lateral, pero en el color del borde de la tarjeta: la de serie
+       (--border) está pensada sobre el fondo de la página y sobre la tarjeta apenas se ve */
+    --dash-h: repeating-linear-gradient(
+      to right,
+      var(--popover-border) 0 var(--dash),
+      transparent var(--dash) calc(2 * var(--dash))
+    );
+  }
+
+  /* La superficie de los menús de la web (ui/Dropdown). Entra desde fuera (un 150 % por abajo)
+     y sale por donde vino, con el movimiento de las entradas; además, aparece y se va con un
+     fundido y desenfocada, como lo que entra con .rise */
+  .dev-notice-card {
+    border: 1px solid var(--popover-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-popover);
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(150%);
+    transition-property: transform, opacity, filter;
+    transition-duration: var(--duration-enter);
+    transition-timing-function: var(--ease-snappy);
+  }
+
+  .dev-notice-card[data-mounted] {
+    opacity: 1;
+    filter: none;
+    transform: translateY(0);
+  }
+
+  .dev-notice-card[data-removed] {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(150%);
+  }
+
+  /* Dentro, la entrada escalonada (.rise) de los diálogos, cada vez que aparece: la general ya
+     se gastó al cargar la página, con la tarjeta aún oculta */
+  :global(:root:not([data-reduce-motion])) .dev-notice-card[data-mounted] :global(.rise) {
+    animation: rise-in var(--duration-enter) var(--ease-snappy) both;
+    animation-delay: calc(var(--i, 0) * var(--stagger));
+  }
+
+  /* La línea, dentro de la tarjeta: un carril redondeado en el hueco de abajo, alineado con el
+     relleno, y encima su relleno, que se llena en 12 s empezando cuando ya ha entrado; con el
+     ratón encima, se para. Al llegar al final, el script la cierra */
+  .dev-notice-track {
+    position: absolute;
+    right: var(--spacing-surface);
+    bottom: var(--spacing-inset);
+    left: var(--spacing-surface);
+    height: 2px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--popover-foreground) 10%, transparent);
+  }
+
+  .dev-notice-progress {
+    display: block;
+    height: 100%;
+    background: color-mix(in oklab, var(--popover-foreground) 45%, transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .dev-notice-card[data-mounted] .dev-notice-progress {
+    animation: dev-notice-progress 12s linear var(--duration-enter) forwards;
+  }
+
+  .dev-notice-card:hover .dev-notice-progress {
+    animation-play-state: paused;
+  }
+
+  @keyframes dev-notice-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dev-notice-card {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /** La enseña al cargar la página; al navegar dentro de la web, solo si no ha salido ya */
+  function show(): void {
+    const notice = document.querySelector<HTMLElement>('[data-dev-notice]');
+    const card = notice?.querySelector<HTMLElement>('[data-dev-notice-card]');
+    if (!notice || !card || !notice.hidden || card.hasAttribute('data-removed')) return;
+    notice.hidden = false;
+    // Un fotograma en su sitio de salida y, al siguiente, a entrar
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => card.toggleAttribute('data-mounted', true)),
+    );
+  }
+
+  /** La quita (con la X o al llenarse la línea) y la oculta al acabar de irse */
+  function dismiss(): void {
+    const notice = document.querySelector<HTMLElement>('[data-dev-notice]');
+    const card = notice?.querySelector<HTMLElement>('[data-dev-notice-card]');
+    if (!notice || !card || card.hasAttribute('data-removed')) return;
+    card.toggleAttribute('data-removed', true);
+    // Oculta cuando acaba de irse (su propio desplazamiento, no el hover de la X, que también
+    // avisa al acabar); sin transición (reducir movimiento), al momento
+    const hide = () => {
+      notice.hidden = true;
+    };
+    if (getComputedStyle(card).transitionDuration === '0s') {
+      hide();
+      return;
+    }
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target !== card || event.propertyName !== 'transform') return;
+      card.removeEventListener('transitionend', onEnd);
+      hide();
+    };
+    card.addEventListener('transitionend', onEnd);
+  }
+
+  document.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('[data-dev-notice-close]')) dismiss();
+  });
+
+  document.addEventListener('animationend', (event) => {
+    if ((event.target as HTMLElement).matches('[data-dev-notice-progress]')) dismiss();
+  });
+
+  document.addEventListener('astro:page-load', show);
+</script>

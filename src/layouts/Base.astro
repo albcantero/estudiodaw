@@ -1,0 +1,158 @@
+---
+/**
+ * @file Plantilla de todas las páginas. Con panel lateral (portada y asignaturas), el panel va fijo
+ * a la izquierda y la columna de contenido a la derecha; sin él (páginas de lectura), el marco se
+ * estrecha a la columna.
+ *
+ * En el <head> va en línea scripts/inline/boot.js, que aplica las preferencias guardadas
+ * (tema, vista, agrupación, propiedades ocultas, matrícula y reducir movimiento) antes del
+ * primer pintado.
+ *
+ * Lo primero del <body> es "Saltar al contenido": oculto hasta llegar con el teclado, lleva al
+ * <main> sin recorrer el panel lateral.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { ClientRouter } from 'astro:transitions';
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import bootScript from '../scripts/inline/boot.js?raw';
+import { SITE_DESCRIPTION, SITE_NAME } from '../data/site';
+import {
+  DEFAULT_HIDDEN_FIELDS,
+  LEGACY_STORAGE_KEYS,
+  ROOT_CHOICES,
+  STORAGE_KEYS,
+} from '../data/storage';
+import AuthDialog from '../components/layout/AuthDialog.astro';
+import DevNotice from '../components/layout/DevNotice.astro';
+import EnrollmentDialog from '../components/layout/EnrollmentDialog.astro';
+import ExamBanner from '../components/layout/ExamBanner.astro';
+import Footer from '../components/layout/Footer.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Sidebar from '../components/layout/Sidebar.astro';
+import TopBar from '../components/layout/TopBar.astro';
+
+interface Props {
+  /** Título de la página; en la pestaña va seguido del nombre de la web */
+  title: string;
+  description?: string;
+  /** Con panel lateral (portada y asignaturas); las páginas de lectura van sin él */
+  sidebar?: boolean;
+  /** Aviso del calendario bajo la barra superior */
+  banner?: boolean;
+  /**
+   * <h1> solo para lectores de pantalla y buscadores, en las páginas cuyo primer título visible
+   * no es un h1 (la portada empieza con la lista de asignaturas)
+   */
+  heading?: string;
+}
+
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  sidebar = true,
+  banner = true,
+  heading,
+} = Astro.props;
+
+const pageTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<!-- Oscuro de serie (también sin JavaScript); boot.js lo quita si se ha elegido el claro -->
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      is:inline
+      set:html={`${bootScript}\nboot(${JSON.stringify(STORAGE_KEYS)}, ${JSON.stringify(ROOT_CHOICES)}, ${JSON.stringify(DEFAULT_HIDDEN_FIELDS)}, ${JSON.stringify(LEGACY_STORAGE_KEYS)});`}
+    />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <!-- Vista previa al compartir el enlace (WhatsApp, Telegram, Discord…) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Font cssVariable="--font-funnel-sans" preload={[{ style: 'normal', subset: 'latin' }]} />
+    <Font cssVariable="--font-cardo" />
+    <!-- Geist Mono va con su @font-face (base.css): se precarga, porque sale nada más entrar
+         (las etiquetas del panel, el pie) -->
+    <link
+      rel="preload"
+      href="/fonts/GeistMono-Variable.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <!-- Navegación sin recarga: el panel lateral persiste entre páginas -->
+    <ClientRouter />
+  </head>
+
+  <body class="min-h-dvh" data-sidebar={sidebar ? '' : undefined}>
+    <a
+      href="#contenido"
+      class="sr-only rounded-md border bg-background px-3 py-2 text-ui font-medium focus-ring focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-(--z-scrollbar)"
+    >
+      Saltar al contenido
+    </a>
+    <div
+      data-page-scrollbar
+      class:list={['frame mx-auto w-full', sidebar ? 'max-w-(--frame-width)' : 'max-w-3xl']}
+    >
+      <div class:list={[sidebar && 'shell-grid lg:items-start']}>
+        {sidebar && <Sidebar class="max-lg:hidden" />}
+
+        <!-- Columna del cuerpo. isolate: las capas por detrás (z-index negativo) de líneas y
+             franjas quedan dentro de ella. overflow-x-clip: recorta lo que va a sangre. -->
+        <div class:list={['relative isolate min-w-0 overflow-x-clip', sidebar && 'lg:border-l']}>
+          {heading && <h1 class="sr-only">{heading}</h1>}
+          <Navbar class={sidebar ? 'lg:hidden' : undefined} />
+          {sidebar && <TopBar class="max-lg:hidden" />}
+          {sidebar && banner && <ExamBanner />}
+          <main id="contenido" class="page-gutter">
+            <div class="column">
+              <slot />
+            </div>
+          </main>
+        </div>
+      </div>
+      <!-- El pie va debajo de la rejilla, no dentro del cuerpo: el panel (sticky) se queda fijo
+           hasta que acaba el cuerpo, y entonces sube con él -->
+      <Footer sidebar={sidebar} />
+    </div>
+
+    <EnrollmentDialog />
+    {sidebar && <AuthDialog />}
+    <DevNotice />
+
+    <!-- Fundido inferior fijo, limitado a la columna del cuerpo en escritorio -->
+    <div class="bottom-fade" aria-hidden="true" data-page-fade>
+      <div class="bottom-fade-blur"></div>
+      <div class="bottom-fade-safe"></div>
+    </div>
+
+    <script>
+      // Scroll suave con la rueda, barra de scroll propia en toda la web y degradados en los
+      // bordes de las zonas con scroll
+      import '../scripts/smooth-scroll';
+      import '../scripts/scrollbars';
+      import '../scripts/scroll-fade';
+      // Fin de la entrada escalonada del cuerpo
+      import '../scripts/enter';
+      // Pausa de la web con un diálogo abierto
+      import '../scripts/modal';
+    </script>
+  </body>
+</html>

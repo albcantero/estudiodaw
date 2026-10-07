@@ -1,0 +1,85 @@
+---
+/**
+ * @file Ajustes de la web, junto al botón de tema: un desplegable (ui/Dropdown) con dos
+ * interruptores, scroll suave y reducir movimiento, cada uno con su descripción. Los lleva
+ * scripts/settings.ts.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { FloatingSide } from '../../scripts/floating';
+import Dropdown from './Dropdown.astro';
+import Switch from './Switch.astro';
+
+interface Props {
+  /** Id del desplegable: único en la página (hay uno en cada barra) */
+  id: string;
+  /** Lado del tooltip del botón */
+  tooltipSide?: FloatingSide;
+}
+
+const { id, tooltipSide } = Astro.props;
+
+/** Ajustes, en orden: la clave de su interruptor (data-setting), nombre y qué hace */
+const SETTINGS = [
+  {
+    key: 'smooth-scroll',
+    title: 'Scroll suave',
+    description: 'Suaviza el movimiento de la página al hacer scroll con la rueda del ratón.',
+  },
+  {
+    key: 'reduce-motion',
+    title: 'Reducir movimiento',
+    description: 'Quita las animaciones y las transiciones de la interfaz.',
+  },
+];
+---
+
+<Dropdown {id} label="Ajustes" icon="settings-2" {tooltipSide}>
+  {SETTINGS.map((setting) => (
+    <div class="settings-row">
+      <span id={`${id}-${setting.key}-title`} class="settings-title">
+        {setting.title}
+      </span>
+      <Switch
+        aria-labelledby={`${id}-${setting.key}-title`}
+        aria-describedby={`${id}-${setting.key}`}
+        data-setting={setting.key}
+      />
+      <p id={`${id}-${setting.key}`} class="settings-description">
+        {setting.description}
+      </p>
+    </div>
+  ))}
+</Dropdown>
+
+<style>
+  /* Cada ajuste, dos filas: el nombre con su interruptor a la derecha y, debajo, qué hace */
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+    padding: calc(var(--spacing) * 2.5);
+  }
+
+  .settings-row + .settings-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .settings-title {
+    font-size: var(--text-ui);
+    font-weight: 500;
+  }
+
+  .settings-description {
+    grid-column: 1;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--muted-foreground);
+  }
+</style>
+
+<script>
+  import '../../scripts/settings';
+</script>

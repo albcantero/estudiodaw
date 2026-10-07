@@ -1,0 +1,97 @@
+---
+/**
+ * @file "Mostrar propiedades" de una colección, junto a "Agrupar por curso": un desplegable
+ * (ui/Dropdown) con pastillas que enseñan u ocultan cada propiedad de los elementos (el curso, los
+ * temas publicados), como el menú de columnas de una tabla. Encendida (se ve), con el fondo de
+ * pulsado; apagada, solo el borde. De serie se ocultan el próximo examen y el cronómetro
+ * (DEFAULT_HIDDEN_FIELDS); si lo elegido es otra cosa, el botón lleva un punto de marca y al pie
+ * asoma una franja para volver a lo de serie.
+ *
+ * Lo guarda scripts/collections/show-fields.ts; lo aplica inline/boot.js (html[data-hide], antes
+ * del primer pintado) y el ocultado es CSS (layout.css).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { BadgeField } from '../../lib/badge';
+import Dropdown from '../ui/Dropdown.astro';
+
+/** Id del desplegable (y, derivado, el del título de las pastillas) */
+const ID = 'collection-settings';
+
+/** Propiedades que se pueden ocultar, en orden */
+const FIELDS: { key: BadgeField; label: string }[] = [
+  { key: 'course', label: 'Curso' },
+  { key: 'notes', label: 'Apuntes' },
+  { key: 'exam', label: 'Próximo examen' },
+  { key: 'countdown', label: 'Cronómetro' },
+];
+---
+
+<Dropdown
+  id={ID}
+  label="Mostrar propiedades"
+  icon="adjustments-horizontal"
+  variant="outline"
+  width="w-56"
+  indicator="propiedades cambiadas"
+  flush
+>
+  <div class="p-1.5">
+    <p id={`${ID}-show`} class="mb-1.5 px-0.5 text-xs font-medium text-muted-foreground">
+      Mostrar
+    </p>
+    <div class="flex flex-wrap gap-1.5" role="group" aria-labelledby={`${ID}-show`}>
+      {FIELDS.map((field) => (
+        <button
+          type="button"
+          class="pill focus-ring px-2 py-0.5 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-hover-foreground aria-pressed:border-input-pressed aria-pressed:bg-pressed aria-pressed:text-foreground"
+          aria-pressed="true"
+          data-show-field={field.key}
+        >
+          {field.label}
+        </button>
+      ))}
+    </div>
+  </div>
+  {/* Franja al pie: crece de 0 a su alto cuando hay algo oculto, y la tarjeta se estira
+      descubriéndola. Cerrada es inert: no se llega a su botón con el teclado. */}
+  <div class="reset-band" data-reset-band inert>
+    <div>
+      <div class="flex h-9 items-center justify-end border-t px-1.5">
+        <button
+          type="button"
+          class="focus-ring inline-flex h-5.5 items-center rounded-full px-2 text-xs font-medium text-muted-foreground hover:bg-hover hover:text-foreground"
+          data-reset-fields
+        >
+          Restaurar valores por defecto
+        </button>
+      </div>
+    </div>
+  </div>
+</Dropdown>
+
+<style>
+  /* Crece de 0 a la altura de lo de dentro (filas de 0fr a 1fr): una sola medida, la de la
+     franja (h-9). Va dentro de un envoltorio sin altura propia, que es el que se encoge: con una
+     altura fija, la rejilla no podría bajar de ella */
+  .reset-band {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: grid-template-rows var(--duration-ui) var(--ease-hover);
+  }
+
+  .reset-band > * {
+    min-height: 0;
+  }
+
+  /* data-changed lo pone el script en la tarjeta con algo oculto */
+  :global([data-changed]) > .reset-band {
+    grid-template-rows: 1fr;
+  }
+</style>
+
+<script>
+  import '../../scripts/collections/show-fields';
+</script>

@@ -1,0 +1,165 @@
+---
+/**
+ * @file Un curso de la colección con "Agrupar por curso": su fila ("Primero ▸ 8", con la piel de
+ * una fila de asignatura) y, debajo, sus elementos, que se pliegan y despliegan como los grupos de
+ * la Navegación del panel lateral (el mismo triángulo y la misma animación:
+ * scripts/collections/group-collapse.ts).
+ *
+ * El cuerpo llega vacío: la colocación (scripts/inline/collection-layout.js) mete en él los
+ * elementos de su curso al agrupar y los devuelve a la lista plana al desagrupar, antes del
+ * primer pintado. El número cuenta lo que se ve (buscador y matrícula); sin nada, el curso no
+ * se ve. Sin agrupar, el bloque entero se oculta (layout.css).
+ *
+ * Va en la misma lista que los elementos: el <li> no cuenta como elemento (role="presentation")
+ * y la fila es un encabezado, para saltar de curso en curso con el lector de pantalla.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { riseIndex } from '../../lib/collection';
+import { cn } from '../../lib/cn';
+import { COURSES } from '../../data/courses';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  group: string;
+  /** Elementos del curso */
+  count: number;
+  /** Id único del cuerpo, para aria-controls */
+  bodyId: string;
+  /** Clases del bloque entero según la vista */
+  class?: string;
+  /** Clases de la fila según la vista */
+  rowClass?: string;
+  /** Clases del cuerpo según la vista */
+  bodyClass?: string;
+  /**
+   * Con el árbol (la lista): un raíl que viaja por el tronco hasta la fila bajo el ratón o con el
+   * foco, como en la Navegación (scripts/collections/tree-rails.ts)
+   */
+  tree?: boolean;
+}
+
+const { group, count, bodyId, class: className, rowClass, bodyClass, tree = false } = Astro.props;
+
+/** Color del punto del curso: el de sus pastillas (Badge) y el de los puntos de Exámenes */
+const DOT_COLORS = { first: 'bg-course-first', second: 'bg-course-second' };
+const dot = Object.values(COURSES).find((course) => course.name === group)?.dot;
+---
+
+<li
+  class={cn('collection-group rise', className)}
+  style={`--i: ${riseIndex(0)}`}
+  role="presentation"
+  data-group-section={group}
+>
+  <h3 class={cn('group-row-wrap', rowClass)}>
+    <button
+      type="button"
+      class="group-row focus-ring gap-3 rounded-xl border border-input bg-transparent px-surface py-3 hover:bg-hover"
+      aria-expanded="true"
+      aria-controls={bodyId}
+      data-group-row
+    >
+      {/* El triángulo delante, siempre en el mismo sitio; aparte, el punto, el nombre y el número */}
+      <span class="group-arrow" aria-hidden="true">
+        <Icon name="player-play" variant="filled" class="size-2 text-muted-foreground" />
+      </span>
+      <span class="flex min-w-0 items-center gap-2">
+        {dot && (
+          <span class:list={['size-2 shrink-0 rounded-full', DOT_COLORS[dot]]} aria-hidden="true" />
+        )}
+        <span class="heading truncate text-lg leading-snug">{group}</span>
+        <span class="font-mono text-sm text-muted-foreground tabular-nums" data-group-count>
+          {count}
+        </span>
+      </span>
+    </button>
+  </h3>
+  {tree ? (
+    <div class="tree-host" data-tree-host>
+      {/* El raíl: el mismo marcado que los de la Navegación (NavGroup) y la curva del árbol */}
+      <span class="hook-rail tree-rail" aria-hidden="true">
+        <span class="hook-rail-line" />
+        <svg class="hook-rail-corner" width="18" height="7" viewBox="0 0 18 7" fill="none">
+          <path
+            d="M0.5 0a6 6 0 0 0 6 6H18"
+            stroke="currentColor"
+            stroke-dasharray="2 2"
+            shape-rendering="crispEdges"
+          />
+        </svg>
+      </span>
+      <ul id={bodyId} class={bodyClass} data-group-body />
+    </div>
+  ) : (
+    <ul id={bodyId} class={bodyClass} data-group-body />
+  )}
+</li>
+
+<style>
+  /* La fila del curso, con la forma de una fila de asignatura (rounded-xl, relleno surface) y el
+     estilo del botón outline: borde de los controles, fondo transparente, el de hover al pasar el
+     ratón y, al pulsar, exactamente lo mismo: ni el fondo ni el borde de pulsado (destellaban en
+     cada clic), y sin encogerse. Sin su "pulsado" con aria-expanded (es de los botones que abren un
+     menú): desplegada, la fila se vería pulsada siempre. Delante, el triángulo (siempre en el
+     mismo sitio) y, aparte, el punto del color del curso, el nombre y el número pegado a él */
+  .group-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* Triángulo, siempre a la vista: plegado (o plegándose) apunta a la derecha; desplegado, abajo */
+  .group-arrow {
+    position: relative;
+    top: 1px;
+    display: inline-flex;
+    flex-shrink: 0;
+    transition: rotate var(--duration-ui) var(--ease-hover);
+  }
+
+  .collection-group:not([data-state='closing']) .group-row[aria-expanded='true'] .group-arrow {
+    rotate: 90deg;
+  }
+
+  /* Raíl del árbol (lista): por encima del árbol tenue, en el color del texto. Línea y gancho
+     como los raíles de la Navegación; su x es la del tronco (--tree-x de CollectionList: bajo el
+     punto del curso). Posición y opacidad, las del script */
+  .tree-host {
+    position: relative;
+  }
+
+  .tree-rail {
+    --rail-x: calc(var(--spacing-gutter) + var(--spacing-surface) + 25px);
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    color: var(--foreground);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .tree-rail .hook-rail-line {
+    position: absolute;
+    top: 0;
+    left: var(--rail-x);
+    width: 1px;
+    height: 0;
+    background-image: repeating-linear-gradient(to top, transparent 0 2px, currentColor 2px 4px);
+  }
+
+  .tree-rail .hook-rail-corner {
+    position: absolute;
+    top: 0;
+    left: var(--rail-x);
+    will-change: transform;
+  }
+</style>
+
+<script>
+  import '../../scripts/collections/group-collapse';
+  import '../../scripts/collections/tree-rails';
+</script>

@@ -1,0 +1,198 @@
+/**
+ * @file Scroll: la barra propia (scripts/scrollbars.ts) y los degradados en los bordes de las
+ * zonas con scroll (scripts/scroll-fade.ts).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+/* Longitudes registradas: así getComputedStyle las da ya resueltas en px, aunque se escriban
+   con calc() o con otras variables, y los scripts las pueden leer. Las de los degradados se
+   heredan: las pintan el ::before y el ::after de la zona, que solo reciben lo heredable. */
+@property --scrollbar-offset {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-start-size {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 24px;
+}
+
+@property --scroll-fade-end-size {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 24px;
+}
+
+/* ---------- Barra nativa ----------
+   Donde se queda (pantallas táctiles, sin JavaScript): fina y del color del thumb propio.
+   scrollbar-width y scrollbar-color son el estándar; los ::-webkit-scrollbar, para Safari
+   (Chrome los ignora si están los estándar). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+::-webkit-scrollbar {
+  width: calc(var(--scrollbar-track) - 3px);
+  height: calc(var(--scrollbar-track) - 3px);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: calc(infinity * 1px);
+  background: var(--scrollbar-thumb);
+}
+
+/* ---------- Barra propia ----------
+   Solo con ratón o trackpad, y con JavaScript: en pantallas táctiles, o sin script que pinte
+   la propia, se queda la nativa. La nativa se oculta aquí, y no desde el script, para que no
+   asome antes de que cargue. El selector es la lista SCROLLERS del script, más la página. */
+@media (pointer: fine) and (scripting: enabled) {
+  html,
+  [data-scrollbar],
+  .prose-notes :is(pre.astro-code, table) {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  [data-scrollbar]::-webkit-scrollbar,
+  .prose-notes :is(pre.astro-code, table)::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Capa fija a pantalla completa, transparente al ratón: solo las franjas lo recogen. Por
+   encima de todo, también del fundido inferior, para que el thumb de la página no quede
+   apagado al llegar abajo. */
+.scrollbar-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrollbar);
+  pointer-events: none;
+}
+
+/* Franja: la que recoge el ratón (--scrollbar-track, 8 px) para ensanchar el thumb al acercarse. Posición y largo,
+   del script. */
+.scrollbar {
+  position: absolute;
+  width: var(--scrollbar-track);
+  pointer-events: auto;
+}
+
+.scrollbar-x {
+  width: auto;
+  height: var(--scrollbar-track);
+}
+
+/* Thumb: fino en reposo (3 px) y más ancho (6 px) al pasar por la franja o al arrastrarlo.
+   Solo se anima el grosor y el color: el largo y la posición los escribe el script en cada
+   fotograma, y animarlos lo haría ir con retraso respecto al contenido. */
+.scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  width: 3px;
+  border-radius: calc(infinity * 1px);
+  background: var(--scrollbar-thumb);
+  opacity: 0;
+  transition-property: width, background-color, opacity;
+  transition-duration: var(--duration-ui);
+  transition-timing-function: var(--ease-hover);
+  cursor: grab;
+}
+
+/* En la horizontal el grosor es el alto: se anima el alto y no el ancho, que es el largo */
+.scrollbar-x .scrollbar-thumb {
+  top: auto;
+  right: auto;
+  bottom: 1px;
+  left: 0;
+  height: 3px;
+  transition-property: height, background-color, opacity;
+}
+
+.scrollbar:hover .scrollbar-thumb,
+.scrollbar-thumb[data-dragging] {
+  background: var(--scrollbar-thumb-active);
+}
+
+.scrollbar:not(.scrollbar-x):hover .scrollbar-thumb,
+.scrollbar:not(.scrollbar-x) .scrollbar-thumb[data-dragging] {
+  width: 6px;
+}
+
+.scrollbar-x:hover .scrollbar-thumb,
+.scrollbar-x .scrollbar-thumb[data-dragging] {
+  height: 6px;
+}
+
+.scrollbar-thumb[data-dragging] {
+  cursor: grabbing;
+}
+
+/* ---------- Degradados en los bordes ----------
+   En el envoltorio [data-scroll-fade="y" | "x"]: uno al principio y otro al final del eje,
+   del color del fondo (--scroll-fade-color). Su opacidad (0..1) la escribe el script según lo
+   recorrido. Sin transición: van pegados al scroll, fotograma a fotograma.
+   --scroll-fade-inset los separa de los bordes del envoltorio y --scroll-fade-radius les da
+   curva (en un bloque de código no se difuminan ni el borde ni las esquinas). */
+[data-scroll-fade] {
+  --scroll-fade-color: var(--background);
+  --scroll-fade-inset: 0px;
+  --scroll-fade-radius: 0px;
+  position: relative;
+}
+
+[data-scroll-fade]::before,
+[data-scroll-fade]::after {
+  content: '';
+  position: absolute;
+  z-index: var(--z-scroll-fade);
+  border-radius: var(--scroll-fade-radius);
+  pointer-events: none;
+}
+
+[data-scroll-fade='y']::before,
+[data-scroll-fade='y']::after {
+  inset-inline: var(--scroll-fade-inset);
+}
+
+[data-scroll-fade='y']::before {
+  top: var(--scroll-fade-inset);
+  height: var(--scroll-fade-start-size);
+  background: linear-gradient(to bottom, var(--scroll-fade-color), transparent);
+  opacity: var(--scroll-fade-start, 0);
+}
+
+[data-scroll-fade='y']::after {
+  bottom: var(--scroll-fade-inset);
+  height: var(--scroll-fade-end-size);
+  background: linear-gradient(to top, var(--scroll-fade-color), transparent);
+  opacity: var(--scroll-fade-end, 0);
+}
+
+[data-scroll-fade='x']::before,
+[data-scroll-fade='x']::after {
+  inset-block: var(--scroll-fade-inset);
+}
+
+[data-scroll-fade='x']::before {
+  left: var(--scroll-fade-inset);
+  width: var(--scroll-fade-start-size);
+  background: linear-gradient(to right, var(--scroll-fade-color), transparent);
+  opacity: var(--scroll-fade-start, 0);
+}
+
+[data-scroll-fade='x']::after {
+  right: var(--scroll-fade-inset);
+  width: var(--scroll-fade-end-size);
+  background: linear-gradient(to left, var(--scroll-fade-color), transparent);
+  opacity: var(--scroll-fade-end, 0);
+}

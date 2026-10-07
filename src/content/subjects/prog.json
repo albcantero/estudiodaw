@@ -1,0 +1,8 @@
+{
+  "name": "Programación",
+  "description": "Programación en Java: estructuras de control, orientación a objetos, colecciones y ficheros.",
+  "order": 4,
+  "year": 1,
+  "color": "#3b82f6",
+  "icon": "code-dots"
+}

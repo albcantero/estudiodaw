@@ -1,0 +1,56 @@
+---
+/**
+ * @file Página de una asignatura: su cabecera y sus temas (cada UD del temario oficial, publicada o
+ * pendiente), en lista o tablero, con buscador.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { getCollection } from 'astro:content';
+import CollectionTools from '../../components/collection/CollectionTools.astro';
+import CollectionView from '../../components/collection/CollectionView.astro';
+import PageHeading from '../../components/page/PageHeading.astro';
+import Panel from '../../components/page/Panel.astro';
+import Separator from '../../components/page/Separator.astro';
+import { COURSES } from '../../data/courses';
+import Base from '../../layouts/Base.astro';
+import { temaItems } from '../../lib/collection-items';
+
+/**
+ * Una página por asignatura
+ *
+ * @returns Las rutas, con la asignatura de cada página.
+ */
+export async function getStaticPaths() {
+  const subjects = await getCollection('subjects');
+  return subjects.map((subject) => ({ params: { subject: subject.id }, props: { subject } }));
+}
+
+const { subject } = Astro.props;
+const temas = (await getCollection('temas'))
+  .filter((tema) => tema.data.subject === subject.id)
+  .sort((a, b) => a.data.number - b.data.number);
+const items = temaItems(subject, temas, await getCollection('docs'));
+---
+
+<Base title={subject.data.name} description={subject.data.description}>
+  <PageHeading
+    breadcrumbs={[{ label: 'Asignaturas', href: '/' }, { label: COURSES[subject.data.year].label }]}
+    title={subject.data.name}
+    description={subject.data.description}
+  />
+
+  <Separator />
+
+  <Panel id="temas" title="Temas" count={items.length} countNoun={{ one: 'tema', other: 'temas' }}>
+    {items.length > 0 && <CollectionTools slot="toolbar" placeholder="Buscar tema…" />}
+    {items.length === 0 ? (
+      <p class="p-gutter text-muted-foreground">
+        Todavía no hay temas publicados de esta asignatura. Cada tema entra cuando está estudiado y
+        con los ejercicios hechos.
+      </p>
+    ) : (
+      <CollectionView items={items} columns={{ number: true, properties: true }} />
+    )}
+  </Panel>
+</Base>

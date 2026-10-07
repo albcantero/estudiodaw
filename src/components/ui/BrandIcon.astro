@@ -1,0 +1,34 @@
+---
+/**
+ * @file Logo de marca plano de Simple Icons (paquete simple-icons, por "slug": astro, typescript,
+ * vercel…), en línea y con el color del texto. Decorativo: el nombre lo pone quien lo usa. Como
+ * Icon, las clases que se pasen pisan a las de serie (size-3.5).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { cn } from '../../lib/cn';
+import { readPackageSvg, svgViewBox } from '../../lib/svg';
+
+interface Props {
+  /** Slug de Simple Icons */
+  name: string;
+  /** Clases; por defecto, size-3.5 */
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+
+const source = readPackageSvg(`simple-icons/icons/${name}.svg`);
+// Solo el dibujo (<path>): el <title> de Simple Icons sobra, el nombre va fuera
+const path = source.match(/<path[^>]*\/>/)?.[0] ?? '';
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={svgViewBox(source)}
+  fill="currentColor"
+  class={cn('size-3.5 shrink-0', className)}
+  aria-hidden="true"
+  set:html={path}
+/>

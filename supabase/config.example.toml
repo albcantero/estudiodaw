@@ -1,0 +1,64 @@
+# Configuración de Supabase para levantar la base de datos en local con la CLI
+# (`npx supabase start`): la misma que el proyecto de producción en lo que importa al login.
+# Lo que no se pone aquí, la CLI lo deja con sus valores de serie. Ver docs/supabase-setup.md.
+#
+# Es un ejemplo: se copia como supabase/config.toml, que no se sube al repositorio. Así la
+# integración de GitHub de Supabase no lo aplica al proyecto publicado (no lleva el envío de
+# correos de producción, que necesita una clave secreta).
+
+project_id = "estudiodaw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+# Correos de prueba: en local no salen a ningún sitio, se ven en http://127.0.0.1:54324
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "https://estudiodaw.dev"
+# La web en desarrollo (astro dev) y en vista previa (astro preview)
+additional_redirect_urls = ["http://localhost:4321", "http://localhost:3000"]
+enable_signup = true
+
+# Entrar con un código de 6 cifras por correo, que caduca en 10 minutos y se puede pedir otra vez
+# al minuto
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+otp_length = 6
+otp_expiry = 600
+max_frequency = "60s"
+
+# Las dos plantillas que mandan el código: la primera vez que alguien entra (confirmation) y las
+# siguientes (magic_link). Las dos, con supabase/templates/otp.html
+[auth.email.template.confirmation]
+subject = "Tu código para entrar en estudiodaw.dev"
+content_path = "./supabase/templates/otp.html"
+
+[auth.email.template.magic_link]
+subject = "Tu código para entrar en estudiodaw.dev"
+content_path = "./supabase/templates/otp.html"
+
+# Solo correos @educa.jcyl.es: la función de la migración 20261004000000_restrict_signup_domain
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_restrict_signup_domain"

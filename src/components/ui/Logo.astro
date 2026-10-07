@@ -1,0 +1,35 @@
+---
+/**
+ * @file Logo de la web ("estudio" + "DAW" manuscrito), en línea para que tome el color del texto en
+ * el tema claro y en el oscuro. El fichero original es blanco y trae margen alrededor: se pinta con
+ * currentColor y se recorta al dibujo con el viewBox. Sale varias veces en una página (panel, barra
+ * de móvil, pie): sus ids se hacen únicos en cada una.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import source from '../../assets/logo-estudiodaw.svg?raw';
+import { SITE_BRAND } from '../../data/site';
+import { svgInner, uniqueSvgIds } from '../../lib/svg';
+
+interface Props {
+  /** Clases de tamaño */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+/** Recorte del dibujo dentro del fichero original */
+const VIEW_BOX = '15 21 193 52';
+
+const inner = uniqueSvgIds(svgInner(source).replaceAll('fill="#ffffff"', 'fill="currentColor"'));
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={VIEW_BOX}
+  class={className}
+  role="img"
+  aria-label={SITE_BRAND}
+  set:html={inner}
+/>

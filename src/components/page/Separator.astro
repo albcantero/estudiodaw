@@ -1,0 +1,26 @@
+---
+/**
+ * @file Separador entre bloques: una franja a rayas diagonales entre dos líneas continuas, a sangre
+ * hasta el borde del cuerpo (como la del pie).
+ *
+ * Los bloques que la tocan no llevan su línea discontinua por ese lado: ya la cierra la continua,
+ * y las dos seguidas se verían como una doble.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+---
+
+<div class="separator rule-t rule-b" aria-hidden="true">
+  <div class="stripe-divider h-8"></div>
+</div>
+
+<style>
+  :global(:has(+ .separator)) {
+    --dash-bottom: none;
+  }
+
+  :global(.separator + *) {
+    --dash-top: none;
+  }
+</style>

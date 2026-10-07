@@ -1,0 +1,174 @@
+---
+/**
+ * @file Vista de lista: una fila por elemento en columnas (número, título, propiedades). El título
+ * va siempre; el resto, si lo pide `columns`. En móvil se quedan número y título. Cada fila es una
+ * superficie dentro de su caja, con una línea discontinua debajo, salvo la última que se ve
+ * (data-last-row: la marca aquí el servidor y la recalcula la colocación).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { itemAttributes, type CollectionColumns, type CollectionItem } from '../../lib/collection';
+import Badge from '../ui/Badge.astro';
+import CollectionGroup from './CollectionGroup.astro';
+
+interface Props {
+  items: CollectionItem[];
+  columns: CollectionColumns;
+  /** Grupos, en orden */
+  groups: string[];
+  /** Elementos de cada grupo */
+  counts: Map<string, number>;
+}
+
+const { items, columns, groups, counts } = Astro.props;
+
+// Ancho de cada columna; el título se lleva el resto. Propiedades tiene ancho fijo para que sus
+// insignias caigan en el mismo sitio en todas las filas.
+const WIDTHS = {
+  number: 'calc(var(--spacing) * 8)',
+  title: 'minmax(0,1fr)',
+  properties: 'calc(var(--spacing) * 80)',
+};
+const desktopTracks = (['number', 'title', 'properties'] as const)
+  .filter((column) => column === 'title' || columns[column])
+  .map((column) => WIDTHS[column]);
+const mobileTracks = [columns.number && WIDTHS.number, WIDTHS.title].filter(Boolean);
+const tracks = `--cols:${desktopTracks.join(' ')};--cols-sm:${mobileTracks.join(' ')}`;
+---
+
+<ul class="collection-list hover-group" style={tracks} data-collection-part="list">
+  {groups.map((group, index) => (
+    <CollectionGroup
+      group={group}
+      count={counts.get(group) ?? 0}
+      bodyId={`list-group-${index}`}
+      class="dash-b"
+      rowClass="px-gutter py-inset"
+      tree
+    />
+  ))}
+  {items.map((item, index) => {
+    const Row = item.href ? 'a' : 'div';
+    return (
+      <li
+        class="rise dash-b px-gutter py-inset"
+        {...itemAttributes(item, index)}
+        data-count-item
+        data-last-row={index === items.length - 1 ? '' : undefined}
+      >
+        {/* Rama del árbol: solo dentro de un curso ("Agrupar por curso"; ver los estilos) */}
+        <span class="tree-branch" aria-hidden="true">
+          <span class="tree-trunk" />
+          <svg class="tree-corner" width="18" height="7" viewBox="0 0 18 7" fill="none">
+            <path
+              d="M0.5 0a6 6 0 0 0 6 6H18"
+              stroke="currentColor"
+              stroke-dasharray="2 2"
+              shape-rendering="crispEdges"
+            />
+          </svg>
+        </span>
+        <Row
+          href={item.href}
+          class:list={[
+            'list-row grid items-center gap-x-gutter rounded-xl px-surface py-3',
+            item.href ? 'surface-interactive focus-ring' : 'text-muted-foreground',
+          ]}
+        >
+          {columns.number && (
+            <span class="font-mono text-sm text-muted-foreground tabular-nums">{item.number}</span>
+          )}
+          <span class="min-w-0">
+            <h3 class="heading block truncate text-lg leading-snug" data-highlight>
+              {item.title}
+            </h3>
+            {item.description && (
+              <span class="line-clamp-2 text-sm text-muted-foreground max-sm:hidden" data-highlight>
+                {item.description}
+              </span>
+            )}
+          </span>
+          {columns.properties && (
+            <span class="flex flex-wrap items-center justify-end gap-1.5 max-md:hidden">
+              {item.properties.map((property) => (
+                <Badge {...property} />
+              ))}
+            </span>
+          )}
+        </Row>
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  @reference '../../styles/global.css';
+
+  /* La última fila que se ve no lleva línea debajo: ya la pone el borde del panel o, al final
+     de la página, el pie (la marca el servidor y la recalcula scripts/inline/collection-layout.js) */
+  .collection-list :global([data-last-row]) {
+    --dash-bottom: none;
+  }
+
+  /* La fila es un elemento dinámico (a o div) y Astro no le pone el atributo de ámbito: de ahí
+     el :global, siempre dentro de la lista */
+  .collection-list :global(.list-row) {
+    grid-template-columns: var(--cols-sm);
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .collection-list :global(.list-row) {
+      grid-template-columns: var(--cols);
+    }
+  }
+
+  /* Árbol de cada curso ("Agrupar por curso"), como los raíles de la Navegación: un tronco
+     discontinuo que baja por la izquierda, bajo el nombre del curso, y una rama curva hacia cada
+     fila. El tronco acaba en la última fila que se ve (data-tree-last, de la colocación), en su
+     curva. Las filas se apartan a la derecha para dejarle sitio; sin agrupar, ni árbol ni hueco */
+  .tree-branch {
+    display: none;
+  }
+
+  .collection-list :global([data-group-body]) > li {
+    /* Sin línea entre las filas de un curso: la lleva el curso entero, debajo de todas */
+    --dash-bottom: none;
+    /* El tronco, bajo el punto de color de la fila del curso: su borde (1 px), su relleno
+       (surface), el triángulo (8 px), su separación (12 px) y medio punto (4 px) */
+    --tree-x: calc(var(--spacing-gutter) + var(--spacing-surface) + 25px);
+    position: relative;
+    /* La fila empieza donde acaba la rama (18 px) */
+    padding-left: calc(var(--tree-x) + 18px);
+  }
+
+  .collection-list :global([data-group-body]) .tree-branch {
+    position: absolute;
+    inset: 0;
+    display: block;
+    color: var(--rail-hover);
+    pointer-events: none;
+  }
+
+  /* 2 px de línea y 2 de hueco, como el raíl y la curva */
+  .tree-trunk {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--tree-x);
+    width: 1px;
+    background-image: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 4px);
+  }
+
+  .collection-list :global([data-tree-last]) .tree-trunk {
+    bottom: auto;
+    height: calc(50% - 6px);
+  }
+
+  /* La curva baja 6 px y llega hasta el borde de la fila (18 px) */
+  .tree-corner {
+    position: absolute;
+    top: calc(50% - 6px);
+    left: var(--tree-x);
+  }
+</style>

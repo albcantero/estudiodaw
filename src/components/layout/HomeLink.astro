@@ -1,0 +1,26 @@
+---
+/**
+ * @file El logo como enlace a la portada: en el panel lateral, en la barra de móvil y en el pie.
+ * Cada uno pone su tamaño y su color.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { SITE_NAME } from '../../data/site';
+import Logo from '../ui/Logo.astro';
+
+interface Props {
+  /** Clases del enlace */
+  class?: string;
+  /** Clases del logo (tamaño) */
+  logoClass?: string;
+  /** Estilo en línea del enlace (p. ej. --i de la entrada escalonada del panel) */
+  style?: string;
+}
+
+const { class: className, logoClass, style } = Astro.props;
+---
+
+<a href="/" class:list={['focus-ring', className]} {style} aria-label={`Inicio de ${SITE_NAME}`}>
+  <Logo class={logoClass} />
+</a>

@@ -1,0 +1,70 @@
+---
+/**
+ * @file Icono de Tabler Icons (@tabler/icons, https://tabler.io/icons), en línea y sin JavaScript.
+ * El SVG se lee del paquete en el build (o de src/assets/icons, los propios, dibujados como los de
+ * Tabler: caja de 24 × 24 y trazo de 2); el tamaño y el color salen de las clases (size-4, text-*),
+ * como en el resto de la web. Es decorativo (aria-hidden): el texto lo pone quien lo usa.
+ *
+ * Los que dejan mucho aire a los lados en su caja de 24 × 24 van recortados al dibujo (TRIMMED):
+ * así no separan de más el texto de al lado. Miden lo que diga su altura; su anchura sale sola.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { cn } from '../../lib/cn';
+import { readPackageSvg, svgInner } from '../../lib/svg';
+
+/** Iconos propios, por nombre (el del fichero sin .svg) */
+const OWN_ICONS = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>('../../assets/icons/*.svg', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  ).map(([path, source]) => [path.replace(/^.*\/|\.svg$/g, ''), source]),
+);
+
+interface Props {
+  /** Nombre del icono en Tabler, p. ej. "calendar-event" */
+  name: string;
+  /** De trazo (outline) o relleno (filled) */
+  variant?: 'outline' | 'filled';
+  /** Clases; por defecto, size-4 */
+  class?: string;
+  /** Grosor del trazo */
+  strokeWidth?: number;
+}
+
+/**
+ * Caja recortada de los iconos estrechos: solo a los lados (el dibujo más medio trazo por cada
+ * uno), con el alto entero de 24, para que salgan a la misma escala que los demás (x y ancho
+ * alto, en las unidades de Tabler)
+ */
+const TRIMMED: Record<string, string> = {
+  'hourglass-sand': '5 0 14 24',
+};
+
+const { name, variant = 'outline', class: className = 'size-4', strokeWidth = 2 } = Astro.props;
+const trimmed = TRIMMED[name];
+
+// Fuera el rectángulo transparente que Tabler pone de caja en cada icono
+const source = OWN_ICONS[name] ?? readPackageSvg(`@tabler/icons/${variant}/${name}.svg`);
+const inner = svgInner(source).replace(
+  /<path stroke="none" d="M0 0h24v24H0z" fill="none"\s*\/>/,
+  '',
+);
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox={trimmed ?? '0 0 24 24'}
+  fill={variant === 'filled' ? 'currentColor' : 'none'}
+  stroke={variant === 'filled' ? 'none' : 'currentColor'}
+  stroke-width={strokeWidth}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class={cn('shrink-0', className, trimmed && 'w-auto')}
+  aria-hidden="true"
+  set:html={inner}
+/>

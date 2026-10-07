@@ -1,0 +1,201 @@
+/**
+ * @file Prosa de los apuntes (clase prose-notes, sobre el plugin de tipografía) y bloques de
+ * código.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+
+.prose-notes {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: color-mix(in oklab, var(--foreground) 25%, transparent);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--muted-foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--background);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+  max-width: none;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.prose-notes :where(h1, h2, h3, h4) {
+  text-wrap: balance;
+}
+
+.prose-notes :where(h2) {
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.prose-notes :where(h3) {
+  font-size: 1.125rem;
+}
+
+.prose-notes :where(a) {
+  font-weight: 400;
+  overflow-wrap: break-word;
+  @apply link-underline;
+}
+
+.prose-notes :where(strong) {
+  font-weight: 500;
+}
+
+.prose-notes :where(:not(pre) > code) {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  font-weight: 400;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+  padding: 1px 0.25rem;
+  white-space: pre-wrap;
+}
+
+.prose-notes :where(code)::before,
+.prose-notes :where(code)::after {
+  content: none;
+}
+
+.prose-notes :where(blockquote) {
+  border-left: 1px solid var(--border);
+  font-weight: 400;
+  font-style: normal;
+  color: var(--muted-foreground);
+}
+
+.prose-notes :where(blockquote p:first-of-type)::before,
+.prose-notes :where(blockquote p:last-of-type)::after {
+  content: none;
+}
+
+.prose-notes :where(ul > li)::marker {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+/* Tablas: las del plugin tal cual; solo se añade scroll horizontal para las anchas */
+.prose-notes :where(table) {
+  display: block;
+  overflow-x: auto;
+}
+
+@media (min-resolution: 2x) {
+  .prose-notes :where(:not(pre) > code) {
+    border-width: 0.5px;
+  }
+}
+
+/* Soluciones plegadas */
+.prose-notes :where(details) {
+  @apply inset-surface;
+  margin: 1.25em 0;
+}
+
+.prose-notes :where(details > summary) {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted-foreground);
+  list-style-position: inside;
+}
+
+.prose-notes :where(details > summary)::marker {
+  color: var(--muted-foreground);
+}
+
+.prose-notes :where(details[open] > summary) {
+  color: var(--foreground);
+}
+
+.prose-notes :where(details > :not(summary)) {
+  margin-inline: 0.75rem;
+}
+
+.prose-notes :where(details > .code-block) {
+  margin-inline: 0;
+}
+
+/* ---------- Bloques de código ----------
+   Dos plugins de Shiki los envuelven: code-scroll-fade pone el <pre> en <div class="code-scroll">
+   (degradados a los lados) y code-lang-badge lo mete todo en <figure class="code-block"> con
+   una barra de título con el lenguaje. */
+
+/* La barra de título ya da el aire de arriba */
+.prose-notes .code-block {
+  @apply inset-surface;
+  position: relative;
+  margin: 1.25em 0;
+  padding-top: 0;
+}
+
+.prose-notes .code-lang-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 2.125rem 0.625rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.prose-notes .code-lang-badge svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* El código, en una caja blanca dentro de la gris: su radio es el de fuera menos el relleno y
+   el borde, para que las dos curvas vayan paralelas */
+.prose-notes pre.astro-code {
+  margin: 0 !important;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius-xl) - 0.25rem - 1px);
+  background-color: var(--background) !important;
+  padding: 1rem 1rem 1rem 0;
+  font-size: 0.875rem;
+  line-height: 1.7142857;
+  tab-size: 2;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* Degradados a los lados del código ancho: dentro del borde del <pre> (inset 1px) y con su
+   misma curva, para no tapar ni el borde ni las esquinas */
+.prose-notes .code-scroll {
+  --scroll-fade-inset: 1px;
+  --scroll-fade-radius: calc(var(--radius-xl) - 0.25rem - 2px);
+}
+
+.prose-notes pre.astro-code .line {
+  padding-left: 1rem;
+}
+
+/* Bloques sin lenguaje reconocido: sin barra de título */
+.prose-notes > .code-scroll {
+  margin: 1.25em 0;
+}
+
+.prose-notes pre.astro-code code {
+  min-width: 100%;
+  font-family: var(--font-mono);
+  font-feature-settings: var(--font-mono--font-feature-settings);
+  font-size: inherit;
+}
+
+.dark .prose-notes pre.astro-code,
+.dark .prose-notes pre.astro-code span {
+  color: var(--shiki-dark) !important;
+}
