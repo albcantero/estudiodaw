@@ -9,6 +9,7 @@
  * @author Alberto Cantero
  * @license MIT
  */
+import { type AvatarChoice, avatarColorOf, isAvatarIcon } from '../../data/avatar';
 import { STORAGE_KEYS } from '../../data/storage';
 import { readPreference, removePreference, writePreference } from '../preferences';
 import { getClient } from './client';
@@ -71,21 +72,45 @@ export function storedEmail(): string | null {
 }
 
 /**
- * Nombre de la sesión guardada (metadatos del usuario: display_name), sin cargar Supabase, para
- * pintar la barra al instante. Supabase guarda la sesión entera, con su usuario; el login de
- * mentira, lo mismo que guarda saveName.
+ * Metadatos del usuario de la sesión guardada (nombre y avatar), sin cargar Supabase, para pintar
+ * la barra al instante. Supabase guarda la sesión entera, con su usuario; el login de mentira, lo
+ * mismo que guarda saveMetadata.
  *
- * @returns El nombre, o null si la cuenta no tiene o no se puede leer.
+ * @returns Los metadatos, o un objeto vacío si no hay sesión o no se puede leer.
+ */
+function storedMetadata(): Record<string, unknown> {
+  const raw = readPreference(STORAGE_KEYS.auth);
+  if (!raw) return {};
+  try {
+    const metadata: unknown = JSON.parse(raw)?.user?.user_metadata;
+    return metadata && typeof metadata === 'object' ? (metadata as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Nombre de la sesión guardada (metadatos del usuario: display_name).
+ *
+ * @returns El nombre, o null si la cuenta no tiene.
  */
 export function storedName(): string | null {
-  const raw = readPreference(STORAGE_KEYS.auth);
-  if (!raw) return null;
-  try {
-    const name: unknown = JSON.parse(raw)?.user?.user_metadata?.display_name;
-    return typeof name === 'string' && name !== '' ? name : null;
-  } catch {
-    return null;
-  }
+  const name = storedMetadata().display_name;
+  return typeof name === 'string' && name !== '' ? name : null;
+}
+
+/**
+ * Avatar de la sesión guardada (metadatos del usuario: avatar_icon y avatar_color). Lo que no
+ * sea un icono o un color del selector cuenta como no elegido.
+ *
+ * @returns El icono y el color elegidos.
+ */
+export function storedAvatar(): AvatarChoice {
+  const { avatar_icon: icon, avatar_color: color } = storedMetadata();
+  return {
+    icon: isAvatarIcon(icon) ? icon : null,
+    color: typeof color === 'string' && avatarColorOf(color) ? color : null,
+  };
 }
 
 /**
@@ -180,18 +205,22 @@ export async function currentName(): Promise<string | null> {
 }
 
 /**
- * Guarda el nombre en la cuenta (sus metadatos en Supabase; RLS no entra: es la propia cuenta)
- * y lo anuncia como un cambio de sesión, para que la barra lo pinte.
+ * Guarda datos en los metadatos de la cuenta (en Supabase; RLS no entra: es la propia cuenta) y
+ * lo anuncia como un cambio de sesión, para que la barra lo pinte. Se mezclan con los que ya hay:
+ * guardar el nombre no borra el avatar, ni al revés.
  *
- * @param name Nombre ya normalizado.
+ * @param data Datos que se guardan.
  * @returns El mensaje de error, o null si se ha guardado.
  */
-export async function saveName(name: string): Promise<string | null> {
+async function saveMetadata(data: Record<string, string>): Promise<string | null> {
   if (MOCK) {
     await mockDelay();
     try {
       const session = JSON.parse(readPreference(STORAGE_KEYS.auth) ?? '{}');
-      session.user = { ...session.user, user_metadata: { display_name: name } };
+      session.user = {
+        ...session.user,
+        user_metadata: { ...session.user?.user_metadata, ...data },
+      };
       writePreference(STORAGE_KEYS.auth, JSON.stringify(session));
       announce(session.user.email ?? null);
       return null;
@@ -201,14 +230,35 @@ export async function saveName(name: string): Promise<string | null> {
   }
   try {
     const supabase = await getClient();
-    const { data, error } = await supabase.auth.updateUser({ data: { display_name: name } });
+    const { data: result, error } = await supabase.auth.updateUser({ data });
     if (error) return AUTH_MESSAGES.network;
-    announce(data.user?.email ?? null);
+    announce(result.user?.email ?? null);
     return null;
   } catch {
     return AUTH_MESSAGES.network;
   }
 }
+
+/**
+ * Guarda el nombre en la cuenta.
+ *
+ * @param name Nombre ya normalizado.
+ * @returns El mensaje de error, o null si se ha guardado.
+ */
+export const saveName = (name: string): Promise<string | null> =>
+  saveMetadata({ display_name: name });
+
+/**
+ * Guarda en la cuenta el icono o el color del avatar (lo que se pase; lo otro se queda).
+ *
+ * @param choice Icono, color o los dos, por su id.
+ * @returns El mensaje de error, o null si se ha guardado.
+ */
+export const saveAvatar = (choice: { icon?: string; color?: string }): Promise<string | null> =>
+  saveMetadata({
+    ...(choice.icon ? { avatar_icon: choice.icon } : {}),
+    ...(choice.color ? { avatar_color: choice.color } : {}),
+  });
 
 /**
  * Cierra la sesión de este navegador (scope local: las de otros dispositivos siguen). Supabase

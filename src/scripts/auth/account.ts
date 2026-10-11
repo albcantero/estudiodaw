@@ -24,9 +24,11 @@ import {
   type SessionDetail,
   signOut,
   storedEmail,
+  storedAvatar,
   storedName,
   watchSession,
 } from './session';
+import { paintAvatar, paintPicker } from './avatar';
 import { usernameOf } from './user';
 
 let email: string | null = storedEmail();
@@ -50,10 +52,12 @@ function paint(): void {
     account
       .querySelectorAll('[data-account-username], [data-account-name]')
       .forEach((element) => element.replaceChildren(name));
-    // En los avatares, la inicial del nombre
-    account
-      .querySelectorAll('[data-avatar-initial]')
-      .forEach((element) => element.replaceChildren(name.charAt(0)));
+    // Los avatares: la inicial del nombre, y el icono y el color elegidos
+    const avatar = storedAvatar();
+    account.querySelectorAll('[data-avatar]').forEach((element) => {
+      paintAvatar(element, avatar, name.charAt(0));
+    });
+    paintPicker(avatar);
     const label = account.querySelector('[data-account-email]');
     if (label) label.textContent = email ?? '';
   });
@@ -92,7 +96,7 @@ window.addEventListener('storage', (event) => {
 
 // Cualquier opción del menú lo cierra ("Mi matrícula" la abre scripts/enrollment.ts)
 document.addEventListener('click', async (event) => {
-  const option = (event.target as HTMLElement).closest('[data-account] [popover] button');
+  const option = (event.target as HTMLElement).closest('[data-account] .account-actions button');
   if (!option) return;
   option.closest<HTMLElement>('[popover]')?.hidePopover();
   if (!option.matches('[data-auth-sign-out]')) return;

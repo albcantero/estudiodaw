@@ -1,8 +1,12 @@
 ---
 /**
  * @file Cuenta, en la barra superior: "Iniciar sesión" sin sesión (abre AuthDialog) y, con ella, el
- * nombre de usuario, que abre un desplegable con el correo, "Mi matrícula" (EnrollmentDialog) y
- * "Cerrar sesión". La matrícula solo se elige con la sesión iniciada.
+ * avatar y el nombre de usuario, que abren un desplegable con el avatar, el nombre y el correo,
+ * "Cambiar nombre", "Mi matrícula" (EnrollmentDialog) y "Cerrar sesión". La matrícula solo se
+ * elige con la sesión iniciada.
+ *
+ * El avatar del desplegable se puede cambiar: al pasar el ratón enseña un lápiz y al pulsarlo
+ * abre el selector de icono y color (scripts/auth/avatar.ts).
  *
  * Lo pinta scripts/auth/account.ts según data-state: loading (hueco reservado, sin nada
  * visible, para que no salte de "Iniciar sesión" al usuario), signed-out, signed-in u off (sin
@@ -11,6 +15,7 @@
  * @author Alberto Cantero
  * @license MIT
  */
+import { AVATAR_COLORS, AVATAR_ICONS } from '../../data/avatar';
 import Avatar from '../ui/Avatar.astro';
 import Button from '../ui/Button.astro';
 import Dropdown from '../ui/Dropdown.astro';
@@ -44,12 +49,60 @@ import Icon from '../ui/Icon.astro';
         <span class="max-w-40 truncate" data-account-username></span>
         <Icon name="chevron-down" class="size-3.5" />
       </span>
-      {/* El avatar y, a su lado, el nombre y debajo el correo */}
+      {/* El avatar y, a su lado, el nombre y debajo el correo. El avatar abre su selector */}
       <div class="account-panel">
-        <Avatar />
+        <button
+          type="button"
+          class="avatar-edit focus-ring relative shrink-0 rounded-full"
+          popovertarget="avatar-picker"
+          aria-label="Cambiar avatar"
+          data-avatar-edit
+        >
+          <Avatar />
+          <span class="avatar-edit-overlay" aria-hidden="true">
+            <Icon name="edit-circle" class="size-4" />
+          </span>
+        </button>
         <div class="min-w-0">
           <p class="account-name" data-account-name></p>
           <p class="account-email" data-account-email></p>
+        </div>
+      </div>
+      {/* Selector del avatar: dentro del menú, para que elegir algo no lo cierre */}
+      <div id="avatar-picker" popover class="avatar-picker" data-avatar-picker>
+        <p class="avatar-picker-label" id="avatar-picker-icons">
+          Icono
+        </p>
+        <div class="grid grid-cols-5 gap-1" role="group" aria-labelledby="avatar-picker-icons">
+          {AVATAR_ICONS.map((icon) => (
+            <button
+              type="button"
+              class="focus-ring grid size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-hover hover:text-foreground aria-pressed:bg-pressed aria-pressed:text-foreground"
+              aria-label={icon.label}
+              aria-pressed="false"
+              data-avatar-pick-icon={icon.id}
+            >
+              <Icon name={icon.id} class="size-5" />
+            </button>
+          ))}
+        </div>
+        <p class="avatar-picker-label mt-3" id="avatar-picker-colors">
+          Color
+        </p>
+        <div
+          class="grid grid-cols-8 place-items-center"
+          role="group"
+          aria-labelledby="avatar-picker-colors"
+        >
+          {AVATAR_COLORS.map((color) => (
+            <button
+              type="button"
+              class:list={['avatar-swatch focus-ring', color.className]}
+              aria-label={color.label}
+              aria-pressed="false"
+              data-avatar-pick-color={color.id}
+            />
+          ))}
         </div>
       </div>
       <div class="account-actions">
@@ -109,6 +162,65 @@ import Icon from '../ui/Icon.astro';
 
   /* A los lados, 12 px: el texto cae en la misma vertical que los iconos de las opciones (el
      relleno de la lista, 4 px, más el del botón, 8 px) */
+  /* Avatar editable: al pasar el ratón o con el foco, lo tapa el fondo de hover de los botones
+     (ya mezclado con el de la tarjeta, para que no se transparente lo de debajo) con un lápiz */
+  .avatar-edit {
+    cursor: pointer;
+  }
+
+  .avatar-edit-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--pressed) var(--hover-step), var(--popover));
+    color: var(--foreground);
+    opacity: 0;
+    transition: opacity var(--duration-hover) var(--ease-hover);
+  }
+
+  .avatar-edit:hover .avatar-edit-overlay,
+  .avatar-edit:focus-visible .avatar-edit-overlay,
+  .avatar-edit[aria-expanded='true'] .avatar-edit-overlay {
+    opacity: 1;
+  }
+
+  /* Selector: la superficie de los menús, debajo del avatar (lo coloca el script) */
+  .avatar-picker {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: calc(var(--spacing) * 2);
+    border: 1px solid var(--popover-border);
+    border-radius: var(--radius-xl);
+    background: var(--popover);
+    color: var(--popover-foreground);
+    box-shadow: var(--shadow-popover);
+  }
+
+  .avatar-picker-label {
+    margin-bottom: calc(var(--spacing) * 1.5);
+    padding-inline: calc(var(--spacing) * 1);
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    color: var(--muted-foreground);
+  }
+
+  /* Muestra de color: un círculo de 20 px en su columna; el elegido, con un anillo del color del
+     texto, que cabe en la columna sin tocar los de al lado */
+  .avatar-swatch {
+    width: calc(var(--spacing) * 5);
+    height: calc(var(--spacing) * 5);
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+
+  .avatar-swatch[aria-pressed='true'] {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+  }
+
   .account-panel {
     display: flex;
     align-items: center;
@@ -152,4 +264,5 @@ import Icon from '../ui/Icon.astro';
 
 <script>
   import '../../scripts/auth/account';
+  import '../../scripts/auth/avatar';
 </script>
