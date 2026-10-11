@@ -9,12 +9,10 @@
  * @author Alberto Cantero
  * @license MIT
  */
-import { AVATAR_COLORS, type AvatarChoice, avatarColorOf } from '../../data/avatar';
+import { type AvatarChoice, avatarColorOf } from '../../data/avatar';
 import { placeFloating } from '../floating';
 import { saveAvatar, storedAvatar } from './session';
 
-/** Clases de todos los colores, para quitarlas antes de poner el elegido */
-const COLOR_CLASSES = AVATAR_COLORS.map((color) => color.className);
 /** El gris de serie, sin color elegido */
 const DEFAULT_CLASSES = ['bg-muted', 'text-muted-foreground'];
 
@@ -30,8 +28,11 @@ export function paintAvatar(avatar: Element, choice: AvatarChoice, initial?: str
   const letter = avatar.querySelector<HTMLElement>('[data-avatar-initial]');
   if (!fill || !letter) return;
   const color = avatarColorOf(choice.color);
-  fill.classList.remove(...COLOR_CLASSES, ...DEFAULT_CLASSES, 'text-white');
-  fill.classList.add(...(color ? [color.className, 'text-white'] : DEFAULT_CLASSES));
+  // El color, por su token, con la fórmula que lo aplana (avatar-tone)
+  fill.classList.remove(...DEFAULT_CLASSES, 'avatar-tone', 'text-white');
+  fill.classList.add(...(color ? ['avatar-tone', 'text-white'] : DEFAULT_CLASSES));
+  if (color) (fill as HTMLElement).style.setProperty('--avatar-bg', `var(${color.variable})`);
+  else (fill as HTMLElement).style.removeProperty('--avatar-bg');
   if (initial !== undefined) letter.replaceChildren(initial);
   letter.hidden = choice.icon !== null;
   avatar.querySelectorAll<HTMLElement>('[data-avatar-icon]').forEach((icon) => {

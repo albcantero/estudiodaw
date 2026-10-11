@@ -42,18 +42,18 @@ export const AVATAR_ICONS = [
 ] as const;
 
 /**
- * Colores de fondo: el tono 500 de Tailwind, sobre el que el icono y la inicial en blanco se leen.
- * Las clases van escritas enteras para que Tailwind las genere.
+ * Colores de fondo: el tono 500 de Tailwind, sobre el que el icono y la inicial en blanco se leen,
+ * por su token (--avatar-*, tokens.css). Se pintan con la utilidad avatar-tone, que los aplana.
  */
 export const AVATAR_COLORS = [
-  { id: 'red', label: 'Rojo', className: 'bg-red-500' },
-  { id: 'orange', label: 'Naranja', className: 'bg-orange-500' },
-  { id: 'amber', label: 'Ámbar', className: 'bg-amber-500' },
-  { id: 'green', label: 'Verde', className: 'bg-green-500' },
-  { id: 'sky', label: 'Celeste', className: 'bg-sky-500' },
-  { id: 'blue', label: 'Azul', className: 'bg-blue-500' },
-  { id: 'violet', label: 'Violeta', className: 'bg-violet-500' },
-  { id: 'pink', label: 'Rosa', className: 'bg-pink-500' },
+  { id: 'red', label: 'Rojo', variable: '--avatar-red' },
+  { id: 'orange', label: 'Naranja', variable: '--avatar-orange' },
+  { id: 'amber', label: 'Ámbar', variable: '--avatar-amber' },
+  { id: 'green', label: 'Verde', variable: '--avatar-green' },
+  { id: 'sky', label: 'Celeste', variable: '--avatar-sky' },
+  { id: 'blue', label: 'Azul', variable: '--avatar-blue' },
+  { id: 'violet', label: 'Violeta', variable: '--avatar-violet' },
+  { id: 'pink', label: 'Rosa', variable: '--avatar-pink' },
 ] as const;
 
 /** Lo elegido para el avatar: el id del icono y el del color, o null si no se ha elegido */

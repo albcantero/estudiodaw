@@ -9,6 +9,13 @@
 /* ---------- Maquetación ---------- */
 
 /* Margen lateral de la página en móvil; en escritorio lo pone el marco */
+/* Fondo de avatar más plano: el color de --avatar-bg (uno de los --avatar-* de tokens.css) con
+   la misma luz y el mismo tono, y el croma multiplicado por --avatar-chroma. Una sola fórmula para
+   todos los colores, sin retocar ninguno a mano */
+@utility avatar-tone {
+  background-color: oklch(from var(--avatar-bg) l calc(c* var(--avatar-chroma)) h);
+}
+
 @utility page-gutter {
   padding-inline: var(--spacing-page);
 

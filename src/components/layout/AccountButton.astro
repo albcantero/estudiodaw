@@ -94,7 +94,8 @@ import Icon from '../ui/Icon.astro';
           {AVATAR_COLORS.map((color) => (
             <button
               type="button"
-              class:list={['avatar-swatch focus-ring', color.className]}
+              class="avatar-swatch avatar-tone focus-ring"
+              style={`--avatar-bg: var(${color.variable})`}
               aria-label={color.label}
               aria-pressed="false"
               data-avatar-pick-color={color.id}

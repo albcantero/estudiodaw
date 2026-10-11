@@ -127,6 +127,17 @@
   --pressed: var(--accent);
   /* Cuánto del camino de reposo a pulsado recorre el hover (fondo y texto) */
   --hover-step: 55%;
+  /* Colores del avatar: los 500 de Tailwind, tal cual. Se pintan más planos con la utilidad
+     avatar-tone (utilities.css), que les baja el croma (la saturación) a esta proporción */
+  --avatar-red: var(--color-red-500);
+  --avatar-orange: var(--color-orange-500);
+  --avatar-amber: var(--color-amber-500);
+  --avatar-green: var(--color-green-500);
+  --avatar-sky: var(--color-sky-500);
+  --avatar-blue: var(--color-blue-500);
+  --avatar-violet: var(--color-violet-500);
+  --avatar-pink: var(--color-pink-500);
+  --avatar-chroma: 0.6;
   /* Dos bordes, cada uno con su papel:
      --border: las líneas de la estructura (marco, reglas, discontinuas, separadores). Sólido.
      --input: el contorno de lo que se toca o flota (botones, segmentado, buscador,
