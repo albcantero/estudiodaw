@@ -11,6 +11,7 @@
  * @author Alberto Cantero
  * @license MIT
  */
+import Avatar from '../ui/Avatar.astro';
 import Button from '../ui/Button.astro';
 import Dropdown from '../ui/Dropdown.astro';
 import Icon from '../ui/Icon.astro';
@@ -39,13 +40,17 @@ import Icon from '../ui/Icon.astro';
       flush
     >
       <span slot="trigger" class="flex items-center gap-1.5">
-        <Icon name="user-circle" class="size-4" />
+        <Avatar size="sm" />
         <span class="max-w-40 truncate" data-account-username></span>
         <Icon name="chevron-down" class="size-3.5" />
       </span>
+      {/* El avatar y, a su lado, el nombre y debajo el correo */}
       <div class="account-panel">
-        <p class="account-name" data-account-name></p>
-        <p class="account-email" data-account-email></p>
+        <Avatar />
+        <div class="min-w-0">
+          <p class="account-name" data-account-name></p>
+          <p class="account-email" data-account-email></p>
+        </div>
       </div>
       <div class="account-actions">
         {/* Primero lo de la cuenta; después, lo que cambia la web */}
@@ -105,6 +110,9 @@ import Icon from '../ui/Icon.astro';
   /* A los lados, 12 px: el texto cae en la misma vertical que los iconos de las opciones (el
      relleno de la lista, 4 px, más el del botón, 8 px) */
   .account-panel {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2.5);
     padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
   }
 

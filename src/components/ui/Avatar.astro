@@ -1,0 +1,55 @@
+---
+/**
+ * @file Avatar: un círculo con la inicial del nombre sobre fondo gris. Tres tamaños: sm (24 px),
+ * default (32 px) y lg (40 px); en el pequeño, la letra también es más pequeña. Encima lleva un
+ * borde fino que se funde con lo que tiene detrás (más oscuro en claro y más claro en oscuro),
+ * para que el círculo se distinga sobre cualquier fondo.
+ *
+ * La inicial la escribe quien lo usa: aquí, el script de la cuenta (scripts/auth/account.ts),
+ * en el elemento [data-avatar-initial].
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import { cn } from '../../lib/cn';
+
+interface Props {
+  size?: 'sm' | 'default' | 'lg';
+  class?: string;
+}
+
+const { size = 'default', class: className } = Astro.props;
+
+/** Lado del círculo por tamaño */
+const SIZES = { sm: 'size-6', default: 'size-8', lg: 'size-10' };
+---
+
+<span
+  class={cn('avatar relative flex shrink-0 rounded-full select-none', SIZES[size], className)}
+  data-size={size}
+  aria-hidden="true"
+>
+  <span
+    class:list={[
+      'flex size-full items-center justify-center rounded-full bg-muted font-medium text-muted-foreground uppercase',
+      size === 'sm' ? 'text-xs' : 'text-sm',
+    ]}
+    data-avatar-initial
+  ></span>
+</span>
+
+<style>
+  /* El borde fino, por encima del fondo: se oscurece en claro y se aclara en oscuro */
+  .avatar::after {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    content: '';
+    mix-blend-mode: darken;
+  }
+
+  :global(.dark) .avatar::after {
+    mix-blend-mode: lighten;
+  }
+</style>

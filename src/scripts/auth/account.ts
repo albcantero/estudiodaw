@@ -1,8 +1,8 @@
 /**
  * @file Pinta la cuenta de la barra superior (layout/AccountButton) según la sesión.
  *
- * En la barra va el nombre de la cuenta (o, si aún no tiene, el usuario del correo); en el menú,
- * el nombre y debajo el correo.
+ * En la barra va el avatar con la inicial y el nombre de la cuenta (o, si aún no tiene, el usuario
+ * del correo); en el menú, el avatar y, a su lado, el nombre y debajo el correo.
  *
  * Al cargar, la sesión guardada se lee sin Supabase (storedEmail) y se pinta al instante; si la
  * hay, se carga Supabase para confirmarla (watchSession): si ha caducado, llega un cambio de
@@ -50,6 +50,10 @@ function paint(): void {
     account
       .querySelectorAll('[data-account-username], [data-account-name]')
       .forEach((element) => element.replaceChildren(name));
+    // En los avatares, la inicial del nombre
+    account
+      .querySelectorAll('[data-avatar-initial]')
+      .forEach((element) => element.replaceChildren(name.charAt(0)));
     const label = account.querySelector('[data-account-email]');
     if (label) label.textContent = email ?? '';
   });
