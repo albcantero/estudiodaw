@@ -48,6 +48,11 @@ import Icon from '../ui/Icon.astro';
         <p class="account-email" data-account-email></p>
       </div>
       <div class="account-actions">
+        {/* Primero lo de la cuenta; después, lo que cambia la web */}
+        <Button class="w-full justify-start px-2" aria-haspopup="dialog" data-auth-rename>
+          <Icon name="user-edit" class="size-4" />
+          Cambiar nombre
+        </Button>
         {/* Con un filtro de matrícula activo (data-active, de scripts/enrollment.ts), su punto */}
         <Button
           class="group/enroll w-full justify-start px-2 data-active:text-foreground"
@@ -62,12 +67,9 @@ import Icon from '../ui/Icon.astro';
           ></span>
           <span class="sr-only hidden group-data-active/enroll:inline">(filtro activo)</span>
         </Button>
-        <Button class="w-full justify-start px-2" aria-haspopup="dialog" data-auth-rename>
-          <Icon name="user-edit" class="size-4" />
-          Quiero cambiar mi nombre
-        </Button>
-        {/* En rojo (texto, icono y fondo) solo al pasar el ratón y al pulsar: avisa de que saca de la
-            cuenta */}
+        {/* Aparte, tras una línea, para no pulsarla por error al buscar otra opción. En rojo (texto,
+            icono y fondo) solo al pasar el ratón y al pulsar: avisa de que saca de la cuenta */}
+        <div class="account-separator" role="separator"></div>
         <Button
           class="w-full justify-start px-2 hover:bg-destructive/10 hover:text-destructive active:bg-destructive/10"
           data-auth-sign-out
@@ -100,8 +102,10 @@ import Icon from '../ui/Icon.astro';
     display: none;
   }
 
+  /* A los lados, 12 px: el texto cae en la misma vertical que los iconos de las opciones (el
+     relleno de la lista, 4 px, más el del botón, 8 px) */
   .account-panel {
-    padding: calc(var(--spacing) * 2.5);
+    padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
   }
 
   /* Arriba el nombre y, debajo, el correo en gris */
@@ -128,6 +132,13 @@ import Icon from '../ui/Icon.astro';
     gap: calc(var(--spacing) * 0.5);
     padding: calc(var(--spacing) * 1);
     border-top: 1px solid var(--border);
+  }
+
+  /* Línea entre las opciones y "Cerrar sesión", de lado a lado del menú */
+  .account-separator {
+    height: 1px;
+    margin: calc(var(--spacing) * 0.5) calc(var(--spacing) * -1);
+    background: var(--border);
   }
 </style>
 

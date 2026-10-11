@@ -7,7 +7,7 @@
  * se deja para después. Si lo cierran antes de guardar el nombre, se vuelve a pedir la próxima vez
  * que entren.
  *
- * "Quiero cambiar mi nombre", en el menú de la cuenta, abre el diálogo directamente en el paso del nombre,
+ * "Cambiar nombre", en el menú de la cuenta, abre el diálogo directamente en el paso del nombre,
  * con el actual escrito; al guardarlo, se cierra.
  *
  * @author Alberto Cantero
