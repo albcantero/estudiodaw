@@ -24,6 +24,21 @@ export const AVATAR_ICONS = [
   { id: 'crown', label: 'Corona' },
   { id: 'pizza', label: 'Pizza' },
   { id: 'cactus', label: 'Cactus' },
+  { id: 'paw', label: 'Huella' },
+  { id: 'pig', label: 'Cerdo' },
+  { id: 'bug', label: 'Bicho' },
+  { id: 'mushroom', label: 'Seta' },
+  { id: 'flower', label: 'Flor' },
+  { id: 'leaf', label: 'Hoja' },
+  { id: 'sun', label: 'Sol' },
+  { id: 'moon', label: 'Luna' },
+  { id: 'star', label: 'Estrella' },
+  { id: 'heart', label: 'Corazón' },
+  { id: 'bolt', label: 'Rayo' },
+  { id: 'flame', label: 'Llama' },
+  { id: 'music', label: 'Música' },
+  { id: 'coffee', label: 'Café' },
+  { id: 'robot', label: 'Robot' },
 ] as const;
 
 /**

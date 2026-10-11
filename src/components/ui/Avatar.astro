@@ -6,7 +6,8 @@
  * oscuro en claro y más claro en oscuro), para que el círculo se distinga sobre cualquier fondo.
  *
  * Trae todos los iconos que se pueden elegir (data/avatar.ts), ocultos: el script de la cuenta
- * (scripts/auth/avatar.ts) enseña el elegido, escribe la inicial y pone el color.
+ * (scripts/auth/avatar.ts) enseña el elegido, escribe la inicial y pone el color. Editable, trae
+ * además un lápiz (edit-circle), oculto, que enseña quien lo usa al pasar el ratón.
  *
  * @author Alberto Cantero
  * @license MIT
@@ -17,10 +18,12 @@ import Icon from './Icon.astro';
 
 interface Props {
   size?: 'sm' | 'default' | 'lg';
+  /** Con el lápiz de editar, oculto ([data-avatar-pencil]) */
+  editable?: boolean;
   class?: string;
 }
 
-const { size = 'default', class: className } = Astro.props;
+const { size = 'default', editable = false, class: className } = Astro.props;
 
 /** Lado del círculo por tamaño */
 const SIZES = { sm: 'size-6', default: 'size-8', lg: 'size-10' };
@@ -47,6 +50,11 @@ const ICON_SIZES = { sm: 'size-3.5', default: 'size-4.5', lg: 'size-5' };
         <Icon name={icon.id} class={ICON_SIZES[size]} />
       </span>
     ))}
+    {editable && (
+      <span class="avatar-pencil" data-avatar-pencil>
+        <Icon name="edit-circle" class={ICON_SIZES[size]} />
+      </span>
+    )}
   </span>
 </span>
 
@@ -63,5 +71,9 @@ const ICON_SIZES = { sm: 'size-3.5', default: 'size-4.5', lg: 'size-5' };
 
   :global(.dark) .avatar::after {
     mix-blend-mode: lighten;
+  }
+
+  .avatar-pencil {
+    display: none;
   }
 </style>

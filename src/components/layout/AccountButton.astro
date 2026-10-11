@@ -5,8 +5,8 @@
  * "Cambiar nombre", "Mi matrícula" (EnrollmentDialog) y "Cerrar sesión". La matrícula solo se
  * elige con la sesión iniciada.
  *
- * El avatar del desplegable se puede cambiar: al pasar el ratón enseña un lápiz y al pulsarlo
- * abre el selector de icono y color (scripts/auth/avatar.ts).
+ * El avatar del desplegable se puede cambiar: al pasar el ratón su icono pasa a ser un lápiz y su
+ * color se aclara; al pulsarlo, abre el selector de icono y color (scripts/auth/avatar.ts).
  *
  * Lo pinta scripts/auth/account.ts según data-state: loading (hueco reservado, sin nada
  * visible, para que no salte de "Iniciar sesión" al usuario), signed-out, signed-in u off (sin
@@ -58,10 +58,7 @@ import Icon from '../ui/Icon.astro';
           aria-label="Cambiar avatar"
           data-avatar-edit
         >
-          <Avatar />
-          <span class="avatar-edit-overlay" aria-hidden="true">
-            <Icon name="edit-circle" class="size-4" />
-          </span>
+          <Avatar editable />
         </button>
         <div class="min-w-0">
           <p class="account-name" data-account-name></p>
@@ -160,30 +157,27 @@ import Icon from '../ui/Icon.astro';
     display: none;
   }
 
-  /* A los lados, 12 px: el texto cae en la misma vertical que los iconos de las opciones (el
-     relleno de la lista, 4 px, más el del botón, 8 px) */
-  /* Avatar editable: al pasar el ratón o con el foco, lo tapa el fondo de hover de los botones
-     (ya mezclado con el de la tarjeta, para que no se transparente lo de debajo) con un lápiz */
+  /* Avatar editable: al pasar el ratón, con el foco o con el selector abierto, su icono (o su
+     inicial) deja sitio al lápiz y su fondo, sea el color elegido o el gris, se aclara */
   .avatar-edit {
     cursor: pointer;
   }
 
-  .avatar-edit-overlay {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    border-radius: 9999px;
-    background: color-mix(in oklab, var(--pressed) var(--hover-step), var(--popover));
-    color: var(--foreground);
-    opacity: 0;
-    transition: opacity var(--duration-hover) var(--ease-hover);
+  .avatar-edit :global([data-avatar-fill]) {
+    transition: filter var(--duration-hover) var(--ease-hover);
   }
 
-  .avatar-edit:hover .avatar-edit-overlay,
-  .avatar-edit:focus-visible .avatar-edit-overlay,
-  .avatar-edit[aria-expanded='true'] .avatar-edit-overlay {
-    opacity: 1;
+  .avatar-edit:is(:hover, :focus-visible, [aria-expanded='true']) :global([data-avatar-fill]) {
+    filter: brightness(1.15);
+  }
+
+  .avatar-edit:is(:hover, :focus-visible, [aria-expanded='true'])
+    :global(:is([data-avatar-initial], [data-avatar-icon])) {
+    display: none;
+  }
+
+  .avatar-edit:is(:hover, :focus-visible, [aria-expanded='true']) :global([data-avatar-pencil]) {
+    display: flex;
   }
 
   /* Selector: la superficie de los menús, debajo del avatar (lo coloca el script) */
@@ -221,6 +215,8 @@ import Icon from '../ui/Icon.astro';
     outline-offset: 2px;
   }
 
+  /* A los lados, 12 px: el texto cae en la misma vertical que los iconos de las opciones (el
+     relleno de la lista, 4 px, más el del botón, 8 px) */
   .account-panel {
     display: flex;
     align-items: center;
