@@ -7,6 +7,9 @@
  * se deja para después. Si lo cierran antes de guardar el nombre, se vuelve a pedir la próxima vez
  * que entren.
  *
+ * "Cambiar mi nombre", en el menú de la cuenta, abre el diálogo directamente en el paso del nombre,
+ * con el actual escrito; al guardarlo, se cierra.
+ *
  * @author Alberto Cantero
  * @license MIT
  */
@@ -15,7 +18,7 @@ import { SPRING, prefersReducedMotion } from '../motion';
 import { focusAccount } from './account';
 import { AUTH_MESSAGES } from './errors';
 import { openEnrollment } from '../enrollment';
-import { currentName, requestCode, saveName, verifyCode } from './session';
+import { currentName, requestCode, saveName, storedEmail, storedName, verifyCode } from './session';
 import {
   CODE_LENGTH,
   isValidUser,
@@ -362,8 +365,12 @@ async function verify(dialog: HTMLDialogElement): Promise<void> {
 /** Hay un guardado del nombre en marcha */
 let savingName = false;
 
+/** Se está cambiando el nombre desde el menú de la cuenta: al guardarlo, el diálogo se cierra */
+let renaming = false;
+
 /**
- * Guarda el nombre escrito y pasa al paso de la matrícula.
+ * Guarda el nombre escrito y pasa al paso de la matrícula; si se está cambiando desde el menú
+ * de la cuenta, cierra el diálogo.
  *
  * @param dialog Diálogo.
  */
@@ -385,7 +392,8 @@ async function submitName(dialog: HTMLDialogElement): Promise<void> {
     return;
   }
   showError(form, '');
-  showStep(dialog, 'enrollment');
+  if (renaming) finish(dialog);
+  else showStep(dialog, 'enrollment');
 }
 
 /**
@@ -407,6 +415,7 @@ async function resend(dialog: HTMLDialogElement): Promise<void> {
  * @param dialog Diálogo.
  */
 function open(dialog: HTMLDialogElement): void {
+  renaming = false;
   const request = dialog.querySelector<HTMLFormElement>('[data-auth-request]');
   if (request) {
     request.reset();
@@ -414,6 +423,23 @@ function open(dialog: HTMLDialogElement): void {
   }
   dialog.showModal();
   showStep(dialog, 'start', false);
+}
+
+/**
+ * Abre el diálogo en el paso del nombre, con el nombre actual escrito (o, sin él, el que se deduce
+ * del correo), para cambiarlo.
+ *
+ * @param dialog Diálogo.
+ */
+function openRename(dialog: HTMLDialogElement): void {
+  const form = dialog.querySelector<HTMLFormElement>('[data-auth-name]');
+  const input = form?.querySelector<HTMLInputElement>('input[name="name"]');
+  if (!form || !input) return;
+  renaming = true;
+  input.value = storedName() ?? nameFromEmail(storedEmail() ?? '');
+  showError(form, '');
+  dialog.showModal();
+  showStep(dialog, 'name', false);
 }
 
 document.addEventListener('input', (event) => {
@@ -458,6 +484,7 @@ document.addEventListener('click', (event) => {
   const dialog = dialogOf();
   if (!dialog) return;
   if (target.closest('[data-auth-open]')) open(dialog);
+  else if (target.closest('[data-auth-rename]')) openRename(dialog);
   else if (target.closest('[data-auth-close]')) dialog.close();
   // El campo del correo, solo si se ha pulsado con el teclado (detail 0): con el ratón, se hace
   // clic en él cuando se quiera escribir
