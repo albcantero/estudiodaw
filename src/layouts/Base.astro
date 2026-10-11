@@ -35,7 +35,7 @@ import Sidebar from '../components/layout/Sidebar.astro';
 import TopBar from '../components/layout/TopBar.astro';
 
 interface Props {
-  /** Título de la página; en la pestaña va seguido del nombre de la web */
+  /** Título de la página; en la pestaña va seguido del nombre de la web: "Título | estudiodaw.dev" */
   title: string;
   description?: string;
   /** Con panel lateral (portada y asignaturas); las páginas de lectura van sin él */
@@ -57,7 +57,7 @@ const {
   heading,
 } = Astro.props;
 
-const pageTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
+const pageTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 

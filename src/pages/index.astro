@@ -13,7 +13,7 @@ import Features from '../components/page/Features.astro';
 import IsoIllustration from '../components/page/IsoIllustration.astro';
 import Panel from '../components/page/Panel.astro';
 import Separator from '../components/page/Separator.astro';
-import { SITE_DESCRIPTION, SITE_NAME } from '../data/site';
+import { HOME_TITLE, SITE_DESCRIPTION, SITE_NAME } from '../data/site';
 import Base from '../layouts/Base.astro';
 import { subjectGroupOrder, subjectItems } from '../lib/collection-items';
 import { getSubjects, getTemaCounts } from '../lib/content';
@@ -21,7 +21,7 @@ import { getSubjects, getTemaCounts } from '../lib/content';
 const items = subjectItems(await getSubjects(), await getTemaCounts());
 ---
 
-<Base title={SITE_NAME} heading={`${SITE_NAME}: ${SITE_DESCRIPTION}`}>
+<Base title={HOME_TITLE} heading={`${SITE_NAME}: ${SITE_DESCRIPTION}`}>
   <Features label="Qué hay en la web">
     <FeatureCard
       figure="Fig 0.1"

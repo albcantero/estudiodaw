@@ -13,6 +13,12 @@ export const [SITE_BRAND] = SITE_NAME.split('.');
 
 export const SITE_DESCRIPTION = 'Apuntes, ejercicios y soluciones de DAW, tema a tema.';
 
+/**
+ * Título de la portada en la pestaña y en los buscadores: lo que se busca primero y la marca al
+ * final (Base.astro la añade)
+ */
+export const HOME_TITLE = 'Apuntes y ejercicios de Desarrollo de Aplicaciones Web';
+
 /** Presentación de la web bajo el logo del panel lateral */
 export const SITE_TAGLINE =
   'Una colección de apuntes, ejercicios de código con soluciones y recursos para estudiar DAW, organizada por asignaturas y unidades.';
