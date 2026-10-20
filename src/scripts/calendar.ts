@@ -1,6 +1,8 @@
 /**
  * @file Calendario de exámenes (pages/calendario.astro): cuenta atrás de cada examen, filtro por
- * curso (se recuerda en el navegador) y descarga en .ics de lo que se ve.
+ * curso (se recuerda en el navegador), buscador y descarga en .ics de lo que se ve. El filtro y el
+ * buscador se combinan: un examen se ve si es del curso elegido y contiene todas las palabras
+ * escritas (sin tildes ni mayúsculas, con el texto que trae preparado en data-search).
  *
  * @author Alberto Cantero
  * @license MIT
@@ -10,6 +12,8 @@ import { ACADEMIC_YEAR, CENTRE_NAME } from '../data/site';
 import { STORAGE_KEYS } from '../data/storage';
 import { daysUntil } from '../lib/exam-time';
 import { buildIcs } from '../lib/ics';
+import { normalizeSearch } from '../lib/search';
+import { highlightPanel } from './collections/highlight';
 import { readPreference, writePreference } from './preferences';
 import { selectSegment } from './segmented';
 import { isShown, refreshLists } from './visibility';
@@ -66,18 +70,46 @@ function readCourseFilter(): string {
   return COURSE_FILTERS.includes(course) ? course : 'all';
 }
 
+/** Curso elegido en el filtro */
+let currentCourse = 'all';
+
 /**
- * Deja a la vista solo los exámenes del curso elegido y lo marca en el filtro.
+ * Palabras escritas en el buscador, ya normalizadas.
+ *
+ * @returns Las palabras; ninguna si está vacío.
+ */
+function searchWords(): string[] {
+  const query = document.querySelector<HTMLInputElement>('[data-exam-search]')?.value ?? '';
+  return normalizeSearch(query).split(/\s+/).filter(Boolean);
+}
+
+/**
+ * Deja a la vista los exámenes del curso elegido que contienen lo buscado, resalta lo que
+ * coincide y recalcula los meses y días que se quedan vacíos.
+ */
+function applyFilters(): void {
+  const words = searchWords();
+  examRows().forEach((row) => {
+    const text = row.dataset.search ?? '';
+    const inCourse = currentCourse === 'all' || row.dataset.course === currentCourse;
+    row.toggleAttribute('hidden', !inCourse || !words.every((word) => text.includes(word)));
+  });
+  document.querySelectorAll<HTMLElement>('[data-panel]').forEach((panel) => {
+    highlightPanel(panel, words);
+  });
+  refreshLists();
+}
+
+/**
+ * Elige un curso en el filtro y lo marca.
  *
  * @param course "all", "1" o "2".
  * @param instant Marcarlo sin animar (al cargar la página).
  */
 function applyCourseFilter(course: string, instant = false): void {
-  examRows().forEach((row) =>
-    row.toggleAttribute('hidden', course !== 'all' && row.dataset.course !== course),
-  );
+  currentCourse = course;
   selectSegment(FILTER, course, instant);
-  refreshLists();
+  applyFilters();
 }
 
 /**
@@ -123,7 +155,18 @@ document.addEventListener('click', (event) => {
     applyCourseFilter(course);
   } else if (target.closest('[data-exam-ics]')) {
     downloadIcs();
+  } else if (target.closest('[data-exam-clear]')) {
+    // Borrar la búsqueda: vacía el buscador, vuelve a filtrar y le devuelve el foco
+    const input = document.querySelector<HTMLInputElement>('[data-exam-search]');
+    if (!input) return;
+    input.value = '';
+    applyFilters();
+    input.focus();
   }
+});
+
+document.addEventListener('input', (event) => {
+  if ((event.target as HTMLElement).matches('[data-exam-search]')) applyFilters();
 });
 
 document.addEventListener('astro:page-load', () => {

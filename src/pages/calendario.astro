@@ -13,6 +13,7 @@ import Separator from '../components/page/Separator.astro';
 import Badge from '../components/ui/Badge.astro';
 import Button from '../components/ui/Button.astro';
 import HoverCard from '../components/ui/HoverCard.astro';
+import SearchInput from '../components/ui/SearchInput.astro';
 import Icon from '../components/ui/Icon.astro';
 import SegmentedControl from '../components/ui/SegmentedControl.astro';
 import { COURSES, COURSE_YEARS } from '../data/courses';
@@ -21,6 +22,7 @@ import { ACADEMIC_YEAR } from '../data/site';
 import Base from '../layouts/Base.astro';
 import { temaHref } from '../lib/content';
 import { examDate, examUnits, groupExamsByDay, groupExamsByMonth } from '../lib/exams';
+import { normalizeSearch } from '../lib/search';
 
 // Unidad del temario → sus apuntes, si ya están publicados (por el campo unit del tema: "UD3")
 const docs = await getCollection('docs');
@@ -67,20 +69,23 @@ const courseFilters = [
   banner={false}
 >
   <PageHeading
-    breadcrumbs={[{ label: `Curso ${ACADEMIC_YEAR} · Presenciales` }]}
     title="Calendario de exámenes"
-    description="Parciales y finales de 1.º y 2.º de DAW, con las dos convocatorias. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
+    description="Consulta de un vistazo todos los exámenes de Primero y Segundo de DAW, tanto parciales como finales. Filtra por curso para encontrar rápidamente lo que necesitas."
   >
     <div class="dash-b flex flex-wrap items-center justify-between gap-2 px-gutter py-3">
       <SegmentedControl name="exam-course" label="Curso" options={courseFilters} />
-      <Button
-        variant="outline"
-        tooltip="Descargar los exámenes en un .ics para tu calendario"
-        data-exam-ics
-      >
-        <Icon name="calendar-plus" class="size-4" />
-        Añadir a mi calendario
-      </Button>
+      <div class="flex flex-1 items-center justify-end gap-2">
+        <SearchInput target="exam" placeholder="Buscar exámenes…" class="flex-1 sm:max-w-64" />
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Añadir a mi calendario"
+          tooltip="Descargar las fechas de los exámenes en un fichero para tu app de calendario"
+          data-exam-ics
+        >
+          <Icon name="calendar-plus" class="size-4" />
+        </Button>
+      </div>
     </div>
   </PageHeading>
 
@@ -119,6 +124,14 @@ const courseFilters = [
                         data-title={subject?.name}
                         data-label={exam.label}
                         data-subject={exam.subject}
+                        data-search={normalizeSearch(
+                          [
+                            subject?.name,
+                            exam.label,
+                            COURSES[exam.course].name,
+                            ...(units?.items.map((unit) => unit.title) ?? []),
+                          ].join(' '),
+                        )}
                         data-count-item
                       >
                         {/* Como las filas de la lista de la portada: toda la fila se sombrea al
@@ -136,7 +149,7 @@ const courseFilters = [
                                   class="absolute inset-0 rounded-xl group-has-[a:focus-visible]/row:shadow-(--focus-ring)"
                                   aria-hidden="true"
                                 />
-                                {subject?.name}
+                                <span data-highlight>{subject?.name}</span>
                               </a>
                             </p>
                             <p class="mt-1 flex flex-wrap items-center gap-1.5">
@@ -220,7 +233,7 @@ const courseFilters = [
   ))}
 
   <p class="p-gutter text-sm text-muted-foreground" role="status" data-groups-empty hidden>
-    Ningún examen con este filtro y tu matrícula.
+    Ningún examen con este filtro, esta búsqueda y tu matrícula.
   </p>
 </Base>
 

@@ -1,0 +1,66 @@
+---
+/**
+ * @file Buscador: campo con la lupa y el botón de borrar (la "x"), que solo sale con algo escrito.
+ * Lo usan las colecciones (CollectionTools, scripts/collections/search.ts) y el calendario de
+ * exámenes (scripts/calendar.ts); cada uno lo reconoce por sus atributos (target).
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import Icon from './Icon.astro';
+import Tooltip from './Tooltip.astro';
+
+interface Props {
+  /** Qué se busca: es también el nombre accesible del campo */
+  placeholder?: string;
+  /** Quién lo atiende: el campo lleva data-<target>-search y la "x", data-<target>-clear */
+  target: 'collection' | 'exam';
+  /** Clases del envoltorio (ancho) */
+  class?: string;
+}
+
+const { placeholder = 'Buscar…', target, class: className } = Astro.props;
+---
+
+{/* Un div y no un label: el botón de borrar no puede ir dentro del label del campo; el nombre
+    del campo va en su aria-label */}
+<div class:list={['search-input relative', className]}>
+  <Icon
+    name="search"
+    class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+  />
+  <input
+    type="search"
+    name="q"
+    class="focus-ring h-8 w-full rounded-lg border border-input bg-transparent pr-8 pl-8 text-ui [--focus-ring:var(--focus-ring-brand)] placeholder:text-muted-foreground hover:border-input-pressed focus-visible:border-brand"
+    placeholder={placeholder}
+    aria-label={placeholder}
+    autocomplete="off"
+    spellcheck="false"
+    {...{ [`data-${target}-search`]: true }}
+  />
+  {/* Borrar la búsqueda: la "x" de Tabler (la de las fijadas), solo con algo escrito */}
+  <Tooltip content="Borrar búsqueda">
+    <button
+      type="button"
+      class="search-clear press-icon focus-ring absolute top-1/2 right-1.5 grid size-5 -translate-y-1/2 place-items-center rounded-sm text-muted-foreground hover:text-foreground"
+      aria-label="Borrar búsqueda"
+      {...{ [`data-${target}-clear`]: true }}
+    >
+      <Icon name="x" class="size-3.5" />
+    </button>
+  </Tooltip>
+</div>
+
+<style>
+  /* La "x" nativa del campo de búsqueda, fuera: se usa el botón propio de limpiar */
+  .search-input input::-webkit-search-cancel-button {
+    display: none;
+    appearance: none;
+  }
+
+  /* Sin nada escrito (se ve el placeholder), no hay nada que borrar */
+  .search-input:has(input:placeholder-shown) .search-clear {
+    display: none;
+  }
+</style>
