@@ -10,7 +10,7 @@ import { DOC_LABELS } from '../data/doc-kinds';
 import { exams } from '../data/exams';
 import { PARCIAL_LABELS, PARCIAL_TOOLTIPS, syllabus, type Unit } from '../data/syllabus';
 import type { CollectionItem, CollectionProperty } from './collection';
-import { docsOfTema, temaNumber, type Doc, type Subject, type Tema } from './content';
+import { docsOfTema, temaHref, temaNumber, type Doc, type Subject, type Tema } from './content';
 import { progressBadge } from './progress';
 
 /** Estado de un tema que ya se puede leer */
@@ -156,10 +156,8 @@ export function temaItems(subject: Subject, temas: Tema[], docs: Doc[]): Collect
    */
   const publishedItem = (tema: Tema, number: number, unit?: Unit): CollectionItem => {
     const temaDocs = docsOfTema(docs, subject.id, tema.data.slug);
-    // Directo al primer documento, sin pasar por la redirección de la URL del tema
-    const firstKind = temaDocs[0]?.data.kind ?? 'teoria';
     return {
-      href: `/${subject.id}/${tema.data.slug}/${firstKind}`,
+      href: temaHref(tema, docs),
       number: temaNumber(number),
       title: tema.data.title,
       description: tema.data.description,

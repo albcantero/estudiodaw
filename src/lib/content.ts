@@ -72,3 +72,16 @@ export function docsOfTema(docs: Doc[], subject: string, slug: string): Doc[] {
     .filter((doc) => doc.id.startsWith(`${subject}/${slug}/`))
     .sort((a, b) => DOC_KINDS.indexOf(a.data.kind) - DOC_KINDS.indexOf(b.data.kind));
 }
+
+/**
+ * Dirección de un tema publicado: directa a su primer documento, sin pasar por la redirección de
+ * la URL del tema.
+ *
+ * @param tema Tema.
+ * @param docs Todos los documentos (colección docs).
+ * @returns La dirección del tema.
+ */
+export function temaHref(tema: Tema, docs: Doc[]): string {
+  const firstKind = docsOfTema(docs, tema.data.subject, tema.data.slug)[0]?.data.kind ?? 'teoria';
+  return `/${tema.data.subject}/${tema.data.slug}/${firstKind}`;
+}

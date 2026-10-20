@@ -10,15 +10,37 @@ import { getCollection } from 'astro:content';
 import PageHeading from '../components/page/PageHeading.astro';
 import Panel from '../components/page/Panel.astro';
 import Separator from '../components/page/Separator.astro';
+import Badge from '../components/ui/Badge.astro';
 import Button from '../components/ui/Button.astro';
-import Tooltip from '../components/ui/Tooltip.astro';
+import HoverCard from '../components/ui/HoverCard.astro';
 import Icon from '../components/ui/Icon.astro';
 import SegmentedControl from '../components/ui/SegmentedControl.astro';
 import { COURSES, COURSE_YEARS } from '../data/courses';
 import { exams } from '../data/exams';
 import { ACADEMIC_YEAR } from '../data/site';
 import Base from '../layouts/Base.astro';
-import { examDate, groupExamsByMonth } from '../lib/exams';
+import { temaHref } from '../lib/content';
+import { examDate, examUnits, groupExamsByMonth } from '../lib/exams';
+
+// Unidad del temario → sus apuntes, si ya están publicados (por el campo unit del tema: "UD3")
+const docs = await getCollection('docs');
+const temaByUnit = new Map(
+  (await getCollection('temas'))
+    .filter((tema) => tema.data.unit)
+    .map((tema) => [`${tema.data.subject}/${tema.data.unit}`, tema]),
+);
+
+/**
+ * Dirección de los apuntes de una unidad.
+ *
+ * @param subject Id de la asignatura.
+ * @param n Número de la unidad.
+ * @returns La dirección, o undefined si aún no tiene apuntes publicados.
+ */
+function unitHref(subject: string, n: number): string | undefined {
+  const tema = temaByUnit.get(`${subject}/UD${n}`);
+  return tema && temaHref(tema, docs);
+}
 
 const subjects = new Map(
   (await getCollection('subjects')).map((subject) => [subject.id, subject.data]),
@@ -47,7 +69,7 @@ const courseFilters = [
   <PageHeading
     breadcrumbs={[{ label: `Curso ${ACADEMIC_YEAR} · Presenciales` }]}
     title="Calendario de exámenes"
-    description="Parciales y finales de 1º y 2º de DAW, con las dos convocatorias. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
+    description="Parciales y finales de 1.º y 2.º de DAW, con las dos convocatorias. Todas las horas son peninsulares; los exámenes ya pasados quedan atenuados."
   >
     <div class="dash-b flex flex-wrap items-center justify-between gap-2 px-gutter py-3">
       <SegmentedControl name="exam-course" label="Curso" options={courseFilters} />
@@ -75,6 +97,7 @@ const courseFilters = [
           {month.exams.map((exam) => {
             const subject = subjects.get(exam.subject);
             const date = examDate(exam);
+            const units = examUnits(exam);
             return (
               <li
                 class="dash-b flex items-center gap-4 px-gutter py-3 transition-opacity data-past:opacity-45"
@@ -100,27 +123,70 @@ const courseFilters = [
                       style={`background: ${subject?.color}`}
                       aria-hidden="true"
                     />
-                    <Tooltip content={`Ir a ${subject?.name}`}>
-                      <a
-                        href={`/${exam.subject}`}
-                        class="focus-ring truncate rounded-sm link-underline decoration-transparent"
-                      >
-                        {subject?.name}
-                      </a>
-                    </Tooltip>
+                    <a
+                      href={`/${exam.subject}`}
+                      class="focus-ring truncate rounded-sm link-underline decoration-transparent"
+                    >
+                      {subject?.name}
+                    </a>
                   </p>
-                  <p class="flex items-center gap-2 text-sm text-muted-foreground tabular-nums">
-                    <span>{exam.label}</span>
-                    <span class="h-3.5 w-px bg-border" aria-hidden="true" />
-                    <span>{date.time}</span>
-                    <span class="h-3.5 w-px bg-border max-sm:hidden" aria-hidden="true" />
-                    <span class="max-sm:hidden">{COURSES[exam.course].label}</span>
+                  <p class="mt-1 flex flex-wrap items-center gap-1.5">
+                    <Badge text={exam.label} />
+                    <Badge text={date.time} />
+                    <Badge
+                      text={COURSES[exam.course].name}
+                      dot={COURSES[exam.course].dot}
+                      tooltip={`Este examen es del ${COURSES[exam.course].title.toLowerCase()}`}
+                    />
                   </p>
                 </div>
-                <span
-                  class="shrink-0 rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
-                  data-exam-countdown
-                />
+                <div class="flex shrink-0 flex-col items-end gap-1.5">
+                  <span
+                    class="rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground tabular-nums"
+                    data-exam-countdown
+                  />
+                  <HoverCard>
+                    <button
+                      type="button"
+                      class="focus-ring rounded-sm text-xs whitespace-nowrap text-muted-foreground link-underline decoration-transparent"
+                      aria-expanded="false"
+                    >
+                      ¿Qué unidades entran?
+                    </button>
+                    <div slot="content">
+                      <p class="font-medium">Unidades que entran</p>
+                      {units?.items.length ? (
+                        <ul class="mt-1.5 space-y-1 text-muted-foreground">
+                          {units.items.map((unit) => {
+                            const href = unitHref(exam.subject, unit.n);
+                            const text = `${unit.n}. ${unit.title}`;
+                            return (
+                              <li>
+                                {href ? (
+                                  <a
+                                    href={href}
+                                    class="focus-ring rounded-sm text-foreground link-underline"
+                                  >
+                                    {text}
+                                  </a>
+                                ) : (
+                                  <>
+                                    {text}
+                                    <span class="text-xs"> (sin apuntes aún)</span>
+                                  </>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : (
+                        <p class="mt-1.5 text-muted-foreground">
+                          {units?.summary ?? 'Aún no se sabe qué unidades entran en este examen.'}
+                        </p>
+                      )}
+                    </div>
+                  </HoverCard>
+                </div>
               </li>
             );
           })}

@@ -1,0 +1,93 @@
+---
+/**
+ * @file HoverCard: tarjeta con información extra que aparece al dejar el ratón encima de un
+ * elemento o al llegar a él con el teclado. Es la Hover Card de shadcn/ui (Base UI) pasada a
+ * Astro: las mismas clases de la tarjeta, debajo del elemento y centrada a 4 px (sideOffset), con
+ * fundido, zoom del 95 % y un desliz corto desde el elemento al abrirse (100 ms), y fundido y zoom
+ * al cerrarse.
+ *
+ * Como los tooltips, va en la capa superior del navegador (popover="manual") y la coloca
+ * scripts/floating.ts; abrirla, la espera y cerrarla los lleva scripts/hover-card.ts. El elemento
+ * es el primer hijo; el contenido, el slot "content".
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+---
+
+<span class="hover-card" data-hover-card>
+  <slot />
+  <div
+    class="hover-card-content w-64 rounded-lg bg-popover p-2.5 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden"
+    popover="manual"
+    data-side="bottom"
+    data-hover-card-content
+  >
+    <slot name="content" />
+  </div>
+</span>
+
+<script>
+  import '../../scripts/hover-card';
+</script>
+
+<style>
+  .hover-card {
+    display: contents;
+  }
+
+  /* Lo de serie de un popover, fuera: lo coloca el script */
+  .hover-card-content {
+    position: fixed;
+    inset: auto;
+    top: 0;
+    left: 0;
+    margin: 0;
+    border: 0;
+    overflow: visible;
+    text-align: left;
+    opacity: 0;
+    scale: 0.95;
+    transition-property: opacity, translate, scale;
+    transition-duration: 100ms;
+    transition-timing-function: var(--ease-hover);
+  }
+
+  /* De dónde viene y desde dónde crece: desde el elemento (slide-in-from-top-2 de shadcn) */
+  .hover-card-content[data-side='bottom'] {
+    translate: 0 calc(var(--spacing) * -2);
+    transform-origin: var(--hover-card-origin-x, 50%) 0;
+  }
+
+  .hover-card-content[data-side='top'] {
+    translate: 0 calc(var(--spacing) * 2);
+    transform-origin: var(--hover-card-origin-x, 50%) 100%;
+  }
+
+  .hover-card-content[data-open] {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+
+  /* Al cerrarse: solo fade-out y zoom-out-95, sin volver a deslizarse */
+  .hover-card-content[data-closing] {
+    translate: 0 0;
+  }
+
+  /* Puente invisible sobre el hueco: el ratón pasa del elemento a la tarjeta sin cerrarla */
+  .hover-card-content::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    height: calc(var(--spacing) * 1);
+  }
+
+  .hover-card-content[data-side='bottom']::after {
+    bottom: 100%;
+  }
+
+  .hover-card-content[data-side='top']::after {
+    top: 100%;
+  }
+</style>

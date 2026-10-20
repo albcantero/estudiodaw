@@ -2,8 +2,8 @@
  * @file Calendario oficial de exámenes del curso (presentación del centro). El ciclo es DAW a
  * distancia, pero los exámenes son presenciales.
  *
- * Cada módulo se copia como una fila de las tablas del PDF: 1er parcial, 2º parcial, final de
- * 1ª convocatoria y final de 2ª. Las horas son peninsulares (Europe/Madrid).
+ * Cada módulo se copia como una fila de las tablas del PDF: 1.er parcial, 2.º parcial, final de
+ * 1.ª convocatoria y final de 2.ª. Las horas son peninsulares (Europe/Madrid).
  *
  * @author Alberto Cantero
  * @license MIT
@@ -11,11 +11,15 @@
 import type { CourseYear } from './courses';
 import { PARCIAL_LABELS } from './syllabus';
 
+/** Qué examen es: un parcial o una de las dos convocatorias finales */
+export type ExamKind = 1 | 2 | 'final-1' | 'final-2';
+
 export interface Exam {
   /** Id de la asignatura (colección subjects) */
   subject: string;
   course: CourseYear;
-  /** "1er parcial", "Final, 2ª convocatoria"… */
+  kind: ExamKind;
+  /** "1.er parcial", "Final, 2.ª convocatoria"… */
   label: string;
   /** Inicio, en ISO 8601 con el desfase de Madrid */
   start: string;
@@ -27,11 +31,11 @@ export interface Exam {
 type Slot = [date: string, from: string, to: string] | null;
 
 /** Las cuatro columnas de las tablas del PDF, en orden */
-const COLUMN_LABELS = [
-  PARCIAL_LABELS[1],
-  PARCIAL_LABELS[2],
-  'Final, 1ª convocatoria',
-  'Final, 2ª convocatoria',
+const COLUMNS: { kind: ExamKind; label: string }[] = [
+  { kind: 1, label: PARCIAL_LABELS[1] },
+  { kind: 2, label: PARCIAL_LABELS[2] },
+  { kind: 'final-1', label: 'Final, 1.ª convocatoria' },
+  { kind: 'final-2', label: 'Final, 2.ª convocatoria' },
 ];
 
 /** Da el desfase de Madrid de un instante ("GMT+01:00" en invierno, "GMT+02:00" en verano) */
@@ -72,7 +76,7 @@ function row(subject: string, course: CourseYear, slots: [Slot, Slot, Slot, Slot
       {
         subject,
         course,
-        label: COLUMN_LABELS[column],
+        ...COLUMNS[column],
         start: madridIso(date, from),
         end: madridIso(date, to),
       },
@@ -81,7 +85,7 @@ function row(subject: string, course: CourseYear, slots: [Slot, Slot, Slot, Slot
 }
 
 export const exams: Exam[] = [
-  // 1º DAW
+  // 1.º DAW
   ...row('lm', 1, [
     ['2027-01-20', '15:00', '17:00'],
     ['2027-04-14', '15:00', '17:00'],
@@ -131,7 +135,7 @@ export const exams: Exam[] = [
     ['2027-06-18', '17:30', '19:00'],
   ]),
 
-  // 2º DAW
+  // 2.º DAW
   ...row('diw', 2, [
     ['2026-12-02', '15:00', '16:30'],
     ['2027-01-26', '15:00', '16:30'],
