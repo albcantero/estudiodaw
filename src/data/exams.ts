@@ -2,7 +2,7 @@
  * @file Calendario oficial de exámenes del curso (presentación del centro). El ciclo es DAW a
  * distancia, pero los exámenes son presenciales.
  *
- * Cada módulo se copia como una fila de las tablas del PDF: 1.er parcial, 2.º parcial, final de
+ * Cada módulo se copia como una fila de las tablas del PDF: 1.º parcial, 2.º parcial, final de
  * 1.ª convocatoria y final de 2.ª. Las horas son peninsulares (Europe/Madrid).
  *
  * @author Alberto Cantero
@@ -19,7 +19,7 @@ export interface Exam {
   subject: string;
   course: CourseYear;
   kind: ExamKind;
-  /** "1.er parcial", "Final, 2.ª convocatoria"… */
+  /** "1.º parcial", "Final, 2.ª convocatoria"… */
   label: string;
   /** Inicio, en ISO 8601 con el desfase de Madrid */
   start: string;

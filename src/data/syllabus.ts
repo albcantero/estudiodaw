@@ -29,7 +29,7 @@ export const PARCIAL_TOOLTIPS: Record<Parcial, string> = {
 
 /** Cómo se nombra cada valor de Parcial en la interfaz */
 export const PARCIAL_LABELS: Record<Parcial, string> = {
-  1: '1.er parcial',
+  1: '1.º parcial',
   2: '2.º parcial',
   unico: 'Examen único',
   practicas: 'Se evalúa en prácticas',
