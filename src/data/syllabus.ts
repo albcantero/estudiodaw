@@ -9,7 +9,7 @@
  */
 
 /** En qué parcial entra una UD, o cómo se evalúa si no es en uno */
-export type Parcial = 1 | 2 | 'practicas' | 'teoria' | 'no-entra';
+export type Parcial = 1 | 2 | 'unico' | 'practicas' | 'teoria' | 'no-entra';
 
 export interface Unit {
   title: string;
@@ -21,6 +21,7 @@ export interface Unit {
 export const PARCIAL_TOOLTIPS: Record<Parcial, string> = {
   1: 'Este tema entra en el primer parcial',
   2: 'Este tema entra en el segundo parcial',
+  unico: 'Este tema entra en el examen único del módulo, sin parciales',
   practicas: 'Este tema se evalúa con las prácticas',
   teoria: 'De este tema solo entra la teoría',
   'no-entra': 'Este tema no entra en el examen',
@@ -28,8 +29,9 @@ export const PARCIAL_TOOLTIPS: Record<Parcial, string> = {
 
 /** Cómo se nombra cada valor de Parcial en la interfaz */
 export const PARCIAL_LABELS: Record<Parcial, string> = {
-  1: '1er parcial',
-  2: '2º parcial',
+  1: '1.er parcial',
+  2: '2.º parcial',
+  unico: 'Examen único',
   practicas: 'Se evalúa en prácticas',
   teoria: 'Solo teoría',
   'no-entra': 'No entra',
@@ -42,13 +44,12 @@ export const PARCIAL_LABELS: Record<Parcial, string> = {
 export const syllabus: Record<string, Unit[]> = {
   lm: [
     { title: 'XML: estructura y sintaxis', parcial: 1 },
-    { title: 'HTML y CSS', parcial: 1 },
-    { title: 'Sindicación de contenidos (RSS y Atom)' },
-    { title: 'XSD y DTD', parcial: 1 },
+    { title: 'HTML, CSS y sindicación de contenidos', parcial: 1 },
+    { title: 'JavaScript y DOM', parcial: 1 },
+    { title: 'DTD y XSD', parcial: 1 },
     { title: 'XSLT', parcial: 2 },
     { title: 'XQuery', parcial: 2 },
-    { title: 'Sistemas de gestión empresarial (ERP)' },
-    { title: 'JavaScript y DOM', parcial: 'no-entra' },
+    { title: 'Sistemas de gestión empresarial (ERP)', parcial: 2 },
   ],
   bd: [
     { title: 'Almacenamiento de la información', parcial: 1 },
@@ -57,15 +58,16 @@ export const syllabus: Record<string, Unit[]> = {
     { title: 'Realización de consultas', parcial: 2 },
     { title: 'Tratamiento de datos', parcial: 2 },
     { title: 'Programación de bases de datos', parcial: 2 },
+    { title: 'Uso de bases de datos no relacionales' },
   ],
   dwec: [
-    { title: 'Arquitecturas y lenguajes de programación en clientes web' },
-    { title: 'Estructura del lenguaje JavaScript' },
-    { title: 'Modelo de objetos predefinidos en JavaScript' },
-    { title: 'Estructuras definidas por el usuario en JavaScript' },
-    { title: 'Gestión de eventos y formularios en JavaScript' },
-    { title: 'Modelo de objetos del documento (DOM)' },
-    { title: 'Programación AJAX en JavaScript' },
+    { title: 'Arquitecturas y lenguajes de programación en clientes web', parcial: 'practicas' },
+    { title: 'Estructura del lenguaje JavaScript', parcial: 'practicas' },
+    { title: 'Modelo de objetos predefinidos en JavaScript', parcial: 1 },
+    { title: 'Estructuras definidas por el usuario en JavaScript', parcial: 1 },
+    { title: 'Gestión de eventos y formularios en JavaScript', parcial: 2 },
+    { title: 'Modelo de objetos del documento (DOM)', parcial: 2 },
+    { title: 'Programación AJAX en JavaScript', parcial: 2 },
   ],
   dwes: [
     { title: 'Plataformas de programación web en entorno servidor', parcial: 1 },
@@ -86,41 +88,44 @@ export const syllabus: Record<string, Unit[]> = {
     { title: 'Documentación y control de versiones', parcial: 2 },
   ],
   diw: [
-    { title: 'Planificación de interfaces gráficas' },
-    { title: 'Accesibilidad en la web' },
-    { title: 'Usabilidad en la web' },
-    { title: 'Hojas de estilos' },
-    { title: 'Contenidos multimedia: imágenes' },
-    { title: 'Contenidos multimedia: audio y vídeo' },
-    { title: 'Contenidos multimedia: animaciones' },
-    { title: 'Contenidos web interactivos' },
+    { title: 'Planificación de interfaces gráficas', parcial: 1 },
+    { title: 'Accesibilidad en la web', parcial: 1 },
+    { title: 'Usabilidad en la web', parcial: 1 },
+    { title: 'Hojas de estilos', parcial: 1 },
+    { title: 'Contenidos multimedia: imágenes', parcial: 2 },
+    { title: 'Contenidos multimedia: audio y vídeo', parcial: 2 },
+    { title: 'Contenidos multimedia: animaciones', parcial: 2 },
+    { title: 'Contenidos web interactivos', parcial: 'practicas' },
   ],
   cid: [
-    { title: 'Alfabetización digital y niveles de competencia' },
-    { title: 'Ciberseguridad: amenazas y virus informáticos' },
-    { title: 'Ciudadanía digital en las redes sociales' },
+    { title: 'Alfabetización digital y niveles de competencia', parcial: 'unico' },
+    { title: 'Ciberseguridad: amenazas y virus informáticos', parcial: 'unico' },
+    { title: 'Ciudadanía digital en las redes sociales', parcial: 'unico' },
   ],
   dasp: [
-    { title: 'Digitalización y actividad en la empresa en entornos IT y OT' },
-    { title: 'Tecnologías habilitadoras digitales en la empresa' },
-    { title: 'Sistemas en la nube y su influencia en los sistemas digitales' },
-    { title: 'Inteligencia artificial en la empresa' },
-    { title: 'La protección en una economía digital globalizada' },
-    { title: 'Proyecto de transformación digital de una empresa' },
+    { title: 'Digitalización y actividad en la empresa en entornos IT y OT', parcial: 1 },
+    { title: 'Tecnologías habilitadoras digitales en la empresa', parcial: 1 },
+    { title: 'Sistemas en la nube y su influencia en los sistemas digitales', parcial: 1 },
+    { title: 'Inteligencia artificial en la empresa', parcial: 2 },
+    { title: 'La protección en una economía digital globalizada', parcial: 2 },
+    { title: 'Proyecto de transformación digital de una empresa', parcial: 2 },
   ],
   ipe: [
-    { title: 'Estrategias en los procesos selectivos de empleo' },
-    { title: 'Competencias personales, sociales y emocionales para la empleabilidad' },
-    { title: 'Habilidades emprendedoras para la innovación y la sostenibilidad' },
-    { title: 'Ideas de emprendimiento: identificación, definición y validación' },
-    { title: 'Proyecto emprendedor de innovación social o tecnológica' },
+    { title: 'Estrategias en los procesos selectivos de empleo', parcial: 1 },
+    {
+      title: 'Competencias personales, sociales y emocionales para la empleabilidad',
+      parcial: 1,
+    },
+    { title: 'Habilidades emprendedoras para la innovación y la sostenibilidad', parcial: 1 },
+    { title: 'Ideas de emprendimiento: identificación, definición y validación', parcial: 2 },
+    { title: 'Proyecto emprendedor de innovación social o tecnológica', parcial: 2 },
   ],
   sasp: [
-    { title: 'Aspectos ambientales, sociales y de gobernanza (ASG)' },
-    { title: 'Retos ambientales y sociales de la sociedad' },
-    { title: 'Productos y servicios responsables: economía circular' },
-    { title: 'Productos y servicios responsables y actividades sostenibles' },
-    { title: 'Plan de sostenibilidad de una empresa' },
+    { title: 'Aspectos ambientales, sociales y de gobernanza (ASG)', parcial: 1 },
+    { title: 'Retos ambientales y sociales de la sociedad', parcial: 1 },
+    { title: 'Productos y servicios responsables: economía circular', parcial: 1 },
+    { title: 'Productos y servicios responsables y actividades sostenibles', parcial: 2 },
+    { title: 'Plan de sostenibilidad de una empresa', parcial: 2 },
   ],
   tfg: [],
 };
