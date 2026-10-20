@@ -8,8 +8,6 @@
  * @author Alberto Cantero
  * @license MIT
  */
-import Tooltip from '../ui/Tooltip.astro';
-
 interface Props {
   /** Ancla del panel; con ella, el título enlaza a sí mismo */
   id?: string;
@@ -36,11 +34,9 @@ const { id, title, count, countNoun } = Astro.props;
     <header class="rise dash-b px-gutter" style="--i: 2">
       <h2 id={id ? `${id}-title` : undefined} class="heading text-3xl text-balance">
         {id ? (
-          <Tooltip content="Enlace a esta sección">
-            <a href={`#${id}`} class="focus-ring rounded-sm">
-              {title}
-            </a>
-          </Tooltip>
+          <a href={`#${id}`} class="focus-ring rounded-sm">
+            {title}
+          </a>
         ) : (
           title
         )}
