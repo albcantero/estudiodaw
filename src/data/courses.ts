@@ -14,21 +14,19 @@ export type CourseYear = 1 | 2;
 export const COURSE_YEARS: CourseYear[] = [1, 2];
 
 export interface Course {
-  /** Grupo de la Navegación y de "Agrupar por curso": "Primero" */
+  /** Grupo de la Navegación, de "Agrupar por curso" y filtro del calendario: "Primero" */
   name: string;
   /** Columna de "Mi matrícula": "Primer curso" */
   title: string;
   /** Texto corrido: "1.º curso" */
   label: string;
-  /** Filtro del calendario: "1.º" */
-  short: string;
   /** Color del punto de su badge */
   dot: BadgeDot;
 }
 
 export const COURSES: Record<CourseYear, Course> = {
-  1: { name: 'Primero', title: 'Primer curso', label: '1.º curso', short: '1.º', dot: 'first' },
-  2: { name: 'Segundo', title: 'Segundo curso', label: '2.º curso', short: '2.º', dot: 'second' },
+  1: { name: 'Primero', title: 'Primer curso', label: '1.º curso', dot: 'first' },
+  2: { name: 'Segundo', title: 'Segundo curso', label: '2.º curso', dot: 'second' },
 };
 
 /**

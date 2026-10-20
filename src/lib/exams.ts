@@ -89,6 +89,29 @@ export function groupExamsByMonth(exams: Exam[]): ExamMonth[] {
   return [...months.values()];
 }
 
+/** Día del mes de un instante en Madrid, para agrupar: "22" */
+const dayKey = new Intl.DateTimeFormat('es-ES', {
+  timeZone: TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/**
+ * Agrupa por día los exámenes de un mes, en el orden en que vienen (ya ordenados por
+ * groupExamsByMonth): cada día sale una vez, con sus exámenes debajo.
+ *
+ * @param exams Exámenes del mes, en orden.
+ * @returns Los días, cada uno con sus exámenes.
+ */
+export function groupExamsByDay(exams: Exam[]): Exam[][] {
+  const days = exams.reduce((acc, exam) => {
+    const key = dayKey.format(new Date(exam.start));
+    return acc.set(key, [...(acc.get(key) ?? []), exam]);
+  }, new Map<string, Exam[]>());
+  return [...days.values()];
+}
+
 /**
  * Fecha de un examen para mostrarla.
  *

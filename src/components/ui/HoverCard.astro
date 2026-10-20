@@ -8,14 +8,15 @@
  *
  * Como los tooltips, va en la capa superior del navegador (popover="manual") y la coloca
  * scripts/floating.ts; abrirla, la espera y cerrarla los lleva scripts/hover-card.ts. El elemento
- * es el primer hijo; el contenido, el slot "content".
+ * es el primer hijo; el contenido, el slot "content". La raíz es un div sin caja (display:
+ * contents): el contenido lleva bloques (listas, párrafos), que un span no puede contener.
  *
  * @author Alberto Cantero
  * @license MIT
  */
 ---
 
-<span class="hover-card" data-hover-card>
+<div class="hover-card" data-hover-card>
   <slot />
   <div
     class="hover-card-content w-64 rounded-lg bg-popover p-2.5 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden"
@@ -25,7 +26,7 @@
   >
     <slot name="content" />
   </div>
-</span>
+</div>
 
 <script>
   import '../../scripts/hover-card';
@@ -36,8 +37,17 @@
     display: contents;
   }
 
-  /* Lo de serie de un popover, fuera: lo coloca el script */
+  /* Lo de serie de un popover, fuera: lo coloca el script.
+     Las líneas discontinuas de dentro (dash-*) van sobre la tarjeta, no sobre la página: con el
+     color de borde de lo que flota (--popover-border, que se mezcla con --popover y no con el fondo
+     casi negro) y a todo lo ancho, sin el margen de la página */
   .hover-card-content {
+    --dash-h: repeating-linear-gradient(
+      to right,
+      var(--popover-border) 0 var(--dash),
+      transparent var(--dash) calc(2 * var(--dash))
+    );
+    --dash-inset: 0px;
     position: fixed;
     inset: auto;
     top: 0;
