@@ -32,12 +32,26 @@ const statementId = `${id}-statement`;
 
 /**
  * Texto de una opción de un desplegable, que no admite HTML: el Markdown corto sin sus marcas
- * (comillas invertidas y asteriscos).
+ * (comillas invertidas y asteriscos de negrita o cursiva, solo si van por pares). Un asterisco
+ * suelto es texto (`form *`, el selector universal) y se queda.
  *
  * @param markdown Texto tal cual en el fichero.
  * @returns El texto sin marcas.
  */
-const plainText = (markdown: string) => markdown.replace(/`|\*\*|\*/g, '');
+const plainText = (markdown: string) =>
+  markdown
+    .replace(/`/g, '')
+    .replace(/\*\*(\S(?:.*?\S)?)\*\*/g, '$1')
+    .replace(/\*(\S(?:.*?\S)?)\*/g, '$1');
+
+/**
+ * Respuesta escrita tal como se enseña al corregir: solo sin las comillas invertidas, que la
+ * corrección tampoco tiene en cuenta (los asteriscos son parte de la respuesta).
+ *
+ * @param answer Respuesta tal cual en el fichero.
+ * @returns El texto que se enseña.
+ */
+const answerText = (answer: string) => answer.replace(/`/g, '');
 
 /**
  * Clases de un campo donde se escribe o se elige: las del campo del diálogo de acceso, con 44 px
@@ -246,7 +260,7 @@ const rightLabel = (right: string) => {
       {question.type === 'text' && (
         <p>
           <span class="text-muted-foreground">Respuesta:</span>{' '}
-          {question.answers.map(plainText).join(', ')}
+          {question.answers.map(answerText).join(', ')}
         </p>
       )}
 
@@ -291,7 +305,7 @@ const rightLabel = (right: string) => {
     background-color: var(--color-hover);
   }
 
-  .choice:active,
+  .choice:active:not(:has(:disabled)),
   .choice:has(:checked) {
     border-color: var(--input-pressed);
     background-color: var(--color-pressed);

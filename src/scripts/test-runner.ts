@@ -153,7 +153,9 @@ function refreshTally(test: HTMLElement): void {
   const score = test.querySelector<HTMLElement>('[data-test-score]');
   const actions = test.querySelector<HTMLElement>('[data-test-actions]');
   const retry = test.querySelector<HTMLElement>('[data-test-retry]');
-  if (score) score.textContent = finished ? `${correct} de ${round.length} correctas` : '';
+  // Con una sola pregunta en la ronda, en singular: "1 de 1 correcta"
+  const scoreWord = round.length === 1 ? 'correcta' : 'correctas';
+  if (score) score.textContent = finished ? `${correct} de ${round.length} ${scoreWord}` : '';
   if (actions) actions.hidden = !finished;
   if (retry) retry.hidden = wrong === 0;
 }
@@ -270,13 +272,20 @@ function onAnswerChange(event: Event): void {
 document.addEventListener('input', onAnswerChange);
 document.addEventListener('change', onAnswerChange);
 
-// Comprobar (o Intro en un hueco): se corrige aquí, sin enviar nada
-document.addEventListener('submit', (event) => {
-  const form = questionOf(event);
-  if (!form) return;
-  event.preventDefault();
-  checkQuestion(form);
-});
+// Comprobar (o Intro en un hueco): se corrige aquí, sin enviar nada. En la captura y sin dejarlo
+// seguir, como en el diálogo de acceso: el enrutador de Astro (ClientRouter) escucha los envíos en
+// el documento y los convierte en una navegación (?q2=b) que cambia la página y borra el test
+document.addEventListener(
+  'submit',
+  (event) => {
+    const form = questionOf(event);
+    if (!form) return;
+    event.preventDefault();
+    event.stopPropagation();
+    checkQuestion(form);
+  },
+  { capture: true },
+);
 
 document.addEventListener('click', (event) => {
   const button = (event.target as HTMLElement).closest('[data-test-retry], [data-test-restart]');
