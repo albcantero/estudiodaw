@@ -50,7 +50,7 @@ function assertFails(prefix: string, ...lines: string[]): void {
 describe('parseTest', () => {
   it('una opción', () => {
     const q = first(
-      '**2.** La percepción es una ___ significativa de las sensaciones.',
+      '**1.** La percepción es una ___ significativa de las sensaciones.',
       '',
       '- a) organización',
       '- b) interpretación',
@@ -63,14 +63,14 @@ describe('parseTest', () => {
     assert.ok(q.type === 'single');
     assert.equal(q.answer, 'b');
     assert.equal(q.choices.length, 4);
-    assert.equal(q.number, 2);
+    assert.equal(q.number, 1);
     assert.equal(q.statement, 'La percepción es una ___ significativa de las sensaciones.');
     assert.deepEqual(q.choices[1], { letter: 'b', text: 'interpretación' });
   });
 
   it('verdadero o falso es una opción', () => {
     const q = first(
-      '**3.** Siempre es preferible utilizar páginas web dinámicas antes que páginas web estáticas.',
+      '**1.** Siempre es preferible utilizar páginas web dinámicas antes que páginas web estáticas.',
       '',
       '- a) Verdadero',
       '- b) Falso',
@@ -82,7 +82,7 @@ describe('parseTest', () => {
 
   it('varias', () => {
     const q = first(
-      '**8.** Cuando un navegador descarga una página web, esta...',
+      '**1.** Cuando un navegador descarga una página web, esta...',
       '',
       '- a) puede incluir también código en lenguaje JavaScript',
       '- b) puede incluir también referencias a una hoja de estilos CSS',
@@ -97,7 +97,7 @@ describe('parseTest', () => {
 
   it('varias con una sola correcta', () => {
     const q = first(
-      '**7.** ¿Cuáles de los siguientes son lenguajes de guiones? (una o más)',
+      '**1.** ¿Cuáles de los siguientes son lenguajes de guiones? (una o más)',
       '',
       '- a) Java',
       '- b) C#',
@@ -122,7 +122,7 @@ describe('parseTest', () => {
 
   it('huecos numerados con ;', () => {
     const q = first(
-      '**35.** Rellena los huecos: ___ (1): es el contenedor de servlets de Tomcat. ___ (2): es el conector HTTP.',
+      '**1.** Rellena los huecos: ___ (1): es el contenedor de servlets de Tomcat. ___ (2): es el conector HTTP.',
       '',
       '**Respuesta:** (1) Catalina; (2) Coyote',
     );
@@ -132,7 +132,7 @@ describe('parseTest', () => {
 
   it('relacionar sin la palabra Relaciona', () => {
     const q = first(
-      '**30.** Asocia los siguientes campos con sus correspondientes identificadores.',
+      '**1.** Asocia los siguientes campos con sus correspondientes identificadores.',
       '',
       '| Campo | Identificador |',
       '|---|---|',
@@ -151,7 +151,7 @@ describe('parseTest', () => {
 
   it('bloque de código en el enunciado', () => {
     const q = first(
-      '**9.** ¿Qué se muestra en pantalla al ejecutar el siguiente código?',
+      '**1.** ¿Qué se muestra en pantalla al ejecutar el siguiente código?',
       '',
       '```php',
       '$a = "-3.1416";',
@@ -173,7 +173,7 @@ describe('parseTest', () => {
 
   it('nota Ojo', () => {
     const q = first(
-      '**15.** En una aplicación web, se conoce como "back end" a:',
+      '**1.** En una aplicación web, se conoce como "back end" a:',
       '',
       '- a) El personal que se encarga de gestionar y administrar la aplicación',
       '- b) Los almacenes de datos a los que accede la aplicación',
@@ -187,7 +187,7 @@ describe('parseTest', () => {
 
   it('apartado', () => {
     const q = first(
-      '**3.** Los elementos conceptuales de diseño son el punto, ___, el plano y el volumen.',
+      '**1.** Los elementos conceptuales de diseño son el punto, ___, el plano y el volumen.',
       '',
       '- a) la recta',
       '- b) la línea',
@@ -228,8 +228,8 @@ describe('parseTest', () => {
 
   it('letra inexistente', () => {
     assertFails(
-      `${SOURCE}, pregunta 3: `,
-      '**3.** Los elementos conceptuales de diseño son el punto, ___, el plano y el volumen.',
+      `${SOURCE}, pregunta 1: `,
+      '**1.** Los elementos conceptuales de diseño son el punto, ___, el plano y el volumen.',
       '',
       '- a) la recta',
       '- b) el arco',
@@ -251,8 +251,8 @@ describe('parseTest', () => {
 
   it('pregunta sin respuesta ni tabla', () => {
     assertFails(
-      `${SOURCE}, pregunta 4: `,
-      '**4.** ¿Son las líneas visibles en la naturaleza?',
+      `${SOURCE}, pregunta 1: `,
+      '**1.** ¿Son las líneas visibles en la naturaleza?',
       '',
       '- a) Verdadero',
       '- b) Falso',
@@ -261,7 +261,7 @@ describe('parseTest', () => {
 
   it('"varias" suelto no hace la pregunta de varias', () => {
     const q = first(
-      '**24.** ¿Puedes utilizar include o require para incluir el mismo encabezado HTML en varias páginas?',
+      '**1.** ¿Puedes utilizar include o require para incluir el mismo encabezado HTML en varias páginas?',
       '',
       '- a) Sí',
       '- b) No',
@@ -302,6 +302,61 @@ describe('parseTest', () => {
       '**Respuesta:** PHP',
       '',
       '**1.** La directiva del tiempo máximo de ejecución se llama ___.',
+      '',
+      '**Respuesta:** max_execution_time',
+    );
+  });
+});
+
+describe('formatos que no se aceptan', () => {
+  it('opciones sin guion: la respuesta de letra no pasa por texto', () => {
+    assertFails(
+      `${SOURCE}, pregunta 1: la respuesta «b» son letras`,
+      '**1.** ¿Qué principio pide que lo igual se vea igual?',
+      '',
+      'a) Persistencia',
+      'b) Consistencia',
+      '',
+      '**Respuesta:** b',
+    );
+  });
+
+  it('opciones con asterisco o en mayúscula y varias letras', () => {
+    assertFails(
+      `${SOURCE}, pregunta 1: la respuesta «A, C» son letras`,
+      '**1.** ¿Cuáles son lenguajes de guiones? (una o más)',
+      '',
+      '* A) PHP',
+      '- B) HTML',
+      '* C) Python',
+      '',
+      '**Respuesta:** A, C',
+    );
+  });
+
+  it('una respuesta escrita de varias letras sigue siendo texto', () => {
+    const q = first('**1.** La etiqueta de tabla es ___.', '', '**Respuesta:** table');
+    assert.ok(q.type === 'text');
+    assert.deepEqual(q.answers, ['table']);
+  });
+
+  it('la primera pregunta tiene que ser la 1', () => {
+    assertFails(
+      `${SOURCE}, pregunta 2: número de pregunta fuera de orden: tocaba la 1`,
+      '**2.** El lenguaje más utilizado en plataformas AMP es ___.',
+      '',
+      '**Respuesta:** PHP',
+    );
+  });
+
+  it('un salto en la numeración falla', () => {
+    assertFails(
+      `${SOURCE}, pregunta 3: número de pregunta fuera de orden: tocaba la 2`,
+      '**1.** El lenguaje más utilizado en plataformas AMP es ___.',
+      '',
+      '**Respuesta:** PHP',
+      '',
+      '**3.** La directiva del tiempo máximo de ejecución se llama ___.',
       '',
       '**Respuesta:** max_execution_time',
     );

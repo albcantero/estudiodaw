@@ -47,6 +47,8 @@ const NOTE = /^\*\*Ojo\b/;
 const TABLE_ROW = /^\s*\|/;
 const BLANK = /_{3,}/g;
 const NUMBERED = /^\((\d+)\)\s*(.*)$/;
+/** Respuesta que es una letra o una lista de letras (`b`, `a, c`). */
+const LETTERS = /^[a-z](\s*,\s*[a-z])*$/i;
 
 /**
  * Marcas del enunciado que convierten una pregunta de opciones en de varias, aunque solo tenga una
@@ -287,6 +289,13 @@ function parseQuestion(block: Block): Question {
   }
 
   const answers = parseTextAnswers(answerRaw);
+  // Una respuesta de letras sin opciones son opciones mal escritas (`a) …`, `* a)`, `- A)`), que
+  // se han quedado en el enunciado: corregida como texto, la respuesta sería la letra.
+  if (answers.every((answer) => LETTERS.test(answer))) {
+    throw problem(
+      `la respuesta «${answerRaw}» son letras, pero no hay opciones con la forma «- a) …»`,
+    );
+  }
   const blanks = statement.match(BLANK)?.length ?? 0;
   if (blanks > 0 && blanks !== answers.length) {
     throw problem(
@@ -369,10 +378,15 @@ export function parseTest(markdown: string, source: string): ParsedTest {
 
   const seen = new Set<number>();
   const questions: Question[] = [];
-  blocks.forEach((block) => {
+  blocks.forEach((block, index) => {
     try {
       if (seen.has(block.number)) throw problem('número de pregunta repetido');
       seen.add(block.number);
+      // Seguidas desde la 1: un salto suele ser una pregunta que no se ha leído como tal
+      const expected = index === 0 ? 1 : blocks[index - 1].number + 1;
+      if (block.number !== expected) {
+        throw problem(`número de pregunta fuera de orden: tocaba la ${expected}`);
+      }
       questions.push(parseQuestion(block));
     } catch (error) {
       if (!(error instanceof TestFormatError)) throw error;
