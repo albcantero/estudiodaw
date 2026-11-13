@@ -102,6 +102,7 @@
   --color-brand-tint: var(--brand-tint);
   --color-attention: var(--attention);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-course-first: var(--course-first);
   --color-course-second: var(--course-second);
 }
@@ -196,8 +197,11 @@
   /* Aviso: amarillo, para lo que pide atención (el próximo examen). Más oscuro en claro, para
      que se lea sobre blanco */
   --attention: oklch(0.681 0.162 75.834);
-  /* Errores (mensajes de formularios) */
+  /* Errores (mensajes de formularios) y respuestas falladas de un test */
   --destructive: oklch(0.577 0.215 27.325);
+  /* Respuestas acertadas de un test: el verde 700 de Tailwind, que se lee sobre blanco (en
+     oscuro, el 400) */
+  --success: oklch(0.527 0.154 150.069);
 
   /* Hover de lo que ya lleva el fondo de pulsado (como una pestaña activa): un 6 % hacia el texto,
      más claro en oscuro y algo más oscuro en claro. Opaco: con transparencia, en un
@@ -291,6 +295,7 @@
   --switch-off-hover: color-mix(in oklab, var(--foreground) 26%, var(--background));
   --attention: oklch(0.852 0.199 91.936);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.792 0.209 151.711);
   --course-first: oklch(0.792 0.209 151.711);
   --course-second: oklch(0.714 0.203 305.504);
 }

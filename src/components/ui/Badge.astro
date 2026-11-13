@@ -21,6 +21,8 @@ const { text, dot, icon, iconTone, field, tooltip, nextExam } = Astro.props;
 const ICON_TONES = {
   brand: 'text-brand',
   attention: 'text-attention',
+  success: 'text-success',
+  destructive: 'text-destructive',
 };
 
 /** Color del punto de cada curso */
@@ -46,8 +48,10 @@ const DOT_COLORS = {
     {dot && (
       <span class:list={['size-1.5 shrink-0 rounded-full', DOT_COLORS[dot]]} aria-hidden="true" />
     )}
-    {/* La del próximo examen llega vacía y escondida: la escribe y la enseña el navegador */}
-    {nextExam ? <span data-badge-text>{text}</span> : text}
+    {/* El texto va en su propio elemento para que un script pueda reescribirlo: la del próximo
+        examen llega vacía y escondida, y la escribe y la enseña el navegador; las del recuento de
+        un test cambian al corregir */}
+    <span data-badge-text>{text}</span>
     {/* Lo que dice el tooltip, para quien no usa ratón (el tooltip es solo visual) */}
     {tooltip && <span class="sr-only"> ({tooltip})</span>}
   </span>

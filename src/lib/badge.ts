@@ -24,9 +24,10 @@ export interface BadgeData {
   icon?: string;
   /**
    * Color del icono; sin él, el gris del texto. brand: el azul de marca (el progreso de los
-   * temas); attention: el amarillo de aviso (el próximo examen).
+   * temas); attention: el amarillo de aviso (el próximo examen); success y destructive: el verde
+   * y el rojo de acertadas y falladas (el recuento de un test).
    */
-  iconTone?: 'brand' | 'attention';
+  iconTone?: 'brand' | 'attention' | 'success' | 'destructive';
   /** Qué dato es (se oculta con "Mostrar") */
   field?: BadgeField;
   /** Tooltip: lo que significa, en una frase */

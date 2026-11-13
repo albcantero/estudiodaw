@@ -12,6 +12,7 @@ import Button from '../../../components/ui/Button.astro';
 import Tooltip from '../../../components/ui/Tooltip.astro';
 import Icon from '../../../components/ui/Icon.astro';
 import SegmentedControl from '../../../components/ui/SegmentedControl.astro';
+import TestRunner from '../../../components/test/TestRunner.astro';
 import { DOC_LABELS } from '../../../data/doc-kinds';
 import Base from '../../../layouts/Base.astro';
 import docPagesScript from '../../../scripts/inline/doc-pages.js?raw';
@@ -60,6 +61,11 @@ const next = siblings[position + 1];
  * @returns La URL del documento.
  */
 const docUrl = (kind: string) => `/${subjectId}/${temaSlug}/${kind}`;
+
+/** Teoría del tema, si la tiene: la Ayuda de cada pregunta del test enlaza con ella */
+const helpHref = siblings.some((sibling) => sibling.data.kind === 'teoria')
+  ? docUrl('teoria')
+  : undefined;
 
 const tabs = siblings.map((sibling) => ({
   value: sibling.data.kind,
@@ -125,37 +131,46 @@ const tabs = siblings.map((sibling) => ({
     />
   </div>
 
-  <div class="prose prose-notes min-w-0 px-gutter py-8">
-    {tema.data.description && (
-      <p class="lead mt-0! text-muted-foreground">{tema.data.description}</p>
-    )}
+  {test && (
+    <div class="min-w-0">
+      {tema.data.description && (
+        <div class="prose prose-notes px-gutter pt-8">
+          <p class="lead my-0! text-muted-foreground">{tema.data.description}</p>
+        </div>
+      )}
+      <TestRunner {test} {helpHref} />
+    </div>
+  )}
 
-    {toc.length > 0 && (
-      <details class="toc not-prose inset-surface mt-5">
-        <summary>En este documento · {toc.length} secciones</summary>
-        <ol class="mt-1 mb-2 flex flex-col gap-1 px-3 text-sm">
-          {toc.map((heading) => (
-            <li class:list={[heading.depth === 3 && 'pl-3']}>
-              <Tooltip content={`Ir a ${heading.text}`}>
-                <a
-                  href={`#${heading.slug}`}
-                  class="text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {heading.text}
-                </a>
-              </Tooltip>
-            </li>
-          ))}
-        </ol>
-      </details>
-    )}
+  {!test && (
+    <div class="prose prose-notes min-w-0 px-gutter py-8">
+      {tema.data.description && (
+        <p class="lead mt-0! text-muted-foreground">{tema.data.description}</p>
+      )}
 
-    {test ? (
-      <p>Test: {test.questions.length} preguntas</p>
-    ) : (
+      {toc.length > 0 && (
+        <details class="toc not-prose inset-surface mt-5">
+          <summary>En este documento · {toc.length} secciones</summary>
+          <ol class="mt-1 mb-2 flex flex-col gap-1 px-3 text-sm">
+            {toc.map((heading) => (
+              <li class:list={[heading.depth === 3 && 'pl-3']}>
+                <Tooltip content={`Ir a ${heading.text}`}>
+                  <a
+                    href={`#${heading.slug}`}
+                    class="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {heading.text}
+                  </a>
+                </Tooltip>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+
       <div id="doc-content">{Content && <Content />}</div>
-    )}
-  </div>
+    </div>
+  )}
 
   {!test && (
     <Fragment>

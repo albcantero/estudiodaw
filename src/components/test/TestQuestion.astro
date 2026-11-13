@@ -1,0 +1,316 @@
+---
+/**
+ * @file Una pregunta del test: el enunciado, lo que se responde según su tipo (botones de opción,
+ * casillas, huecos o un desplegable por fila), el botón Comprobar y, escondidos hasta corregir,
+ * el resultado, la respuesta correcta y la nota. La corrige scripts/test-runner.ts con la clave
+ * de data-key.
+ *
+ * Sin JavaScript se ve y se puede rellenar, pero no se corrige: Comprobar llega escondido y lo
+ * enseña el script.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { RenderedQuestion } from '../../lib/tests/types';
+import { cn } from '../../lib/cn';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  question: RenderedQuestion;
+  /**
+   * Teoría del tema, para la Ayuda de cada pregunta (va al final del formulario, antes de
+   * cerrarlo). Aún no se usa.
+   */
+  helpHref?: string;
+}
+
+const { question } = Astro.props;
+
+const id = `q${question.number}`;
+const statementId = `${id}-statement`;
+
+/**
+ * Texto de una opción de un desplegable, que no admite HTML: el Markdown corto sin sus marcas
+ * (comillas invertidas y asteriscos).
+ *
+ * @param markdown Texto tal cual en el fichero.
+ * @returns El texto sin marcas.
+ */
+const plainText = (markdown: string) => markdown.replace(/`|\*\*|\*/g, '');
+
+/**
+ * Clases de un campo donde se escribe o se elige: las del campo del diálogo de acceso, con 44 px
+ * de alto en el móvil (se toca con el dedo) y letra de 16 px, para que iOS no amplíe la página
+ * al enfocarlo.
+ */
+const FIELD =
+  'focus-ring h-11 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-base [--focus-ring:var(--focus-ring-brand)] placeholder:text-muted-foreground hover:border-input-pressed focus-visible:border-brand disabled:pointer-events-none disabled:text-muted-foreground sm:h-9 sm:text-sm';
+
+/** Opciones de una pregunta de elegir, con su tipo de control */
+const choices =
+  question.type === 'single' || question.type === 'multiple' ? question.choices : undefined;
+const inputType = question.type === 'multiple' ? 'checkbox' : 'radio';
+
+/** Letras correctas, en el orden de las opciones */
+let correctLetters: string[] = [];
+if (question.type === 'single') correctLetters = [question.answer];
+if (question.type === 'multiple') correctLetters = question.answer;
+const correctChoices = (choices ?? []).filter((choice) =>
+  correctLetters.some((letter) => letter.toLowerCase() === choice.letter.toLowerCase()),
+);
+
+/**
+ * HTML de la segunda columna de una fila de relacionar: la etiqueta de su opción.
+ *
+ * @param right Texto tal cual de la segunda columna.
+ * @returns Su HTML, o el texto si no está entre las opciones.
+ */
+const rightLabel = (right: string) => {
+  if (question.type !== 'match') return right;
+  const index = question.options.indexOf(right);
+  return index < 0 ? right : question.optionLabels[index];
+};
+---
+
+<form
+  class="dash-b flex flex-col gap-4 px-gutter py-6"
+  data-question
+  data-key={JSON.stringify(question.key)}
+  autocomplete="off"
+  novalidate
+>
+  <div class="flex gap-2">
+    <span class="shrink-0 leading-7 text-muted-foreground tabular-nums">{question.number}.</span>
+    <div id={statementId} class="prose prose-notes min-w-0 flex-1" set:html={question.statement} />
+  </div>
+
+  {/* Bloquear la pregunta es desactivar este grupo: todos sus controles a la vez */}
+  <fieldset class="min-w-0" aria-labelledby={statementId} data-question-controls>
+    {choices && (
+      <div class="flex flex-col gap-2">
+        {choices.map((choice) => (
+          <label class="choice flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border border-input px-3 py-2.5">
+            <input type={inputType} name={id} value={choice.letter} class="peer sr-only" />
+            {/* Control dibujado; el real (oculto) recibe el foco y su anillo sale aquí */}
+            <span
+              class:list={[
+                'mt-1 grid size-4 shrink-0 place-items-center border border-input text-primary-foreground transition-[background-color,border-color] peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:shadow-(--focus-ring)',
+                inputType === 'radio' ? 'rounded-full' : 'rounded-xs',
+                '[&>*]:opacity-0 peer-checked:[&>*]:opacity-100',
+              ]}
+              aria-hidden="true"
+            >
+              {inputType === 'radio' ? (
+                <span class="size-1.5 rounded-full bg-primary-foreground" />
+              ) : (
+                <Icon name="check" class="size-3" />
+              )}
+            </span>
+            <span class="shrink-0 text-muted-foreground">{choice.letter})</span>
+            <span class="choice-text prose-notes min-w-0 flex-1" set:html={choice.text} />
+          </label>
+        ))}
+      </div>
+    )}
+
+    {question.type === 'text' && (
+      <div class="flex flex-col gap-2">
+        {question.answers.map((_, index) =>
+          question.answers.length > 1 ? (
+            <label class="flex items-center gap-3">
+              <span
+                class="w-4 shrink-0 text-right text-muted-foreground tabular-nums"
+                aria-hidden="true"
+              >
+                {index + 1}
+              </span>
+              <input
+                type="text"
+                name={`${id}-${index}`}
+                class={FIELD}
+                placeholder="Respuesta"
+                aria-label={`Hueco ${index + 1}`}
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+              />
+            </label>
+          ) : (
+            <input
+              type="text"
+              name={`${id}-${index}`}
+              class={FIELD}
+              placeholder="Respuesta"
+              aria-label="Respuesta"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+            />
+          ),
+        )}
+      </div>
+    )}
+
+    {question.type === 'match' && (
+      <div class="flex flex-col gap-3">
+        {question.pairs.map((pair, index) => (
+          <div class="grid gap-1.5 sm:grid-cols-2 sm:items-center sm:gap-4">
+            <label
+              for={`${id}-${index}`}
+              class="match-left prose-notes min-w-0"
+              set:html={pair.left}
+            />
+            <div class="relative min-w-0">
+              <select
+                id={`${id}-${index}`}
+                name={`${id}-${index}`}
+                class={cn(FIELD, 'appearance-none pr-9')}
+              >
+                <option value="">Elegir</option>
+                {question.options.map((option) => (
+                  <option value={option}>{plainText(option)}</option>
+                ))}
+              </select>
+              <Icon
+                name="chevron-down"
+                class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </fieldset>
+
+  {/* Comprobar y, en su sitio al corregir, el resultado. Los dos los enseña el script */}
+  <div class="flex min-h-11 items-center sm:min-h-8">
+    <Button
+      type="submit"
+      variant="primary"
+      class="h-11 w-full px-3 sm:h-8 sm:w-auto"
+      disabled
+      hidden
+      data-question-check
+    >
+      Comprobar
+    </Button>
+    <p
+      class="flex items-center gap-1.5 text-sm font-medium outline-none"
+      tabindex="-1"
+      hidden
+      data-question-verdict
+    >
+      <span class="flex items-center gap-1.5 text-success" hidden data-verdict="correct">
+        <Icon name="circle-check" class="size-4" /> Correcta
+      </span>
+      <span class="flex items-center gap-1.5 text-destructive" hidden data-verdict="wrong">
+        <Icon name="circle-x" class="size-4" /> Incorrecta
+      </span>
+    </p>
+  </div>
+
+  {/* Lo que se enseña al corregir: la respuesta correcta (si se ha fallado) y la nota (siempre
+      que la haya). Sin nada que enseñar, se queda escondido */}
+  <div
+    class="inset-surface flex flex-col gap-3 px-3 py-2.5"
+    hidden
+    data-question-reveal
+    data-has-note={question.note ? '' : undefined}
+  >
+    <div class="flex flex-col gap-1" hidden data-question-answer>
+      {question.type === 'single' && (
+        <p>
+          <span class="text-muted-foreground">Respuesta:</span>{' '}
+          {correctChoices.map((choice) => (
+            <span class="prose-notes answer-inline">
+              {choice.letter}) <Fragment set:html={choice.text} />
+            </span>
+          ))}
+        </p>
+      )}
+
+      {question.type === 'multiple' && (
+        <Fragment>
+          <p class="text-muted-foreground">Respuesta:</p>
+          <ul class="flex flex-col gap-1">
+            {correctChoices.map((choice) => (
+              <li class="prose-notes answer-inline">
+                {choice.letter}) <Fragment set:html={choice.text} />
+              </li>
+            ))}
+          </ul>
+        </Fragment>
+      )}
+
+      {question.type === 'text' && (
+        <p>
+          <span class="text-muted-foreground">Respuesta:</span>{' '}
+          {question.answers.map(plainText).join(', ')}
+        </p>
+      )}
+
+      {question.type === 'match' && (
+        <Fragment>
+          <p class="text-muted-foreground">Respuesta:</p>
+          <table class="w-full text-left">
+            <tbody>
+              {question.pairs.map((pair) => (
+                <tr class="border-b last:border-b-0">
+                  <td
+                    class="prose-notes answer-inline py-1.5 pr-4 align-top"
+                    set:html={pair.left}
+                  />
+                  <td
+                    class="prose-notes answer-inline py-1.5 align-top"
+                    set:html={rightLabel(pair.right)}
+                  />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Fragment>
+      )}
+    </div>
+
+    {question.note && <div class="prose prose-notes" set:html={question.note} />}
+  </div>
+
+  {/* Aquí va la Ayuda de la pregunta (Task 7): un <details> con el enlace a la teoría */}
+</form>
+
+<style>
+  /* Opción: se sombrea al pasar, y la marcada se queda con el fondo de pulsado, como las
+     asignaturas de la matrícula. Bloqueada (ya corregida), ni se sombrea ni se pulsa, y las no
+     marcadas pasan a gris */
+  .choice {
+    transition: background-color var(--duration-hover) var(--ease-hover);
+  }
+
+  .choice:hover {
+    background-color: var(--color-hover);
+  }
+
+  .choice:active,
+  .choice:has(:checked) {
+    border-color: var(--input-pressed);
+    background-color: var(--color-pressed);
+  }
+
+  .choice:has(:disabled) {
+    cursor: default;
+  }
+
+  .choice:has(:disabled:not(:checked)) {
+    background-color: transparent;
+    color: var(--muted-foreground);
+  }
+
+  /* Textos cortos con el código en línea de los apuntes (prose-notes), pero con el interlineado
+     de la interfaz: prose-notes trae el de la lectura larga */
+  .choice-text,
+  .match-left,
+  .answer-inline {
+    line-height: 1.5;
+  }
+</style>

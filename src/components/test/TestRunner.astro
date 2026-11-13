@@ -1,0 +1,93 @@
+---
+/**
+ * @file El test de un tema en la página: la introducción, el recuento arriba (correctas, falladas
+ * y sin responder), las preguntas en el orden del fichero, agrupadas por su apartado (un <h2> por
+ * apartado), y al final la nota y los botones para repetir las falladas o empezar de nuevo. Lo
+ * mueve scripts/test-runner.ts; nada se guarda entre visitas.
+ *
+ * Sin JavaScript se ven las preguntas, sin corregir: el recuento, Comprobar y el final llegan
+ * escondidos y los enseña el script.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import type { RenderedQuestion, RenderedTest } from '../../lib/tests/types';
+import Badge from '../ui/Badge.astro';
+import Button from '../ui/Button.astro';
+import TestQuestion from './TestQuestion.astro';
+
+interface Props {
+  test: RenderedTest;
+  /** Teoría del tema, para la Ayuda de cada pregunta */
+  helpHref?: string;
+}
+
+const { test, helpHref } = Astro.props;
+
+/** Preguntas seguidas del mismo apartado; las de antes del primer `##` van sin título */
+interface Group {
+  section?: string;
+  questions: RenderedQuestion[];
+}
+
+const groups = test.questions.reduce<Group[]>((result, question) => {
+  const last = result.at(-1);
+  if (last && last.section === question.section) last.questions.push(question);
+  else result.push({ section: question.section, questions: [question] });
+  return result;
+}, []);
+
+const total = test.questions.length;
+---
+
+<div class="pb-8" data-test>
+  {test.intro && <div class="prose prose-notes px-gutter pt-8" set:html={test.intro} />}
+
+  {/* Recuento: lo escribe el script al corregir. Cuenta solo las preguntas de la ronda (al
+      repetir las falladas, solo esas) */}
+  <div
+    id="test-tally"
+    class="flex flex-wrap gap-2 px-gutter pt-8 outline-none"
+    tabindex="-1"
+    hidden
+    data-test-tally
+  >
+    <span class="contents" data-tally="correct">
+      <Badge text="0 correctas" icon="circle-check" iconTone="success" />
+    </span>
+    <span class="contents" data-tally="wrong">
+      <Badge text="0 falladas" icon="circle-x" iconTone="destructive" />
+    </span>
+    <span class="contents" data-tally="pending">
+      <Badge text={`${total} sin responder`} icon="circle-dashed" />
+    </span>
+  </div>
+
+  {groups.map((group) => (
+    <section data-test-section>
+      {group.section && (
+        <h2 class="heading dash-b px-gutter pt-10 pb-3 text-xl text-balance">{group.section}</h2>
+      )}
+      {group.questions.map((question) => (
+        <TestQuestion {question} {helpHref} />
+      ))}
+    </section>
+  ))}
+
+  {/* Final: cuando no queda ninguna sin responder. La nota se anuncia al lector de pantalla */}
+  <div class="flex flex-col gap-4 px-gutter">
+    <p class="heading pt-8 text-2xl empty:pt-0" role="status" data-test-score></p>
+    <div class="flex flex-col gap-2 sm:flex-row" hidden data-test-actions>
+      <Button variant="primary" class="h-11 px-3 sm:h-8" data-test-retry>
+        Repetir solo las falladas
+      </Button>
+      <Button variant="outline" class="h-11 px-3 sm:h-8" data-test-restart>
+        Empezar de nuevo
+      </Button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import '../../scripts/test-runner';
+</script>
