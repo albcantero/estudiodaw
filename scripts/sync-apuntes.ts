@@ -1,0 +1,173 @@
+/**
+ * @file Copia los apuntes publicables de la carpeta del DAW a `src/content/apuntes/`.
+ * Uso: `node scripts/sync-apuntes.ts` (una vez) o con `--watch` (vigila el origen).
+ * El origen es de solo lectura: aquí solo se lee de él.
+ *
+ * @author Alberto Cantero
+ * @license MIT
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { scanSources, walkFiles } from '../src/lib/apuntes/scan.ts';
+
+const DEBOUNCE_MS = 300;
+const MISSING_ENV = 'Falta APUNTES_DIR en .env: la ruta de "2do curso - 2027"';
+
+/** Destino de la sincronización real. */
+export const CONTENT_DIR = fileURLToPath(new URL('../src/content/apuntes', import.meta.url));
+
+/**
+ * Indica si `child` está dentro de `parent` (o es el mismo).
+ *
+ * @param parent Carpeta contenedora.
+ * @param child Ruta a comprobar.
+ * @returns `true` si `child` cuelga de `parent`.
+ */
+function isInside(parent: string, child: string): boolean {
+  const rel = path.relative(path.resolve(parent), path.resolve(child));
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+/**
+ * Borra las carpetas vacías bajo `dir`, de dentro hacia fuera.
+ *
+ * @param dir Carpeta a limpiar.
+ * @param removeSelf Si también se borra `dir` cuando queda vacía.
+ */
+function pruneEmptyDirs(dir: string, removeSelf: boolean): void {
+  if (!fs.existsSync(dir)) return;
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((entry) => {
+    if (entry.isDirectory()) pruneEmptyDirs(path.join(dir, entry.name), true);
+  });
+  if (removeSelf && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
+}
+
+/**
+ * Sincroniza el origen con el destino: copia lo publicable que cambió y borra del destino lo que
+ * ya no está en el origen. Falla, sin tocar nada, si hay ficheros que no encajan.
+ *
+ * @param from Carpeta de origen (solo se lee).
+ * @param to Carpeta de destino (la única donde se escribe y se borra).
+ * @returns Ficheros copiados y borrados.
+ */
+export function syncApuntes(from: string, to: string): { copied: number; removed: number } {
+  if (isInside(from, to) || isInside(to, from)) {
+    throw new Error('El origen y el destino no pueden estar uno dentro del otro');
+  }
+  const { files, problems } = scanSources(from);
+  if (problems.length > 0) {
+    throw new Error(
+      `No se sincroniza; hay que revisar:\n${problems.map((p) => `  ${p}`).join('\n')}`,
+    );
+  }
+
+  // Carpetas con fuentes: sus `img/` hermanas también se copian.
+  const sourceDirs = new Set(files.map((f) => path.posix.dirname(f.relPath)));
+  const wanted = new Set(files.map((f) => f.relPath));
+  const walked = walkFiles(from);
+  const realByRel = new Map(walked.map((w) => [w.rel, w.real]));
+  walked.forEach(({ rel }) => {
+    const parts = rel.split('/');
+    const inImg = parts.some(
+      (part, i) =>
+        i < parts.length - 1 &&
+        part.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase() === 'img' &&
+        sourceDirs.has(parts.slice(0, i).join('/')),
+    );
+    if (inImg) wanted.add(rel);
+  });
+
+  let copied = 0;
+  wanted.forEach((rel) => {
+    const source = path.join(from, realByRel.get(rel) ?? rel);
+    const target = path.join(to, rel);
+    const data = fs.readFileSync(source);
+    if (fs.existsSync(target) && data.equals(fs.readFileSync(target))) return;
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, data);
+    copied += 1;
+  });
+
+  let removed = 0;
+  walkFiles(to).forEach(({ real, rel }) => {
+    if (wanted.has(rel)) return;
+    const target = path.join(to, real);
+    // Red de seguridad: jamás se borra fuera del destino.
+    if (!isInside(to, target) || path.resolve(target) === path.resolve(to)) return;
+    fs.rmSync(target);
+    removed += 1;
+  });
+  pruneEmptyDirs(to, false);
+
+  return { copied, removed };
+}
+
+/**
+ * Sincroniza y escribe el resultado en consola; los errores se muestran, no se lanzan.
+ *
+ * @param from Carpeta de origen.
+ * @param to Carpeta de destino.
+ */
+function syncAndLog(from: string, to: string): void {
+  try {
+    const { copied, removed } = syncApuntes(from, to);
+    if (copied || removed) console.log(`[apuntes] ${copied} copiados, ${removed} borrados`);
+  } catch (error) {
+    console.error(`[apuntes] ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Vigila el origen y sincroniza al cambiar algo, agrupando los eventos.
+ *
+ * @param from Carpeta de origen.
+ * @param to Carpeta de destino.
+ * @returns Función que detiene la vigilancia.
+ */
+export function watchApuntes(from: string, to: string): () => void {
+  let timer: NodeJS.Timeout | undefined;
+  const watcher = fs.watch(from, { recursive: true }, () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => syncAndLog(from, to), DEBOUNCE_MS);
+  });
+  return () => {
+    clearTimeout(timer);
+    watcher.close();
+  };
+}
+
+/**
+ * Carga `.env` de la raíz del repo, si existe.
+ */
+export function loadEnv(): void {
+  const envFile = fileURLToPath(new URL('../.env', import.meta.url));
+  if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
+}
+
+/**
+ * Punto de entrada de la línea de comandos. Sin process.exit para no cortar la salida en Windows.
+ */
+function main(): void {
+  loadEnv();
+  const from = process.env.APUNTES_DIR;
+  if (!from) {
+    console.error(MISSING_ENV);
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    const { copied, removed } = syncApuntes(from, CONTENT_DIR);
+    console.log(`[apuntes] ${copied} copiados, ${removed} borrados`);
+  } catch (error) {
+    console.error((error as Error).message);
+    process.exitCode = 1;
+    return;
+  }
+  if (process.argv.includes('--watch')) {
+    watchApuntes(from, CONTENT_DIR);
+    console.log(`[apuntes] vigilando ${from}`);
+  }
+}
+
+if (import.meta.main) main();

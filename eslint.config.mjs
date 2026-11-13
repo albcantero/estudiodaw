@@ -146,8 +146,16 @@ export default [
       'src/lib/svg.ts',
       'src/lib/build-info.ts',
       'src/**/*.test.ts',
+      'src/lib/apuntes/**/*.ts',
+      'scripts/**/*.ts',
     ],
     languageOptions: { globals: { ...globals.node } },
+  },
+
+  // Scripts de línea de comandos: escribir en consola es su salida
+  {
+    files: ['scripts/**/*.ts'],
+    rules: { 'no-console': 'off' },
   },
 
   prettier,
