@@ -18,11 +18,11 @@ import TestQuestion from './TestQuestion.astro';
 
 interface Props {
   test: RenderedTest;
-  /** Teoría del tema, para la Ayuda de cada pregunta */
-  helpHref?: string;
+  /** Ayuda de cada pregunta (por su número): el título de la teoría y su enlace */
+  help?: Record<number, { href: string; text: string }>;
 }
 
-const { test, helpHref } = Astro.props;
+const { test, help = {} } = Astro.props;
 
 /** Preguntas seguidas del mismo apartado; las de antes del primer `##` van sin título */
 interface Group {
@@ -71,7 +71,7 @@ const total = test.questions.length;
         <h2 class="heading dash-b px-gutter pt-10 pb-3 text-xl text-balance">{group.section}</h2>
       )}
       {group.questions.map((question) => (
-        <TestQuestion {question} {helpHref} />
+        <TestQuestion {question} help={help[question.number]} />
       ))}
     </section>
   ))}
@@ -92,4 +92,5 @@ const total = test.questions.length;
 
 <script>
   import '../../scripts/test-runner';
+  import '../../scripts/test-help';
 </script>

@@ -17,6 +17,7 @@ import { DOC_LABELS } from '../../../data/doc-kinds';
 import Base from '../../../layouts/Base.astro';
 import docPagesScript from '../../../scripts/inline/doc-pages.js?raw';
 import { docsOfTema, temaNumber } from '../../../lib/content';
+import { checkHelp, helpTargets } from '../../../lib/tests/help';
 
 /**
  * Una página por documento: /<asignatura>/<tema>/<tipo>
@@ -62,10 +63,22 @@ const next = siblings[position + 1];
  */
 const docUrl = (kind: string) => `/${subjectId}/${temaSlug}/${kind}`;
 
-/** Teoría del tema, si la tiene: la Ayuda de cada pregunta del test enlaza con ella */
-const helpHref = siblings.some((sibling) => sibling.data.kind === 'teoria')
-  ? docUrl('teoria')
-  : undefined;
+/**
+ * Ayuda de cada pregunta del test: el título de la teoría que cita su `**Apartado:**`. Se
+ * comprueba al construir; un apartado que no existe o que falta tumba el build. Sin apartados en
+ * ninguna pregunta (o sin teoría), el test sale sin Ayuda.
+ */
+const help: Record<number, { href: string; text: string }> = {};
+const theory = siblings.find((sibling) => sibling.data.kind === 'teoria');
+if (test && theory) {
+  const targets = helpTargets((await render(theory)).headings);
+  if (checkHelp(test.questions, targets, doc.id) === 'ok') {
+    test.questions.forEach(({ number, apartado }) => {
+      const target = apartado ? targets.get(apartado) : undefined;
+      if (target) help[number] = { href: `${docUrl('teoria')}#${target.slug}`, text: target.text };
+    });
+  }
+}
 
 const tabs = siblings.map((sibling) => ({
   value: sibling.data.kind,
@@ -138,7 +151,7 @@ const tabs = siblings.map((sibling) => ({
           <p class="lead my-0! text-muted-foreground">{tema.data.description}</p>
         </div>
       )}
-      <TestRunner {test} {helpHref} />
+      <TestRunner {test} {help} />
     </div>
   )}
 

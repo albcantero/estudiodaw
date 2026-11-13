@@ -153,8 +153,12 @@ function setupDocPages(siblings) {
   window.docPager = { show, indexOfId, hashOf, current: () => current, count };
   content.setAttribute('data-paged', '');
   pager.removeAttribute('hidden');
-  const fromHash = indexOfId(decodeURIComponent(window.location.hash.slice(1)));
-  show(fromHash < 0 ? 0 : fromHash);
+  const hashId = decodeURIComponent(window.location.hash.slice(1));
+  const fromHash = indexOfId(hashId);
+  const shown = show(fromHash < 0 ? 0 : fromHash);
+  // Un ancla de dentro de la página (un <h3> o <h4>, por ejemplo el de la Ayuda de un test): el
+  // navegador ya intentó saltar a ella antes de que existiera la página, así que se baja ahora
+  if (fromHash >= 0 && hashId !== hashOf(shown)) document.getElementById(hashId)?.scrollIntoView();
 }
 
 setupDocPages(document.currentScript?.dataset ?? {});

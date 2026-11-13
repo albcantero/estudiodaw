@@ -18,14 +18,11 @@ import Icon from '../ui/Icon.astro';
 
 interface Props {
   question: RenderedQuestion;
-  /**
-   * Teoría del tema, para la Ayuda de cada pregunta (va al final del formulario, antes de
-   * cerrarlo). Aún no se usa.
-   */
-  helpHref?: string;
+  /** Título de la teoría que explica la pregunta y su enlace; sin él, no hay Ayuda */
+  help?: { href: string; text: string };
 }
 
-const { question } = Astro.props;
+const { question, help } = Astro.props;
 
 const id = `q${question.number}`;
 const statementId = `${id}-statement`;
@@ -290,10 +287,36 @@ const rightLabel = (right: string) => {
     {question.note && <div class="prose prose-notes" set:html={question.note} />}
   </div>
 
-  {/* Aquí va la Ayuda de la pregunta (Task 7): un <details> con el enlace a la teoría */}
+  {/* Ayuda: cita el apartado de la teoría, nunca la respuesta. La anima scripts/test-help.ts */}
+  {help && (
+    <details class="help inset-surface" data-help>
+      <summary class="help-summary">Ayuda</summary>
+      <div data-help-body>
+        <p class="px-3 pb-2.5 text-sm text-muted-foreground">
+          Teoría,{' '}
+          <a href={help.href} class="text-foreground underline underline-offset-2 hover:text-brand">
+            {help.text}
+          </a>
+        </p>
+      </div>
+    </details>
+  )}
 </form>
 
 <style>
+  .help-summary {
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    color: var(--muted-foreground);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .help[open] > .help-summary,
+  .help[data-state='closing'] > .help-summary {
+    color: var(--foreground);
+  }
+
   /* Opción: se sombrea al pasar, y la marcada se queda con el fondo de pulsado, como las
      asignaturas de la matrícula. Bloqueada (ya corregida), ni se sombrea ni se pulsa, y las no
      marcadas pasan a gris */
