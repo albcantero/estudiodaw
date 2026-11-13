@@ -8,7 +8,6 @@ import { syllabus } from '../../data/syllabus.ts';
 
 /** Carpeta del módulo en la carpeta de apuntes → id del módulo en la web. */
 export const SUBJECT_FOLDERS: Record<string, string> = {
-  '01 Lenguaje de Marcas': 'lm',
   '04 Desarrollo Web en Entorno Cliente': 'dwec',
   '05 Desarrollo Web en Entorno Servidor': 'dwes',
   '06 Despliegue de Aplicaciones Web': 'dpl',
@@ -61,6 +60,13 @@ const SUBJECT_BY_KEY = new Map(
 );
 
 /**
+ * Carpetas de módulo que no se publican aunque tengan apuntes: el sync las ignora sin fallar.
+ * Lenguaje de Marcas (13 nov. 2026): sus carpetas no siguen la numeración del temario oficial
+ * (su "tema 2 - XSD" es la UD4).
+ */
+const UNPUBLISHED_FOLDERS = new Set(['01 Lenguaje de Marcas'].map(key));
+
+/**
  * Indica si un fichero tiene pinta de ser una fuente publicable. El sync falla si esto es
  * verdadero y `classifySource` devuelve `null`, para no perder apuntes por un nombre mal escrito.
  *
@@ -70,6 +76,7 @@ const SUBJECT_BY_KEY = new Map(
 export function looksPublishable(relPath: string): boolean {
   const parts = normalizePath(relPath).split('/');
   if (parts.length < 3 || key(parts[1]) !== APUNTES_FOLDER) return false;
+  if (UNPUBLISHED_FOLDERS.has(key(parts[0]))) return false;
   const name = key(parts[parts.length - 1]);
   if (!name.endsWith('.md')) return false;
   if (parts.slice(2, -1).some((p) => key(p) === SOLUTIONS_FOLDER)) return false;

@@ -39,9 +39,15 @@ describe('classifySource', () => {
 
   it('tilde mal puesta: TEORIÁ', () => {
     assert.equal(
-      classifySource('01 Lenguaje de Marcas/mis apuntes/tema 1 - XML/TEORIÁ tema 1.md')?.kind,
+      classifySource('08 Diseño de Interfaces Web/mis apuntes/tema 1 - X/TEORIÁ tema 1.md')?.kind,
       'teoria',
     );
+  });
+
+  it('Lenguaje de Marcas no se publica y el sync no lo toma por un error', () => {
+    const p = '01 Lenguaje de Marcas/mis apuntes/tema 1 - XML/TEORIÁ tema 1.md';
+    assert.equal(classifySource(p), null);
+    assert.equal(looksPublishable(p), false);
   });
 
   it('nombre en NFD (Mac) se reconoce y sale en NFC', () => {
