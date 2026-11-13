@@ -159,12 +159,15 @@ function watchTheme(): void {
 
 /**
  * Sustituye los bloques Mermaid de una raíz por sus diagramas. Se puede llamar varias veces
- * sobre la misma raíz: los bloques ya preparados no se duplican.
+ * sobre la misma raíz: un bloque que ya está dentro de su contenedor (data-mermaid-code) se salta,
+ * así que no se envuelve dos veces.
  *
  * @param root Raíz donde buscar los bloques.
  */
 export async function renderDiagrams(root: ParentNode): Promise<void> {
-  const codes = root.querySelectorAll<HTMLElement>(SOURCE_SELECTOR);
+  const codes = [...root.querySelectorAll<HTMLElement>(SOURCE_SELECTOR)].filter(
+    (code) => !code.closest(DIAGRAM_SELECTOR),
+  );
   if (codes.length === 0) return;
   codes.forEach((code) => {
     const pre = code.parentElement as HTMLElement;
