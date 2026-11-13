@@ -274,6 +274,13 @@ const tabs = siblings.map((sibling) => ({
 
 <script>
   import '../../../scripts/doc-pager';
+  import { renderDiagrams } from '../../../scripts/mermaid';
+
+  // Los diagramas se dibujan aunque su página esté oculta por el lector paginado
+  document.addEventListener('astro:page-load', () => {
+    const content = document.getElementById('doc-content');
+    if (content) renderDiagrams(content);
+  });
 </script>
 
 <style>

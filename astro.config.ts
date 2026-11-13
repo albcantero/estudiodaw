@@ -55,6 +55,8 @@ export default defineConfig({
     },
   ],
   markdown: {
+    // Mermaid lo dibuja scripts/mermaid.ts en el navegador; Shiki no debe tocar esos bloques
+    syntaxHighlight: { type: 'shiki', excludeLangs: ['mermaid', 'math'] },
     shikiConfig: {
       themes: { light: 'github-light-default', dark: 'vesper' },
       // En este orden: el segundo busca el <pre> dentro de la <figure> del primero
