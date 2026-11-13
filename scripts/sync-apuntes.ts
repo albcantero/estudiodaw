@@ -131,6 +131,12 @@ export function watchApuntes(from: string, to: string): () => void {
     clearTimeout(timer);
     timer = setTimeout(() => syncAndLog(from, to), DEBOUNCE_MS);
   });
+  // Sin este manejador, un error del vigilante (carpeta renombrada, bloqueada...) tumba el proceso.
+  watcher.on('error', (error) => {
+    console.error(`[apuntes] se deja de vigilar ${from}: ${error.message}`);
+    clearTimeout(timer);
+    watcher.close();
+  });
   return () => {
     clearTimeout(timer);
     watcher.close();
