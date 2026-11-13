@@ -9,6 +9,7 @@ import { describe, it } from 'node:test';
 import {
   classifySource,
   looksPublishable,
+  officialTitle,
   slugify,
   temaTitle,
   titleFromHeading,
@@ -83,6 +84,20 @@ describe('classifySource', () => {
     ];
     paths.forEach((p) => assert.equal(classifySource(p), null));
   });
+
+  it('entre mis apuntes y el fichero cabe como mucho una carpeta de tema', () => {
+    const paths = [
+      '08 Diseño de Interfaces Web/mis apuntes/tema 1 - X/tarea 1/ejercicios.md',
+      '08 Diseño de Interfaces Web/mis apuntes/tema 1 - X/tarea 1/TEST tema 1.md',
+      '08 Diseño de Interfaces Web/mis apuntes/tema 1 - X/tema 1 - Y/TEORÍA tema 1.md',
+      '08 Diseño de Interfaces Web/mis apuntes/borradores/TEORÍA tema 1.md',
+    ];
+    paths.forEach((p) => {
+      assert.equal(classifySource(p), null);
+      // Parecen publicables: el sync avisa en vez de ignorarlos en silencio
+      assert.equal(looksPublishable(p), true);
+    });
+  });
 });
 
 describe('looksPublishable', () => {
@@ -130,6 +145,19 @@ describe('títulos', () => {
       'Planificación de interfaces',
     );
     assert.equal(temaTitle(undefined, '# Unidad 1. Otra cosa'), 'Otra cosa');
+  });
+});
+
+describe('officialTitle', () => {
+  it('el título de la UD del temario para los temas enteros', () => {
+    assert.equal(officialTitle('diw', '1'), 'Planificación de interfaces gráficas');
+  });
+
+  it('sin UD (tema con punto, UD que no está o asignatura sin temario) no hay', () => {
+    assert.equal(officialTitle('diw', '4.5'), undefined);
+    assert.equal(officialTitle('diw', '99'), undefined);
+    assert.equal(officialTitle('diw', '0'), undefined);
+    assert.equal(officialTitle('xyz', '1'), undefined);
   });
 });
 

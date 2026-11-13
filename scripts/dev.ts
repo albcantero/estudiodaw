@@ -14,16 +14,23 @@ loadEnv();
 let stopWatching: (() => void) | undefined;
 const from = process.env.APUNTES_DIR;
 if (from) {
+  // Si el sync falla (origen que no existe, vacío…), Astro arranca igual con la copia del repo y
+  // no se vigila nada: vigilar un origen equivocado solo repetiría el error.
+  let synced = false;
   try {
     const { copied, removed } = syncApuntes(from, CONTENT_DIR);
     console.log(`[apuntes] ${copied} copiados, ${removed} borrados`);
+    synced = true;
   } catch (error) {
     console.error(`[apuntes] ${(error as Error).message}`);
+    console.error('[apuntes] se arranca Astro sin vigilar los apuntes');
   }
-  try {
-    stopWatching = watchApuntes(from, CONTENT_DIR);
-  } catch (error) {
-    console.error(`[apuntes] no se puede vigilar ${from}: ${(error as Error).message}`);
+  if (synced) {
+    try {
+      stopWatching = watchApuntes(from, CONTENT_DIR);
+    } catch (error) {
+      console.error(`[apuntes] no se puede vigilar ${from}: ${(error as Error).message}`);
+    }
   }
 } else {
   console.log('[apuntes] Sin APUNTES_DIR en .env: se arranca solo Astro');

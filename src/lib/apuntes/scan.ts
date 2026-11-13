@@ -10,6 +10,7 @@ import path from 'node:path';
 import {
   classifySource,
   looksPublishable,
+  officialTitle,
   slugify,
   temaTitle,
   unitOf,
@@ -112,8 +113,10 @@ export function scanSources(root: string): ScanResult {
     const folder = group.find((f) => f.temaFolder)?.temaFolder;
     const main = group.find((f) => f.kind === 'teoria') ?? group.find((f) => f.kind === 'test');
     const heading = main ? firstHeading(path.join(root, realByRel.get(main.relPath) ?? '')) : '';
-    const title = temaTitle(folder, heading);
-    const slug = slugify(title);
+    // La URL sale de la carpeta o del encabezado; el título, del temario oficial si lo hay
+    const sourceTitle = temaTitle(folder, heading);
+    const slug = slugify(sourceTitle);
+    const title = officialTitle(subject, temaNumber) ?? sourceTitle;
     const unit = unitOf(temaNumber);
     temas.push({
       id: `${subject}/${slug}`,
@@ -124,6 +127,19 @@ export function scanSources(root: string): ScanResult {
       ...(unit ? { unit } : {}),
       files: group,
     });
+  });
+
+  // Dos temas de la misma asignatura con el mismo slug se pisarían en la URL y en las colecciones
+  const byId = new Map<string, TemaInfo>();
+  temas.forEach((tema) => {
+    const other = byId.get(tema.id);
+    if (other) {
+      problems.push(
+        `Tema repetido en ${tema.subject}: la URL ${tema.id} sale de ${other.files[0].relPath} y de ${tema.files[0].relPath}`,
+      );
+    } else {
+      byId.set(tema.id, tema);
+    }
   });
 
   temas.sort((a, b) => a.subject.localeCompare(b.subject) || a.number - b.number);

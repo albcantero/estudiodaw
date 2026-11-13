@@ -1,6 +1,7 @@
 /**
  * @file Copia los apuntes publicables de la carpeta del DAW a `src/content/apuntes/`.
- * Uso: `node scripts/sync-apuntes.ts` (una vez) o con `--watch` (vigila el origen).
+ * Uso: `node scripts/sync-apuntes.ts` (una vez) o con `--watch` (vigila el origen). Con `--force`,
+ * sincroniza aunque solo vaya a borrar (por ejemplo, al quitar un tema del origen).
  * El origen es de solo lectura: aquí solo se lee de él.
  *
  * @author Alberto Cantero
@@ -45,21 +46,35 @@ function pruneEmptyDirs(dir: string, removeSelf: boolean): void {
 
 /**
  * Sincroniza el origen con el destino: copia lo publicable que cambió y borra del destino lo que
- * ya no está en el origen. Falla, sin tocar nada, si hay ficheros que no encajan.
+ * ya no está en el origen. Falla, sin tocar nada, si hay ficheros que no encajan, si el origen no
+ * existe o no tiene nada publicable, o si iba a borrar sin copiar nada (un origen equivocado
+ * vaciaría la copia del repo); lo último se puede forzar con `force`.
  *
  * @param from Carpeta de origen (solo se lee).
  * @param to Carpeta de destino (la única donde se escribe y se borra).
+ * @param options Opciones.
+ * @param options.force Sincroniza aunque solo vaya a borrar.
  * @returns Ficheros copiados y borrados.
  */
-export function syncApuntes(from: string, to: string): { copied: number; removed: number } {
+export function syncApuntes(
+  from: string,
+  to: string,
+  { force = false }: { force?: boolean } = {},
+): { copied: number; removed: number } {
   if (isInside(from, to) || isInside(to, from)) {
     throw new Error('El origen y el destino no pueden estar uno dentro del otro');
+  }
+  if (!fs.existsSync(from) || !fs.statSync(from).isDirectory()) {
+    throw new Error(`No se sincroniza: no existe la carpeta de origen ${from}`);
   }
   const { files, problems } = scanSources(from);
   if (problems.length > 0) {
     throw new Error(
       `No se sincroniza; hay que revisar:\n${problems.map((p) => `  ${p}`).join('\n')}`,
     );
+  }
+  if (files.length === 0) {
+    throw new Error(`No se sincroniza: no hay ningún apunte publicable en ${from}`);
   }
 
   // Carpetas con fuentes: sus `img/` hermanas también se copian.
@@ -78,29 +93,33 @@ export function syncApuntes(from: string, to: string): { copied: number; removed
     if (inImg) wanted.add(rel);
   });
 
-  let copied = 0;
-  wanted.forEach((rel) => {
-    const source = path.join(from, realByRel.get(rel) ?? rel);
+  // Se decide todo antes de escribir, para poder negarse sin haber tocado el destino
+  const toCopy = [...wanted].flatMap((rel) => {
+    const data = fs.readFileSync(path.join(from, realByRel.get(rel) ?? rel));
     const target = path.join(to, rel);
-    const data = fs.readFileSync(source);
-    if (fs.existsSync(target) && data.equals(fs.readFileSync(target))) return;
+    return fs.existsSync(target) && data.equals(fs.readFileSync(target)) ? [] : [{ target, data }];
+  });
+  const toRemove = walkFiles(to)
+    .filter(({ rel }) => !wanted.has(rel))
+    .map(({ real }) => path.join(to, real))
+    // Red de seguridad: jamás se borra fuera del destino.
+    .filter((target) => isInside(to, target) && path.resolve(target) !== path.resolve(to));
+
+  if (toRemove.length > 0 && toCopy.length === 0 && !force) {
+    throw new Error(
+      `No se sincroniza: se borrarían ${toRemove.length} ficheros sin copiar ninguno. ` +
+        `Revisa que el origen ${from} es el bueno o repite con --force`,
+    );
+  }
+
+  toCopy.forEach(({ target, data }) => {
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, data);
-    copied += 1;
   });
-
-  let removed = 0;
-  walkFiles(to).forEach(({ real, rel }) => {
-    if (wanted.has(rel)) return;
-    const target = path.join(to, real);
-    // Red de seguridad: jamás se borra fuera del destino.
-    if (!isInside(to, target) || path.resolve(target) === path.resolve(to)) return;
-    fs.rmSync(target);
-    removed += 1;
-  });
+  toRemove.forEach((target) => fs.rmSync(target));
   pruneEmptyDirs(to, false);
 
-  return { copied, removed };
+  return { copied: toCopy.length, removed: toRemove.length };
 }
 
 /**
@@ -163,7 +182,9 @@ function main(): void {
     return;
   }
   try {
-    const { copied, removed } = syncApuntes(from, CONTENT_DIR);
+    const { copied, removed } = syncApuntes(from, CONTENT_DIR, {
+      force: process.argv.includes('--force'),
+    });
     console.log(`[apuntes] ${copied} copiados, ${removed} borrados`);
   } catch (error) {
     console.error((error as Error).message);

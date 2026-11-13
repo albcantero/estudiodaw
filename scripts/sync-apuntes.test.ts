@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { scanSources } from '../src/lib/apuntes/scan.ts';
+import { syllabus } from '../src/data/syllabus.ts';
 import { syncApuntes } from './sync-apuntes.ts';
 
 const SUBJECT = '07 Digitalización Aplicada a los Sectores Productivos';
@@ -75,16 +76,83 @@ describe('syncApuntes', () => {
     ]);
   });
 
-  it('borra lo que desaparece del origen', () => {
+  it('borra lo que desaparece del origen si a la vez copia algo', () => {
     put(`${NOTES}/TEORÍA tema 1.md`);
     put(`${NOTES}/TEST tema 1.md`);
     syncApuntes(from, to);
 
     fs.rmSync(path.join(from, NOTES, 'TEST tema 1.md'));
+    put(`${NOTES}/TEORÍA tema 1.md`, '# Tema 1: Digitalización y empresa\n\nNuevo\n');
     const result = syncApuntes(from, to);
 
-    assert.equal(result.removed, 1);
+    assert.deepEqual(result, { copied: 1, removed: 1 });
     assert.deepEqual(list(to), [`${NOTES}/TEORÍA tema 1.md`]);
+  });
+
+  it('solo borrar, sin copiar nada, pide --force', () => {
+    put(`${NOTES}/TEORÍA tema 1.md`);
+    put(`${NOTES}/TEST tema 1.md`);
+    syncApuntes(from, to);
+    fs.rmSync(path.join(from, NOTES, 'TEST tema 1.md'));
+
+    assert.throws(() => syncApuntes(from, to), /se borrarían 1 ficheros sin copiar ninguno/);
+    assert.equal(list(to).length, 2);
+
+    assert.deepEqual(syncApuntes(from, to, { force: true }), { copied: 0, removed: 1 });
+    assert.deepEqual(list(to), [`${NOTES}/TEORÍA tema 1.md`]);
+  });
+
+  it('con un origen que no existe, falla sin tocar el destino', () => {
+    put(`${NOTES}/TEORÍA tema 1.md`);
+    syncApuntes(from, to);
+    const missing = path.join(tmp, 'no-existe');
+
+    assert.throws(
+      () => syncApuntes(missing, to),
+      (e: Error) => e.message.includes(`no existe la carpeta de origen ${missing}`),
+    );
+    assert.deepEqual(list(to), [`${NOTES}/TEORÍA tema 1.md`]);
+  });
+
+  it('con un origen que es un fichero, falla sin tocar el destino', () => {
+    put(`${NOTES}/TEORÍA tema 1.md`);
+    syncApuntes(from, to);
+    const file = path.join(from, NOTES, 'TEORÍA tema 1.md');
+
+    assert.throws(() => syncApuntes(file, to), /no existe la carpeta de origen/);
+    assert.deepEqual(list(to), [`${NOTES}/TEORÍA tema 1.md`]);
+  });
+
+  it('con un origen vacío, falla sin tocar el destino aunque se fuerce', () => {
+    put(`${NOTES}/TEORÍA tema 1.md`);
+    syncApuntes(from, to);
+    const empty = path.join(tmp, 'vacio');
+    fs.mkdirSync(path.join(empty, NOTES), { recursive: true });
+    fs.writeFileSync(path.join(empty, NOTES, 'tarea 1.md'), 'privado');
+
+    [{}, { force: true }].forEach((options) => {
+      assert.throws(
+        () => syncApuntes(empty, to, options),
+        (e: Error) => e.message.includes(`no hay ningún apunte publicable en ${empty}`),
+      );
+    });
+    assert.deepEqual(list(to), [`${NOTES}/TEORÍA tema 1.md`]);
+  });
+
+  it('no publica lo que está más hondo que la carpeta del tema', () => {
+    put(`${NOTES}/tema 1 - Uno/TEORÍA tema 1.md`);
+    put(`${NOTES}/tema 1 - Uno/img/a.png`, 'png');
+    put(`${NOTES}/tema 1 - Uno/tarea 1/ejercicios.md`);
+
+    assert.throws(() => syncApuntes(from, to), /tarea 1\/ejercicios\.md/);
+    assert.equal(fs.existsSync(to), false);
+
+    fs.rmSync(path.join(from, NOTES, 'tema 1 - Uno', 'tarea 1'), { recursive: true });
+    syncApuntes(from, to);
+    assert.deepEqual(list(to), [
+      `${NOTES}/tema 1 - Uno/TEORÍA tema 1.md`,
+      `${NOTES}/tema 1 - Uno/img/a.png`,
+    ]);
   });
 
   it('solo copia lo que cambia', () => {
@@ -145,5 +213,27 @@ describe('scanSources', () => {
     put(`${NOTES}/tema 1 - Uno/ejercicios.md`);
     put(`${NOTES}/tema 1 - Otro/ejercicios.md`);
     assert.equal(scanSources(from).problems.length, 1);
+  });
+
+  it('avisa de dos temas con el mismo slug, con las dos rutas', () => {
+    put(`${NOTES}/tema 1 - Repaso/ejercicios.md`);
+    put(`${NOTES}/tema 2 - Repaso/ejercicios.md`);
+    const { problems } = scanSources(from);
+
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /dasp\/repaso/);
+    assert.ok(problems[0].includes(`${NOTES}/tema 1 - Repaso/ejercicios.md`));
+    assert.ok(problems[0].includes(`${NOTES}/tema 2 - Repaso/ejercicios.md`));
+    assert.throws(() => syncApuntes(from, to), /Tema repetido en dasp/);
+  });
+
+  it('el título sale del temario oficial y la URL de la carpeta', () => {
+    put(`${NOTES}/TEORÍA tema 1.md`, '# Tema 1: Digitalización y empresa\n');
+    put(`${NOTES}/TEST tema 7.md`, '# Test tema 7: Un tema sin UD en el temario\n');
+    const [first, seventh] = scanSources(from).temas;
+
+    assert.equal(first.title, syllabus.dasp[0].title);
+    assert.equal(first.slug, 'digitalizacion-y-empresa');
+    assert.equal(seventh.title, 'Un tema sin UD en el temario');
   });
 });

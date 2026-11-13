@@ -4,6 +4,7 @@
  * @author Alberto Cantero
  * @license MIT
  */
+import { syllabus } from '../../data/syllabus.ts';
 
 /** Carpeta del módulo en la carpeta de apuntes → id del módulo en la web. */
 export const SUBJECT_FOLDERS: Record<string, string> = {
@@ -31,6 +32,7 @@ export interface SourceFile {
 }
 
 const NUM = String.raw`(\d+(?:\.\d+)?)`;
+const TEMA_FOLDER = /^tema (\d+(?:\.\d+)?) - .+$/i;
 const APUNTES_FOLDER = 'mis apuntes';
 const SOLUTIONS_FOLDER = 'mis soluciones';
 
@@ -87,14 +89,14 @@ export function classifySource(relPath: string): SourceFile | null {
   const subject = SUBJECT_BY_KEY.get(key(parts[0]));
   if (!subject) return null;
 
+  // Entre `mis apuntes/` y el fichero cabe como mucho una carpeta `tema N - …`: lo que esté más
+  // hondo (una tarea, mis soluciones…) no se publica nunca.
   const middle = parts.slice(2, -1);
-  if (middle.some((p) => key(p) === SOLUTIONS_FOLDER)) return null;
-
-  const folderMatch = middle
-    .map((p) => ({ name: p, match: /^tema (\d+(?:\.\d+)?) - .+$/i.exec(p) }))
-    .find((f) => f.match);
-  const temaFolder = folderMatch?.name;
-  const folderNumber = folderMatch?.match?.[1];
+  if (middle.length > 1) return null;
+  const folderMatch = middle.length === 1 ? TEMA_FOLDER.exec(middle[0]) : null;
+  if (middle.length === 1 && !folderMatch) return null;
+  const temaFolder = folderMatch ? middle[0] : undefined;
+  const folderNumber = folderMatch?.[1];
 
   const name = key(parts[parts.length - 1]);
   const named = new RegExp(String.raw`^(teoria|test) tema ${NUM}\.md$`).exec(name);
@@ -169,4 +171,18 @@ export function slugify(title: string): string {
  */
 export function unitOf(temaNumber: string): string | undefined {
   return /^\d+$/.test(temaNumber) ? `UD${temaNumber}` : undefined;
+}
+
+/**
+ * Título oficial de un tema: el de su UD en el temario de la asignatura (data/syllabus.ts). Solo
+ * para los temas enteros con su UD cargada; el resto se queda con el de la carpeta o el encabezado.
+ * La URL no sale de aquí: sigue saliendo de la carpeta o el encabezado.
+ *
+ * @param subject Id de la asignatura.
+ * @param temaNumber Número de tema como texto.
+ * @returns El título de la UD, o `undefined` si no hay.
+ */
+export function officialTitle(subject: string, temaNumber: string): string | undefined {
+  if (!unitOf(temaNumber)) return undefined;
+  return syllabus[subject]?.[Number(temaNumber) - 1]?.title;
 }

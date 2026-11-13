@@ -27,7 +27,7 @@ const RELOAD_DEBOUNCE_MS = 200;
  * colecciones entre arranques y builds, y sin esto una entrada cuyo fichero no cambió seguiría con
  * el HTML o los datos de antes. Súbelo al cambiar cómo se renderiza o la forma de los datos.
  */
-const LOADER_VERSION = 2;
+const LOADER_VERSION = 3;
 
 /** `#` del principio del fichero: el título, que la página ya pinta como `<h1>`. */
 const TITLE_LINE = /^\uFEFF?\s*#[ \t]+[^\n]*(?:\n|$)/;
