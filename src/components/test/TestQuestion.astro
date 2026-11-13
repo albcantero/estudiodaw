@@ -15,10 +15,14 @@ import type { RenderedQuestion } from '../../lib/tests/types';
 import { cn } from '../../lib/cn';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
+import NewTabHint from '../ui/NewTabHint.astro';
 
 interface Props {
   question: RenderedQuestion;
-  /** Título de la teoría que explica la pregunta y su enlace; sin él, no hay Ayuda */
+  /**
+   * Título de la teoría que explica la pregunta (o `apartado <n>` si el título delata la
+   * respuesta) y su enlace; sin él, no hay Ayuda
+   */
   help?: { href: string; text: string };
 }
 
@@ -287,15 +291,22 @@ const rightLabel = (right: string) => {
     {question.note && <div class="prose prose-notes" set:html={question.note} />}
   </div>
 
-  {/* Ayuda: cita el apartado de la teoría, nunca la respuesta. La anima scripts/test-help.ts */}
+  {/* Ayuda: cita el apartado de la teoría, nunca la respuesta. Se abre en otra pestaña para no
+      perder el test a medias. La anima scripts/test-help.ts */}
   {help && (
     <details class="help inset-surface" data-help>
       <summary class="help-summary">Ayuda</summary>
       <div data-help-body>
         <p class="px-3 pb-2.5 text-sm text-muted-foreground">
           Teoría,{' '}
-          <a href={help.href} class="text-foreground underline underline-offset-2 hover:text-brand">
+          <a
+            href={help.href}
+            target="_blank"
+            rel="noopener"
+            class="text-foreground underline underline-offset-2 hover:text-brand"
+          >
             {help.text}
+            <NewTabHint />
           </a>
         </p>
       </div>
