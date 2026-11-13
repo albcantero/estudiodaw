@@ -28,7 +28,7 @@ export function helpTargets(
   const targets = new Map<string, HelpTarget>();
   headings.forEach(({ depth, slug, text }) => {
     if (depth < 2 || depth > 4) return;
-    const match = /^(\d+(?:\.\d+)*)\s/.exec(text);
+    const match = /^(\d+(?:\.\d+)*)\.?\s/.exec(text);
     if (match && !targets.has(match[1])) targets.set(match[1], { slug, text });
   });
   return targets;
