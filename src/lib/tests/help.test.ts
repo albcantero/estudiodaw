@@ -125,6 +125,51 @@ describe('helpLabel', () => {
     assert.equal(helpLabel(consistency, '2.2', question), '2.2 Consistencia');
   });
 
+  it('el artículo de la opción no esconde la respuesta (DIW T1, pregunta 3)', () => {
+    const target = {
+      slug: 'conceptuales',
+      text: '1.2 Elementos conceptuales: punto, línea, plano, volumen',
+    };
+    const question: Question = {
+      ...base,
+      type: 'single',
+      choices: [
+        { letter: 'a', text: 'la recta' },
+        { letter: 'c', text: 'la línea' },
+      ],
+      answer: 'c',
+    };
+    assert.equal(helpLabel(target, '1.2', question), 'apartado 1.2');
+  });
+
+  it('los plurales no esconden la respuesta (Sostenibilidad T1, pregunta 23)', () => {
+    const target = {
+      slug: 'asg',
+      text: '3. Aspectos Ambientales, Sociales y de Gobernanza (ASG)',
+    };
+    const question: Question = {
+      ...base,
+      type: 'single',
+      choices: [
+        { letter: 'a', text: 'Ambiental, social y gobernanza' },
+        { letter: 'b', text: 'Económico, legal y técnico' },
+      ],
+      answer: 'a',
+    };
+    assert.equal(helpLabel(target, '3', question), 'apartado 3');
+  });
+
+  it('una opción con palabras que no están todas en el título no delata', () => {
+    const target = { slug: 'asg', text: '3. Aspectos Ambientales, Sociales y de Gobernanza (ASG)' };
+    const question: Question = {
+      ...base,
+      type: 'single',
+      choices: [{ letter: 'a', text: 'Ambiental y económico' }],
+      answer: 'a',
+    };
+    assert.equal(helpLabel(target, '3', question), target.text);
+  });
+
   it('una respuesta escrita en el título delata', () => {
     const question: Question = { ...base, type: 'text', answers: ['`consistencia`'] };
     assert.equal(helpLabel(consistency, '2.2', question), 'apartado 2.2');

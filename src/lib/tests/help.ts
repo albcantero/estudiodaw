@@ -122,6 +122,27 @@ export function answerTexts(question: Question | RenderedQuestion): string[] {
 }
 
 /**
+ * Palabras de cuatro letras o más que no dicen nada de la respuesta (las más cortas ya se
+ * descartan por su longitud: artículos, "de", "y"…).
+ */
+const STOP_WORDS = new Set(['unos', 'unas', 'para', 'como', 'entre', 'sobre', 'desde', 'hasta']);
+
+/**
+ * Raíces de las palabras con contenido de un texto ya normalizado (sin tildes ni mayúsculas): se
+ * quitan las palabras vacías y las de menos de cuatro letras, y de cada palabra el plural y la
+ * vocal de género, para que "ambientales" y "ambiental" o "educativa" y "educativo" coincidan.
+ *
+ * @param text Texto normalizado con normalizeAnswer.
+ * @returns Las raíces, en orden.
+ */
+function contentStems(text: string): string[] {
+  return text
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((word) => word.length >= MIN_CHOICE_LENGTH && !STOP_WORDS.has(word))
+    .map((word) => word.replace(/(?:es|s)$/, '').replace(/[ao]$/, ''));
+}
+
+/**
  * Texto del enlace de la Ayuda: el título de la teoría o, si el título contiene la respuesta
  * correcta, solo `apartado <n>`. El número del título no cuenta: no delata nada.
  *
@@ -136,6 +157,13 @@ export function helpLabel(
   question: Question | RenderedQuestion,
 ): string {
   const heading = normalizeAnswer(target.text.replace(HEADING_NUMBER, ''));
-  const leaks = answerTexts(question).some((answer) => heading.includes(answer));
+  const headingStems = new Set(contentStems(heading));
+  const leaks = answerTexts(question).some((answer) => {
+    if (heading.includes(answer)) return true;
+    // "la línea" frente a "…punto, línea, plano…" o "Ambiental, social y gobernanza" frente a
+    // "Aspectos ambientales, sociales y de gobernanza": artículos y plurales no la esconden
+    const stems = contentStems(answer);
+    return stems.length > 0 && stems.every((stem) => headingStems.has(stem));
+  });
   return leaks ? `apartado ${apartado}` : target.text;
 }
