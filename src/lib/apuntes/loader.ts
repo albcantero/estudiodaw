@@ -22,6 +22,13 @@ import type { SourceFile } from './sources.ts';
 /** Espera tras el último cambio de la carpeta antes de recargar: el sync copia varios a la vez. */
 const RELOAD_DEBOUNCE_MS = 200;
 
+/**
+ * Versión de lo que produce este loader. Entra en el digest de cada entrada: Astro guarda las
+ * colecciones entre arranques y builds, y sin esto una entrada cuyo fichero no cambió seguiría con
+ * el HTML o los datos de antes. Súbelo al cambiar cómo se renderiza o la forma de los datos.
+ */
+const LOADER_VERSION = 1;
+
 /** `#` del principio del fichero: el título, que la página ya pinta como `<h1>`. */
 const TITLE_LINE = /^\uFEFF?\s*#[ \t]+[^\n]*(?:\n|$)/;
 
@@ -279,7 +286,7 @@ async function loadDoc(
   const id = `${tema.id}/${file.kind}`;
   const body = fs.readFileSync(absPath, 'utf8');
   const filePath = path.relative(fileURLToPath(config.root), absPath).replaceAll('\\', '/');
-  const digest = generateDigest({ id, filePath, body });
+  const digest = generateDigest({ version: LOADER_VERSION, id, filePath, body });
 
   // Sin cambios: la entrada guardada conserva su HTML y sus imágenes (assetImports)
   if (store.get(id)?.digest === digest) return id;
@@ -352,7 +359,7 @@ async function syncTemas(context: LoaderContext, absRoot: string): Promise<void>
       const { id, subject, slug, number, title, unit } = tema;
       const raw = { subject, slug, number, title, ...(unit ? { unit } : {}), downloads: [] };
       untouched.delete(id);
-      const digest = generateDigest(raw);
+      const digest = generateDigest({ version: LOADER_VERSION, ...raw });
       if (store.get(id)?.digest === digest) return;
       store.set({ id, data: await parseData({ id, data: raw }), digest });
     }),
