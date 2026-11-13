@@ -48,16 +48,40 @@ function loadMermaid(): Promise<MermaidApi> {
 }
 
 /**
- * Ajusta el SVG al ancho del texto: sin width/height fijos, pero sin pasar de su tamaño natural.
+ * Tamaño natural de un SVG: el de su viewBox o, si no lo tiene, el que Mermaid declara en su
+ * estilo (max-width) y en height; como último recurso, el de su contenido.
  *
  * @param svg SVG recién dibujado.
+ * @returns Ancho y alto naturales, o undefined si no se pueden calcular.
+ */
+function naturalSize(svg: SVGSVGElement): { width: number; height: number } | undefined {
+  const box = (svg.getAttribute('viewBox') ?? '')
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  if (box.length === 4 && box[2] > 0 && box[3] > 0) return { width: box[2], height: box[3] };
+  const width = parseFloat(svg.style.maxWidth) || parseFloat(svg.getAttribute('width') ?? '');
+  const height = parseFloat(svg.getAttribute('height') ?? '');
+  if (width > 0 && height > 0) return { width, height };
+  const content = svg.getBBox();
+  return content.width > 0 && content.height > 0 ? content : undefined;
+}
+
+/**
+ * Ajusta el SVG al ancho del texto: sin width/height fijos, pero sin pasar de su tamaño natural.
+ * Con useMaxWidth de Mermaid el atributo width es "100%", así que el tamaño sale del viewBox.
+ *
+ * @param svg SVG ya insertado en el documento.
  */
 function fitSvg(svg: SVGSVGElement): void {
-  const natural = parseFloat(svg.getAttribute('width') ?? '') || undefined;
-  if (!svg.getAttribute('viewBox')) return;
+  const size = naturalSize(svg);
+  if (!size) return;
+  if (!svg.getAttribute('viewBox')) {
+    svg.setAttribute('viewBox', `0 0 ${size.width} ${size.height}`);
+  }
   svg.removeAttribute('width');
   svg.removeAttribute('height');
-  svg.setAttribute('style', `width:100%;height:auto;${natural ? `max-width:${natural}px` : ''}`);
+  svg.setAttribute('style', `width:100%;height:auto;max-width:${size.width}px`);
 }
 
 /**
@@ -83,9 +107,9 @@ async function drawDiagram(mermaid: MermaidApi, host: HTMLElement): Promise<void
     figure.dataset.mermaidSvg = '';
     figure.className = 'my-6 flex justify-center overflow-x-auto';
     figure.innerHTML = svg;
+    host.append(figure);
     const drawn = figure.querySelector('svg');
     if (drawn) fitSvg(drawn);
-    host.append(figure);
     if (source) source.hidden = true;
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -111,6 +135,7 @@ function drawAll(root: ParentNode): Promise<void> {
     const theme = isDark() ? 'dark' : 'neutral';
     mermaid.initialize({
       startOnLoad: false,
+      suppressErrorRendering: true,
       theme,
       fontFamily: getComputedStyle(document.body).fontFamily,
     });
