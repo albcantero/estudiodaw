@@ -1,6 +1,7 @@
 /**
- * @file Colecciones de contenido: asignaturas, temas y documentos. Astro valida cada fichero con su
- * esquema al compilar; un dato que no encaja para la build con un error claro.
+ * @file Colecciones de contenido: asignaturas, temas y documentos. Astro valida cada entrada con su
+ * esquema al compilar; un dato que no encaja para la build con un error claro. Los temas y los
+ * documentos salen de la copia de los apuntes del DAW (lib/apuntes/loader.ts).
  *
  * @author Alberto Cantero
  * @license MIT
@@ -10,6 +11,11 @@ import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 import { isCourseYear, type CourseYear } from './data/courses';
 import { DOC_KINDS } from './data/doc-kinds';
+import { docsLoader, temasLoader } from './lib/apuntes/loader';
+import type { RenderedTest } from './lib/tests/types';
+
+/** Copia de los apuntes del DAW que llena `npm run sync` */
+const APUNTES_ROOT = 'src/content/apuntes';
 
 /** Asignaturas: un JSON por asignatura (id = nombre del fichero) */
 const subjects = defineCollection({
@@ -28,15 +34,19 @@ const subjects = defineCollection({
   }),
 });
 
-/** Temas: un JSON por tema. Sus documentos se buscan por asignatura y slug */
+/**
+ * Temas: uno por carpeta `tema N - Título` (o por número, en las asignaturas sin carpetas). Sus
+ * documentos se buscan por asignatura y slug
+ */
 const temas = defineCollection({
-  loader: glob({ pattern: '*.json', base: './src/content/temas' }),
+  loader: temasLoader(APUNTES_ROOT),
   schema: z.object({
     subject: z.string(),
     slug: z.string(),
     number: z.number(),
     title: z.string(),
-    description: z.string(),
+    /** Resumen del tema; hoy no se rellena (las fuentes no lo tienen) */
+    description: z.string().optional(),
     /** UD del temario oficial que cubre ("UD1"…) */
     unit: z.string().optional(),
     /** Ficheros de "Mis soluciones" (en public/downloads) */
@@ -44,12 +54,14 @@ const temas = defineCollection({
   }),
 });
 
-/** Documentos: Markdown en docs/<asignatura>/<tema>/<tipo>.md */
+/** Documentos: cada fichero de un tema (id = <asignatura>/<tema>/<tipo>) */
 const docs = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/docs' }),
+  loader: docsLoader(APUNTES_ROOT),
   schema: z.object({
     title: z.string(),
     kind: z.enum(DOC_KINDS),
+    /** Solo en los tests: las preguntas, ya en HTML y con su clave de corrección */
+    test: z.custom<RenderedTest>().optional(),
   }),
 });
 

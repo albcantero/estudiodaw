@@ -1,7 +1,8 @@
 ---
 /**
- * @file Documento de un tema (teoría, ejercicios o soluciones): cabecera con el tema y sus
+ * @file Documento de un tema (teoría, test, ejercicios o soluciones): cabecera con el tema y sus
  * pestañas, el contenido con su índice, el lector paginado (una página por <h2>) y las descargas.
+ * El test no tiene índice ni lector paginado.
  *
  * @author Alberto Cantero
  * @license MIT
@@ -39,8 +40,13 @@ const tema = (await getCollection('temas')).find(
 if (!subject || !tema) throw new Error(`El documento ${doc.id} no tiene asignatura o tema`);
 
 const siblings = docsOfTema(await getCollection('docs'), subjectId, temaSlug);
-const { Content, headings } = await render(doc);
-const toc = headings.filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+// El test no tiene HTML propio: sus preguntas vienen en doc.data.test
+const { test } = doc.data;
+const rendered = test ? undefined : await render(doc);
+const Content = rendered?.Content;
+const toc = (rendered?.headings ?? []).filter(
+  (heading) => heading.depth >= 2 && heading.depth <= 3,
+);
 
 const number = temaNumber(tema.data.number);
 const position = siblings.findIndex((sibling) => sibling.id === doc.id);
@@ -65,7 +71,7 @@ const tabs = siblings.map((sibling) => ({
 
 <Base
   title={`${tema.data.title} · ${doc.data.title}`}
-  description={tema.data.description}
+  description={tema.data.description ?? subject.data.description}
   sidebar={false}
 >
   <div class="dash-b h-px"></div>
@@ -120,7 +126,9 @@ const tabs = siblings.map((sibling) => ({
   </div>
 
   <div class="prose prose-notes min-w-0 px-gutter py-8">
-    <p class="lead mt-0! text-muted-foreground">{tema.data.description}</p>
+    {tema.data.description && (
+      <p class="lead mt-0! text-muted-foreground">{tema.data.description}</p>
+    )}
 
     {toc.length > 0 && (
       <details class="toc not-prose inset-surface mt-5">
@@ -142,61 +150,67 @@ const tabs = siblings.map((sibling) => ({
       </details>
     )}
 
-    <div id="doc-content">
-      <Content />
-    </div>
+    {test ? (
+      <p>Test: {test.questions.length} preguntas</p>
+    ) : (
+      <div id="doc-content">{Content && <Content />}</div>
+    )}
   </div>
 
-  <!-- Lector paginado: lo prepara scripts/inline/doc-pages.js. Sin JavaScript no se muestra y
-       el documento se lee entero. Al llegar al final, enlaza con el documento anterior o
-       siguiente del tema. -->
-  <nav id="doc-pager" class="dash-t" aria-label="Páginas del documento" hidden>
-    <div class="flex items-center gap-3 px-gutter pt-3 pb-2 text-xs text-muted-foreground tabular-nums">
-      <span class="shrink-0">
-        Página <span data-pager-index>1</span> de <span data-pager-count>1</span>
-      </span>
-      <span class="h-1 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <span
-          class="block h-full rounded-full bg-foreground/70 transition-[width] duration-300"
-          data-pager-progress
-        ></span>
-      </span>
-    </div>
-    <div class="hover-group grid grid-cols-2">
-      <Tooltip content="Ir a la página anterior">
-        <button
-          type="button"
-          class="press focus-ring flex min-w-0 flex-col items-start gap-1 p-gutter text-left hover:bg-hover active:bg-pressed"
-          data-pager="prev"
-        >
-          <span class="flex items-center gap-1 text-xs text-muted-foreground">
-            <Icon name="arrow-left" class="size-3.5" /> Anterior
+  {!test && (
+    <Fragment>
+      <!-- Lector paginado: lo prepara scripts/inline/doc-pages.js. Sin JavaScript no se muestra y
+           el documento se lee entero. Al llegar al final, enlaza con el documento anterior o
+           siguiente del tema. -->
+      <nav id="doc-pager" class="dash-t" aria-label="Páginas del documento" hidden>
+        <div class="flex items-center gap-3 px-gutter pt-3 pb-2 text-xs text-muted-foreground tabular-nums">
+          <span class="shrink-0">
+            Página <span data-pager-index>1</span> de <span data-pager-count>1</span>
           </span>
-          <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
-        </button>
-      </Tooltip>
-      <Tooltip content="Ir a la página siguiente">
-        <button
-          type="button"
-          class="press focus-ring flex min-w-0 flex-col items-end gap-1 border-l p-gutter text-right hover:bg-hover active:bg-pressed"
-          data-pager="next"
-        >
-          <span class="flex items-center gap-1 text-xs text-muted-foreground">
-            Siguiente <Icon name="arrow-right" class="size-3.5" />
+          <span class="h-1 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+            <span
+              class="block h-full rounded-full bg-foreground/70 transition-[width] duration-300"
+              data-pager-progress
+            ></span>
           </span>
-          <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
-        </button>
-      </Tooltip>
-    </div>
-  </nav>
-  <script
-    is:inline
-    data-prev-doc={prev ? docUrl(prev.data.kind) : undefined}
-    data-prev-doc-label={prev ? DOC_LABELS[prev.data.kind] : undefined}
-    data-next-doc={next ? docUrl(next.data.kind) : undefined}
-    data-next-doc-label={next ? DOC_LABELS[next.data.kind] : undefined}
-    set:html={docPagesScript}
-  />
+        </div>
+        <div class="hover-group grid grid-cols-2">
+          <Tooltip content="Ir a la página anterior">
+            <button
+              type="button"
+              class="press focus-ring flex min-w-0 flex-col items-start gap-1 p-gutter text-left hover:bg-hover active:bg-pressed"
+              data-pager="prev"
+            >
+              <span class="flex items-center gap-1 text-xs text-muted-foreground">
+                <Icon name="arrow-left" class="size-3.5" /> Anterior
+              </span>
+              <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
+            </button>
+          </Tooltip>
+          <Tooltip content="Ir a la página siguiente">
+            <button
+              type="button"
+              class="press focus-ring flex min-w-0 flex-col items-end gap-1 border-l p-gutter text-right hover:bg-hover active:bg-pressed"
+              data-pager="next"
+            >
+              <span class="flex items-center gap-1 text-xs text-muted-foreground">
+                Siguiente <Icon name="arrow-right" class="size-3.5" />
+              </span>
+              <span class="heading line-clamp-2 text-lg leading-snug" data-pager-title></span>
+            </button>
+          </Tooltip>
+        </div>
+      </nav>
+      <script
+        is:inline
+        data-prev-doc={prev ? docUrl(prev.data.kind) : undefined}
+        data-prev-doc-label={prev ? DOC_LABELS[prev.data.kind] : undefined}
+        data-next-doc={next ? docUrl(next.data.kind) : undefined}
+        data-next-doc-label={next ? DOC_LABELS[next.data.kind] : undefined}
+        set:html={docPagesScript}
+      />
+    </Fragment>
+  )}
   <div class="dash-t dash-b p-gutter">
     <p class="mb-3 text-sm font-medium tracking-wider text-muted-foreground">Descargas</p>
     <div class="flex flex-wrap gap-2">

@@ -60,7 +60,7 @@ export async function getTemaCounts(): Promise<Map<string, number>> {
 }
 
 /**
- * Documentos de un tema, en orden de lectura (teoría, ejercicios, soluciones).
+ * Documentos de un tema, en orden de lectura (teoría, test, ejercicios, soluciones).
  *
  * @param docs Todos los documentos (colección docs).
  * @param subject Id de la asignatura.

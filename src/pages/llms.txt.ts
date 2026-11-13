@@ -16,7 +16,8 @@ import { docsOfTema, getSubjects, temaNumber, type Doc, type Tema } from '../lib
 
 /**
  * Línea de la lista de un documento: "- [Tema 01. Título (teoría)](url): descripción". La
- * descripción del tema va solo en la teoría, para no repetirla en cada documento.
+ * descripción del tema va solo en la teoría, para no repetirla en cada documento, y solo si el
+ * tema la tiene.
  *
  * @param tema Tema.
  * @param doc Documento.
@@ -26,7 +27,8 @@ import { docsOfTema, getSubjects, temaNumber, type Doc, type Tema } from '../lib
 function docLine(tema: Tema, doc: Doc, site: URL): string {
   const name = `Tema ${temaNumber(tema.data.number)}. ${tema.data.title} (${doc.data.title.toLowerCase()})`;
   const url = new URL(`${doc.id}.md`, site);
-  const note = doc.data.kind === 'teoria' ? `: ${tema.data.description}` : '';
+  const note =
+    doc.data.kind === 'teoria' && tema.data.description ? `: ${tema.data.description}` : '';
   return `- [${name}](${url})${note}`;
 }
 
@@ -60,7 +62,7 @@ export const GET: APIRoute = async ({ site }) => {
     '',
     `> ${SITE_DESCRIPTION} Para el ciclo de FP de grado superior Desarrollo de Aplicaciones Web (DAW), escritos por un alumno mientras estudia. No es una web oficial.`,
     '',
-    `Cada tema tiene teoría, ejercicios y soluciones, y todos están en Markdown en los enlaces de abajo. Los apuntes tienen licencia ${CONTENT_LICENSE.name} (${CONTENT_LICENSE.url}).`,
+    `Cada tema tiene teoría y, según el tema, test, ejercicios y soluciones; todos están en Markdown en los enlaces de abajo. Los apuntes tienen licencia ${CONTENT_LICENSE.name} (${CONTENT_LICENSE.url}).`,
     '',
     '## Páginas',
     '',

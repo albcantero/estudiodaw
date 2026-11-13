@@ -1,6 +1,6 @@
 /**
- * @file Descarga en Markdown de cada documento (/<asignatura>/<tema>/<tipo>.md): el texto original,
- * con el título del tema y del documento como encabezado.
+ * @file Descarga en Markdown de cada documento (/<asignatura>/<tema>/<tipo>.md): el fichero de
+ * origen tal cual, sin añadirle nada.
  *
  * @author Alberto Cantero
  * @license MIT
@@ -15,20 +15,9 @@ import { getCollection } from 'astro:content';
  */
 export async function getStaticPaths() {
   const docs = await getCollection('docs');
-  const temas = await getCollection('temas');
-
   return docs.map((doc) => {
     const [subject, tema, kind] = doc.id.split('/');
-    const temaEntry = temas.find(
-      (entry) => entry.data.subject === subject && entry.data.slug === tema,
-    );
-    const heading = temaEntry
-      ? `${temaEntry.data.title}: ${doc.data.title.toLowerCase()}`
-      : doc.data.title;
-    return {
-      params: { subject, tema, doc: kind },
-      props: { markdown: `# ${heading}\n\n${doc.body ?? ''}` },
-    };
+    return { params: { subject, tema, doc: kind }, props: { markdown: doc.body ?? '' } };
   });
 }
 

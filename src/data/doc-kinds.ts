@@ -7,13 +7,14 @@
  * @author Alberto Cantero
  * @license MIT
  */
-export const DOC_KINDS = ['teoria', 'ejercicios', 'soluciones'] as const;
+export const DOC_KINDS = ['teoria', 'test', 'ejercicios', 'soluciones'] as const;
 
 export type DocKind = (typeof DOC_KINDS)[number];
 
 /** Nombre de cada tipo de documento en la interfaz */
 export const DOC_LABELS: Record<DocKind, string> = {
   teoria: 'Teoría',
+  test: 'Test',
   ejercicios: 'Ejercicios',
   soluciones: 'Soluciones',
 };
